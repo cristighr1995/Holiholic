@@ -36,7 +36,7 @@ public class TopicsManager {
         try {
             String md5Key = jsonObject.getString("md5Key");
             JSONArray followedTopics = jsonObject.getJSONArray("followedTopics");
-            LOGGER.log(Level.FINE, "New request from [0] to follow [1] topics", new Object[]{md5Key,
+            LOGGER.log(Level.FINE, "New request from {0} to follow {1} topics", new Object[]{md5Key,
                                                                                 followedTopics.toString()});
             return DatabaseManager.updateTopics(md5Key, followedTopics);
         } catch (Exception e) {
