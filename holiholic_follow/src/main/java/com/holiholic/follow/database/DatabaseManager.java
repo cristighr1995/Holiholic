@@ -60,12 +60,14 @@ public class DatabaseManager {
      *  @return                 : true/false (success or not)
      *  @md5KeyFrom             : the md5Key for the current user
      *  @md5KeyTo               : the md5Key for the followed user
+     *  @operation              : follow/unfollow
      */
-    public static boolean updatePeople(String md5KeyFrom, String md5KeyTo) {
+    public static boolean updatePeople(String md5KeyFrom, String md5KeyTo, String operation) {
         try {
             JSONObject followGraphEdge = new JSONObject();
             followGraphEdge.put("md5KeyFrom", md5KeyFrom);
             followGraphEdge.put("md5KeyTo", md5KeyTo);
+            followGraphEdge.put("operation", operation);
 
             StringEntity entity = new StringEntity(followGraphEdge.toString(2),
                                                    ContentType.APPLICATION_JSON);

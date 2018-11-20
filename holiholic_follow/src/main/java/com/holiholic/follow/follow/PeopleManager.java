@@ -27,18 +27,21 @@ public class PeopleManager {
         LOGGER.setLevel(Level.ALL);
     }
 
-    /* updatePeople - This method adds new followers to the current user
+    /* updatePeople - This method adds new followers to the current user or deletes followers
      *
      * @return              : true and false only when encountered an error
+     * @request             : the body for the request
+     * @follow              : add or remove link between the two users
      */
-    public static boolean updatePeople(JSONObject jsonObject) {
+    public static boolean updatePeople(JSONObject request, boolean follow) {
         try {
-            String md5Key = jsonObject.getString("md5Key");
-            String followersMd5Key = jsonObject.getString("followersMd5Key");
+            String md5KeyFrom = request.getString("md5KeyFrom");
+            String md5KeyTo = request.getString("md5KeyTo");
+            String operation = follow ? "follow" : "unfollow";
 
-            LOGGER.log(Level.FINE, "New request from [0] to follow [1]", new Object[]{md5Key, followersMd5Key});
+            LOGGER.log(Level.FINE, "New request from {0} to {1} {2}", new Object[]{md5KeyFrom, md5KeyTo});
 
-            return DatabaseManager.updatePeople(md5Key, followersMd5Key);
+            return DatabaseManager.updatePeople(md5KeyFrom, md5KeyTo, operation);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

@@ -17,10 +17,11 @@ public class PeopleController {
 
     @RequestMapping(value = "/updatePeople", headers="Content-Type=application/json", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Boolean> updatePeople(@RequestBody String request)  {
+    public ResponseEntity<Boolean> updatePeople(@RequestParam boolean follow,
+                                                @RequestBody String request)  {
         boolean updateResult;
         try {
-            updateResult = PeopleManager.updatePeople(new JSONObject(request));
+            updateResult = PeopleManager.updatePeople(new JSONObject(request), follow);
         } catch (Exception e) {
             e.printStackTrace();
             updateResult = false;

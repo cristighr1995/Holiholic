@@ -7,20 +7,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-public class TopicsController {
+public class PeopleController {
 
-    @RequestMapping(value = "/getTopics", method = RequestMethod.GET)
+    @RequestMapping(value = "/getPeople", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getTopics(@RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getTopics(md5Key), HttpStatus.OK);
+    public ResponseEntity<String> getPeople(@RequestParam String md5Key)  {
+        return new ResponseEntity<>(DatabaseManager.getPeople(md5Key), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/updateTopics", headers="Content-Type=application/json", method = RequestMethod.POST)
+    @RequestMapping(value = "/updatePeople", headers="Content-Type=application/json", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Boolean> updateTopics(@RequestBody String request) {
+    public ResponseEntity<Boolean> updatePeople(@RequestBody String request) {
         boolean result;
         try {
-            result = DatabaseManager.updateTopics(new JSONObject(request));
+            result = DatabaseManager.updatePeople(new JSONObject(request));
         } catch (Exception e) {
             e.printStackTrace();
             result = false;
