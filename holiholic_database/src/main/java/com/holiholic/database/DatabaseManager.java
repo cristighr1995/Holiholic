@@ -47,19 +47,19 @@ public class DatabaseManager {
         }
     }
 
-    /* createRecord - Create a new record for the current user to be stored in the database
+    /* createProfile - Create a new profile for the current user to be stored in the database
      *
-     *  @return             : record (json format)
+     *  @return             : profile (json format)
      *  @request            : user information
      *  @id                 : the id (unique) for the current user
      */
-    private static JSONObject createRecord(JSONObject request, int id) {
-        JSONObject record = new JSONObject();
-        record.put("name", request.getString("name"));
-        record.put("email", request.getString("email"));
-        record.put("imageUrl", request.getString("imageUrl"));
-        record.put("id", id);
-        return record;
+    private static JSONObject createProfile(JSONObject request, int id) {
+        JSONObject profile = new JSONObject();
+        profile.put("name", request.getString("name"));
+        profile.put("email", request.getString("email"));
+        profile.put("imageUrl", request.getString("imageUrl"));
+        profile.put("id", id);
+        return profile;
     }
 
     /* updateUsers - Save the users in the database
@@ -93,7 +93,7 @@ public class DatabaseManager {
                 if (users == null) {
                     return false;
                 }
-                users.put(request.getString("md5Key"), createRecord(request, users.length()));
+                users.put(request.getString("md5Key"), createProfile(request, users.length()));
                 if (!updateUsers(users)) {
                     return false;
                 }
