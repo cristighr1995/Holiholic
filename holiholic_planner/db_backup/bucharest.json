@@ -1,0 +1,2634 @@
+[
+  {
+    "duration": 70,
+    "parkTime": 240,
+    "wantToGo": 57,
+    "imageUrl": "https://images.adsttc.com/media/images/59f7/0d01/b22e/3853/b800/01d4/slideshow/7557753382_b83074b98c_o.jpg?1509362923",
+    "latitude": 44.4275035,
+    "name": "Palace of the Parliament",
+    "rating": 4.3,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1600",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 1
+        },
+        "open": {
+          "time": "1000",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 0,
+    "checkIns": 278,
+    "longitude": 26.087350600000036,
+    "tags": [
+      "architecture",
+      "local",
+      "government"
+    ]
+  },
+  {
+    "duration": 95,
+    "parkTime": 120,
+    "wantToGo": 3,
+    "imageUrl": "https://www.pure-romania.com/wp-content/uploads/2015/07/Dimitrie-Gusti-National-Village-Museum-5.jpg",
+    "latitude": 44.4723586,
+    "name": "Dimitrie Gusti National Village Museum",
+    "rating": 4.7,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1900",
+          "day": 0
+        },
+        "open": {
+          "time": "0900",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 2
+        },
+        "open": {
+          "time": "0900",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 6
+        },
+        "open": {
+          "time": "0900",
+          "day": 6
+        }
+      }
+    ],
+    "id": 1,
+    "checkIns": 1,
+    "longitude": 26.076585199999954,
+    "tags": [
+      "local",
+      "exploratory",
+      "museum",
+      "specialty"
+    ]
+  },
+  {
+    "duration": 80,
+    "parkTime": 240,
+    "wantToGo": 115,
+    "imageUrl": "http://www.museumwnf.org/images/full/museums/rm/31/1.jpg",
+    "latitude": 44.43936679999999,
+    "name": "National Museum of Art of Romania",
+    "rating": 4.6,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1800",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 2,
+    "checkIns": 209,
+    "longitude": 26.09587399999998,
+    "tags": [
+      "art",
+      "museum"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 420,
+    "wantToGo": 107,
+    "imageUrl": "http://www.buchareststag.com/sites/default/files/imagecache/Image-prev/node-images/romanian-arch-of-triumph-in-central-bucharest.jpg",
+    "latitude": 44.4676794,
+    "name": "Triumph Arch",
+    "rating": 4.6,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 3,
+    "checkIns": 234,
+    "longitude": 26.078363299999978,
+    "tags": [
+      "architecture",
+      "exploratory",
+      "point of interest",
+      "monument"
+    ]
+  },
+  {
+    "parkTime": 120,
+    "latitude": 44.47020149999999,
+    "rating": 4.6,
+    "tags": [
+      "nature",
+      "park"
+    ],
+    "duration": 130,
+    "wantToGo": 107,
+    "imageUrl": "http://visitorcenter.ro/wp-content/uploads/2017/03/Romania-Bucharest-Herastrau-Park-L.jpg",
+    "name": "Herastrau Park",
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "duration_queue": 0,
+    "id": 4,
+    "checkIns": 237,
+    "longitude": 26.082752700000015
+  },
+  {
+    "parkTime": 180,
+    "latitude": 44.4002209,
+    "rating": 4.4,
+    "tags": [
+      "nature",
+      "park"
+    ],
+    "duration": 90,
+    "wantToGo": 0,
+    "imageUrl": "http://photos.wikimapia.org/p/00/01/02/97/81_big.jpg",
+    "name": "Tineretului Park",
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "duration_queue": 0,
+    "id": 5,
+    "checkIns": 0,
+    "longitude": 26.108252300000004
+  },
+  {
+    "parkTime": 240,
+    "latitude": 44.4544198,
+    "rating": 4.3,
+    "tags": [
+      "museum",
+      "history"
+    ],
+    "duration": 90,
+    "wantToGo": 0,
+    "imageUrl": "http://www.hansdewaele.com/web/newsflash/kispeas.jpg",
+    "name": "Romanian Peasant Museum",
+    "openingHours": [
+      {
+        "close": {
+          "time": "1700",
+          "day": 0
+        },
+        "open": {
+          "time": "0900",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 2
+        },
+        "open": {
+          "time": "0900",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 6
+        },
+        "open": {
+          "time": "0900",
+          "day": 6
+        }
+      }
+    ],
+    "duration_queue": 10,
+    "id": 6,
+    "checkIns": 0,
+    "longitude": 26.083600199999978
+  },
+  {
+    "duration": 139,
+    "parkTime": 300,
+    "wantToGo": 119,
+    "imageUrl": "https://static.thousandwonders.net/Grigore.Antipa.National.Museum.of.Natural.History.original.8167.jpg",
+    "latitude": 44.4531131,
+    "name": "Grigore Antipa National Museum of Natural History",
+    "rating": 4.8,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2000",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 7,
+    "checkIns": 251,
+    "longitude": 26.084638199999972,
+    "tags": [
+      "museum",
+      "science",
+      "local",
+      "nature",
+      "history"
+    ]
+  },
+  {
+    "duration": 140,
+    "parkTime": 180,
+    "wantToGo": 0,
+    "imageUrl": "http://www.b365.ro/media/image/201301/w620/5077d5638153f1253744036_74757600.jpg",
+    "latitude": 44.5172694,
+    "name": "Zoo Baneasa",
+    "rating": 3.6,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1900",
+          "day": 0
+        },
+        "open": {
+          "time": "0900",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 1
+        },
+        "open": {
+          "time": "0900",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 2
+        },
+        "open": {
+          "time": "0900",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 6
+        },
+        "open": {
+          "time": "0900",
+          "day": 6
+        }
+      }
+    ],
+    "id": 8,
+    "checkIns": 0,
+    "longitude": 26.104489899999976,
+    "tags": [
+      "zoo",
+      "nature"
+    ]
+  },
+  {
+    "duration": 95,
+    "parkTime": 180,
+    "wantToGo": 1,
+    "imageUrl": "https://unknownbucharestdotcom.files.wordpress.com/2013/04/canons-outside-the-romanian-military-museum-bucharest.jpg",
+    "latitude": 44.4407516,
+    "name": "National Military Museum",
+    "rating": 4.6,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1700",
+          "day": 0
+        },
+        "open": {
+          "time": "0900",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 6
+        },
+        "open": {
+          "time": "0900",
+          "day": 6
+        }
+      }
+    ],
+    "id": 9,
+    "checkIns": 0,
+    "longitude": 26.07659799999999,
+    "tags": [
+      "museum",
+      "local",
+      "specialty"
+    ]
+  },
+  {
+    "duration": 100,
+    "parkTime": 300,
+    "wantToGo": 29,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Museo_Nacional_de_Historia_de_Ruman%C3%ADa%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_63.jpg/1200px-Museo_Nacional_de_Historia_de_Ruman%C3%ADa%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_63.jpg",
+    "latitude": 44.431447,
+    "name": "National Museum of Romanian History",
+    "rating": 4.1,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1800",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 10,
+    "checkIns": 70,
+    "longitude": 26.09745380000004,
+    "tags": [
+      "museum",
+      "history",
+      "architecture"
+    ]
+  },
+  {
+    "duration": 55,
+    "parkTime": 240,
+    "wantToGo": 107,
+    "imageUrl": "http://www.bucharestcityinfo.com/wp-content/uploads/2016/10/bucharestcityinfo.com-The-Zambaccian-Museum.jpg",
+    "latitude": 44.4607871,
+    "name": "Zambaccian Museum",
+    "rating": 4.7,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1800",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 11,
+    "checkIns": 172,
+    "longitude": 26.09127239999998,
+    "tags": [
+      "museum",
+      "art",
+      "local",
+      "specialty"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 240,
+    "wantToGo": 57,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Bucuresti_palatitudeul_parlamentului_view.jpg/1200px-Bucuresti_palatitudeul_parlamentului_view.jpg",
+    "latitude": 44.4273816,
+    "name": "Constitution Square",
+    "rating": 3.8,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 12,
+    "checkIns": 113,
+    "longitude": 26.09239249999996,
+    "tags": [
+      "point of interest",
+      "exploratory",
+      "landmark"
+    ]
+  },
+  {
+    "parkTime": 900,
+    "latitude": 44.4318033,
+    "rating": 4.7,
+    "tags": [
+      "church",
+      "local",
+      "architecture"
+    ],
+    "duration": 30,
+    "wantToGo": 135,
+    "imageUrl": "https://bestofromania.eu/wp-content/uploads/2012/09/poze-048-1024x768.jpg",
+    "name": "Stavropoleos Monastery",
+    "openingHours": [
+      {
+        "close": {
+          "time": "1800",
+          "day": 0
+        },
+        "open": {
+          "time": "0830",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 1
+        },
+        "open": {
+          "time": "0830",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 2
+        },
+        "open": {
+          "time": "0830",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 3
+        },
+        "open": {
+          "time": "0830",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 4
+        },
+        "open": {
+          "time": "0830",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 5
+        },
+        "open": {
+          "time": "0830",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 6
+        },
+        "open": {
+          "time": "0830",
+          "day": 6
+        }
+      }
+    ],
+    "duration_queue": 0,
+    "id": 13,
+    "checkIns": 266,
+    "longitude": 26.098870000000034
+  },
+  {
+    "duration": 130,
+    "parkTime": 300,
+    "wantToGo": 3,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/RO_IF_Mogosoaia_Palace_Kitchen_Watch_Tower.jpg",
+    "latitude": 44.5276502,
+    "name": "Mogoșoaia Palace",
+    "rating": 4.6,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1800",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 14,
+    "checkIns": 5,
+    "longitude": 25.992642199999977,
+    "tags": [
+      "point of interest",
+      "nature",
+      "history",
+      "architecture",
+      "local"
+    ]
+  },
+  {
+    "duration": 150,
+    "parkTime": 240,
+    "wantToGo": 1,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/36/Lac_titan_Parcul_Titan_IOR_Alexandru_Ioan_Cuza_Bucuresti.JPG",
+    "latitude": 44.4255117,
+    "name": "Alexandru Ioan Cuza Park",
+    "rating": 4.6,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 15,
+    "checkIns": 0,
+    "longitude": 26.15353319999997,
+    "tags": [
+      "park",
+      "nature"
+    ]
+  },
+  {
+    "duration": 30,
+    "parkTime": 480,
+    "wantToGo": 134,
+    "imageUrl": "https://www.hoteleos.ro/wp-content/uploads/2017/03/viziteaza-calea-victoriei.jpg",
+    "latitude": 44.4465865,
+    "name": "Victoriei Street",
+    "rating": 4,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 16,
+    "checkIns": 308,
+    "longitude": 26.089629899999977,
+    "tags": [
+      "point of interest",
+      "exploratory",
+      "fun",
+      "local",
+      "landmark"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 240,
+    "wantToGo": 76,
+    "imageUrl": "http://www.viajes-rumania.com/turismo_rumania/fotos_bucarest/bucarest_plaza_revolucion.JPG",
+    "latitude": 44.4392584,
+    "name": "Revolution Square",
+    "rating": 4,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 17,
+    "checkIns": 171,
+    "longitude": 26.09747349999998,
+    "tags": [
+      "point of interest",
+      "history",
+      "exploratory"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 480,
+    "wantToGo": 132,
+    "imageUrl": "https://www.likealocalguide.com/media/cache/8d/c9/8dc9a0d875c497aff424c44fcef6efd6.jpg",
+    "latitude": 44.433099,
+    "name": "Macca Villacrosse Passage",
+    "rating": 4.5,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 18,
+    "checkIns": 304,
+    "longitude": 26.098726899999974,
+    "tags": [
+      "point of interest",
+      "exploratory",
+      "fun",
+      "local",
+      "landmark"
+    ]
+  },
+  {
+    "duration": 60,
+    "parkTime": 180,
+    "wantToGo": 0,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Bucharest_-_Antim_Monastery_%2828922720006%29.jpg",
+    "latitude": 44.4261417,
+    "name": "Antim Monastery",
+    "rating": 4.5,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 19,
+    "checkIns": 0,
+    "longitude": 26.093835799999965,
+    "tags": [
+      "church",
+      "architecture"
+    ]
+  },
+  {
+    "duration": 5,
+    "parkTime": 600,
+    "wantToGo": 1,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/RO_B_St_George_church_km_0.jpg/1200px-RO_B_St_George_church_km_0.jpg",
+    "latitude": 44.4327025,
+    "name": "Kilometre Zero Monument",
+    "rating": 3.5,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 20,
+    "checkIns": 3,
+    "longitude": 26.104049400000008,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "monument"
+    ]
+  },
+  {
+    "duration": 15,
+    "parkTime": 240,
+    "wantToGo": 114,
+    "imageUrl": "http://www.justabouttravel.net/wp-content/uploads/2017/06/security-building.jpg",
+    "latitude": 44.439346,
+    "name": "The Union of Romanian Architects",
+    "rating": 4,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 21,
+    "checkIns": 254,
+    "longitude": 26.098287000000028,
+    "tags": [
+      "point of interest",
+      "architecture"
+    ]
+  },
+  {
+    "duration": 45,
+    "parkTime": 420,
+    "wantToGo": 0,
+    "imageUrl": "https://travelmakertours.com/wp-content/uploads/2018/01/bucharest-city-guide.jpeg",
+    "latitude": 44.4809135,
+    "name": "House of the Free Press",
+    "rating": 4,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1800",
+          "day": 1
+        },
+        "open": {
+          "time": "0900",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 2
+        },
+        "open": {
+          "time": "0900",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      }
+    ],
+    "id": 22,
+    "checkIns": 0,
+    "longitude": 26.071249800000032,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "local",
+      "exploratory"
+    ]
+  },
+  {
+    "duration": 20,
+    "parkTime": 120,
+    "wantToGo": 0,
+    "imageUrl": "http://www.palatitudeulbragadiru.ro/bg/primapagina/4.jpg",
+    "latitude": 44.4215037,
+    "name": "Bragadiru palace",
+    "rating": 4,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 23,
+    "checkIns": 0,
+    "longitude": 26.087161299999934,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "fun"
+    ]
+  },
+  {
+    "duration": 30,
+    "parkTime": 300,
+    "wantToGo": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/RO_B_Radu_Voda_church.jpg/1200px-RO_B_Radu_Voda_church.jpg",
+    "latitude": 44.4239382,
+    "name": "Radu Voda Monastery",
+    "rating": 4.7,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2000",
+          "day": 0
+        },
+        "open": {
+          "time": "0800",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 1
+        },
+        "open": {
+          "time": "0800",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 2
+        },
+        "open": {
+          "time": "0800",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 3
+        },
+        "open": {
+          "time": "0800",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 4
+        },
+        "open": {
+          "time": "0800",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 5
+        },
+        "open": {
+          "time": "0800",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "0800",
+          "day": 6
+        }
+      }
+    ],
+    "id": 24,
+    "checkIns": 0,
+    "longitude": 26.10760700000003,
+    "tags": [
+      "church",
+      "architecture"
+    ]
+  },
+  {
+    "duration": 20,
+    "parkTime": 420,
+    "wantToGo": 0,
+    "imageUrl": "https://i.pinimg.com/originals/77/4c/cf/774ccf2f4a85323c1fa5b6209df330c5.jpg",
+    "latitude": 44.4676237,
+    "name": "Casin Church",
+    "rating": 4,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2000",
+          "day": 0
+        },
+        "open": {
+          "time": "0800",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 1
+        },
+        "open": {
+          "time": "0800",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 2
+        },
+        "open": {
+          "time": "0800",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 3
+        },
+        "open": {
+          "time": "0800",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 4
+        },
+        "open": {
+          "time": "0800",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 5
+        },
+        "open": {
+          "time": "0800",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "0800",
+          "day": 6
+        }
+      }
+    ],
+    "id": 25,
+    "checkIns": 0,
+    "longitude": 26.074909299999945,
+    "tags": [
+      "church",
+      "architecture"
+    ]
+  },
+  {
+    "duration": 50,
+    "parkTime": 420,
+    "wantToGo": 0,
+    "imageUrl": "https://i.pinimg.com/originals/94/2e/bf/942ebf5272e462e72c03b15458c97b79.jpg",
+    "latitude": 44.424577,
+    "name": "Patriarchal Cathedral",
+    "rating": 4.5,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2000",
+          "day": 0
+        },
+        "open": {
+          "time": "0800",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 1
+        },
+        "open": {
+          "time": "0800",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 2
+        },
+        "open": {
+          "time": "0800",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 3
+        },
+        "open": {
+          "time": "0800",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 4
+        },
+        "open": {
+          "time": "0800",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 5
+        },
+        "open": {
+          "time": "0800",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "0800",
+          "day": 6
+        }
+      }
+    ],
+    "id": 26,
+    "checkIns": 0,
+    "longitude": 26.097904800000038,
+    "tags": [
+      "church",
+      "architecture",
+      "local"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 240,
+    "wantToGo": 114,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Statuia_Carol_I_Bucuresti_-_semiprofil_spate.jpg",
+    "latitude": 44.4396476,
+    "name": "Statue of Carol 1st",
+    "rating": 4.5,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 27,
+    "checkIns": 256,
+    "longitude": 26.09701610000002,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "monument"
+    ]
+  },
+  {
+    "duration": 40,
+    "parkTime": 120,
+    "wantToGo": 7,
+    "imageUrl": "https://c1.staticflickr.com/8/7720/26754434112_a3f9aaf5a5_b.jpg",
+    "latitude": 44.4329141,
+    "name": "Holocaust Memorial",
+    "rating": 4.8,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 28,
+    "checkIns": 10,
+    "longitude": 26.094160099999954,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "local",
+      "history",
+      "monument"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 600,
+    "wantToGo": 0,
+    "imageUrl": "http://merg.in/thumbs/big_art/2015/08/24/lupa-capitolina-cea-mai-plimbata-statuie-din-bucuresti-10137.jpg",
+    "latitude": 44.4316941,
+    "name": "Lupa capitolina monument",
+    "rating": 3.5,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 29,
+    "checkIns": 0,
+    "longitude": 26.103309099999933,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "history",
+      "monument"
+    ]
+  },
+  {
+    "duration": 20,
+    "parkTime": 300,
+    "wantToGo": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Palacio_CEC%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_65.jpg/1200px-Palacio_CEC%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_65.jpg",
+    "latitude": 44.4320504,
+    "name": "CEC Palace",
+    "rating": 4.6,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1700",
+          "day": 1
+        },
+        "open": {
+          "time": "0900",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 2
+        },
+        "open": {
+          "time": "0900",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      }
+    ],
+    "id": 30,
+    "checkIns": 1,
+    "longitude": 26.096498999999994,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "local"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 600,
+    "wantToGo": 0,
+    "imageUrl": "http://www.worldalldetails.com/sightseeing/bucharest_architecture_796523.jpg",
+    "latitude": 44.4345144,
+    "name": "Coltea Hospital",
+    "rating": 4.2,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 31,
+    "checkIns": 0,
+    "longitude": 26.103806899999995,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "local"
+    ]
+  },
+  {
+    "duration": 15,
+    "parkTime": 300,
+    "wantToGo": 1,
+    "imageUrl": "https://thumbs.dreamstime.com/b/national-military-circle-bucharest-romania-april-facade-april-romania-was-built-architect-dimitrie-40379973.jpg",
+    "latitude": 44.4350751,
+    "name": "Military Circle (CCA)",
+    "rating": 4.3,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 32,
+    "checkIns": 1,
+    "longitude": 26.096802600000046,
+    "tags": [
+      "point of interest",
+      "architecture",
+      "history",
+      "local"
+    ]
+  },
+  {
+    "duration": 20,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "http://effitimonholiday.com/wp-content/uploads/2016/01/Bucharest-Romania.jpg",
+    "latitude": 44.4310135,
+    "name": "Coral Temple",
+    "rating": 4.3,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 33,
+    "checkIns": 0,
+    "longitude": 26.106719800000064,
+    "tags": [
+      "point of interest",
+      "architecture"
+    ]
+  },
+  {
+    "duration": 15,
+    "parkTime": 300,
+    "wantToGo": 1,
+    "imageUrl": "http://www.bnr.ro/files/muzeu/2016/prezentare/pv1.jpg",
+    "latitude": 44.43269009999999,
+    "name": "BNR Palace",
+    "rating": 4,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 34,
+    "checkIns": 4,
+    "longitude": 26.09956199999999,
+    "tags": [
+      "point of interest",
+      "architecture"
+    ]
+  },
+  {
+    "duration": 15,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "https://mediartv1.freenode.ro/image/201406/w620/foisorul_de_foc_30629200.JPG",
+    "latitude": 44.4402653,
+    "name": "Foisorul de Foc",
+    "rating": 4.3,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1600",
+          "day": 1
+        },
+        "open": {
+          "time": "0800",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 2
+        },
+        "open": {
+          "time": "0800",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 3
+        },
+        "open": {
+          "time": "0800",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 4
+        },
+        "open": {
+          "time": "0800",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1600",
+          "day": 5
+        },
+        "open": {
+          "time": "0800",
+          "day": 5
+        }
+      }
+    ],
+    "id": 35,
+    "checkIns": 0,
+    "longitude": 26.120782700000063,
+    "tags": [
+      "museum",
+      "local",
+      "history"
+    ]
+  },
+  {
+    "duration": 15,
+    "parkTime": 420,
+    "wantToGo": 0,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e4/RO_B_Manuc_Inn_inside_1.jpg",
+    "latitude": 44.42959159999999,
+    "name": "Manuc's Inn",
+    "rating": 4,
+    "openingHours": [
+      {
+        "close": {
+          "time": "0000",
+          "day": 1
+        },
+        "open": {
+          "time": "0800",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "0000",
+          "day": 2
+        },
+        "open": {
+          "time": "0800",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "0000",
+          "day": 3
+        },
+        "open": {
+          "time": "0800",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "0000",
+          "day": 4
+        },
+        "open": {
+          "time": "0800",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "0000",
+          "day": 5
+        },
+        "open": {
+          "time": "0800",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "0000",
+          "day": 6
+        },
+        "open": {
+          "time": "0800",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "0000",
+          "day": 0
+        },
+        "open": {
+          "time": "0800",
+          "day": 6
+        }
+      }
+    ],
+    "id": 36,
+    "checkIns": 0,
+    "longitude": 26.10190609999995,
+    "tags": [
+      "point of interest",
+      "fun",
+      "history"
+    ]
+  },
+  {
+    "duration": 10,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Bucharest_-_Palace_of_Justice_%28Justizpalast%29_-_no_filter_%2829340923631%29.jpg/1200px-Bucharest_-_Palace_of_Justice_%28Justizpalast%29_-_no_filter_%2829340923631%29.jpg",
+    "latitude": 44.4289365,
+    "name": "Palace of Justice",
+    "rating": 4,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 37,
+    "checkIns": 0,
+    "longitude": 26.09876680000002,
+    "tags": [
+      "government",
+      "architecture",
+      "history"
+    ]
+  },
+  {
+    "duration": 130,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "https://radu-tudor.ro/wp-content/uploads/2015/04/palatitudeul-victoria.jpg",
+    "latitude": 44.4528432,
+    "name": "Victoria Palace",
+    "rating": 3.5,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1700",
+          "day": 1
+        },
+        "open": {
+          "time": "0900",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 2
+        },
+        "open": {
+          "time": "0900",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      }
+    ],
+    "id": 38,
+    "checkIns": 0,
+    "longitude": 26.087406299999998,
+    "tags": [
+      "government",
+      "architecture",
+      "history"
+    ]
+  },
+  {
+    "duration": 100,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "https://unknownbucharestdotcom.files.wordpress.com/2011/09/bellu-cemetery-bucharest2.jpg",
+    "latitude": 44.4035142,
+    "name": "Bellu Cemetery",
+    "rating": 4.4,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2000",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 1
+        },
+        "open": {
+          "time": "1000",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 39,
+    "checkIns": 0,
+    "longitude": 26.099805599999968,
+    "tags": [
+      "point of interest",
+      "exploratory",
+      "history",
+      "fun",
+      "local"
+    ]
+  },
+  {
+    "duration": 85,
+    "parkTime": 300,
+    "wantToGo": 1,
+    "imageUrl": "http://www.lonelyplanet.com/travel-blog/tip-article/wordpress_uploads/2016/07/Ceausescu-Palace-Bucharest-LP-1-1cc75df50022.jpg",
+    "latitude": 44.4691722,
+    "name": "Ceausescu Mansion",
+    "rating": 4.6,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1700",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1700",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 40,
+    "checkIns": 0,
+    "longitude": 26.092528000000016,
+    "tags": [
+      "museum",
+      "architecture",
+      "local",
+      "specialty"
+    ]
+  },
+  {
+    "duration": 130,
+    "parkTime": 600,
+    "wantToGo": 0,
+    "imageUrl": "http://www.muzeulcotroceni.ro/imagini_layout/1_muzeul_national_cotroceni.jpg",
+    "latitude": 44.4352431,
+    "name": "Cotroceni Palace",
+    "rating": 4.5,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1730",
+          "day": 0
+        },
+        "open": {
+          "time": "0900",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1730",
+          "day": 2
+        },
+        "open": {
+          "time": "0900",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1730",
+          "day": 3
+        },
+        "open": {
+          "time": "0900",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1730",
+          "day": 4
+        },
+        "open": {
+          "time": "0900",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1730",
+          "day": 5
+        },
+        "open": {
+          "time": "0900",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1730",
+          "day": 6
+        },
+        "open": {
+          "time": "0900",
+          "day": 6
+        }
+      }
+    ],
+    "id": 41,
+    "checkIns": 0,
+    "longitude": 26.063357699999983,
+    "tags": [
+      "museum",
+      "architecture",
+      "exploratory",
+      "specialty"
+    ]
+  },
+  {
+    "duration": 130,
+    "parkTime": 120,
+    "wantToGo": 3,
+    "imageUrl": "http://www.museumofsenses.ro/storage/slides/homepage_header/slide1-o3y0c0DQ.jpg",
+    "latitude": 44.4308288,
+    "name": "Museum of Senses",
+    "rating": 4.8,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2200",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2200",
+          "day": 1
+        },
+        "open": {
+          "time": "1000",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "2200",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "2200",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2300",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2300",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2200",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 42,
+    "checkIns": 2,
+    "longitude": 26.04989390000003,
+    "tags": [
+      "museum",
+      "fun",
+      "local",
+      "specialty"
+    ]
+  },
+  {
+    "duration": 130,
+    "parkTime": 180,
+    "wantToGo": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/20._Sediul_Artmark.jpg/1200px-20._Sediul_Artmark.jpg",
+    "latitude": 44.4404676,
+    "name": "Artmark",
+    "rating": 4.7,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1400",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 1
+        },
+        "open": {
+          "time": "1000",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "1900",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 43,
+    "checkIns": 0,
+    "longitude": 26.09794480000005,
+    "tags": [
+      "museum",
+      "art"
+    ]
+  },
+  {
+    "duration": 100,
+    "parkTime": 180,
+    "wantToGo": 0,
+    "imageUrl": "https://i.ytimg.com/vi/pmsme2ZUDmk/maxresdefault.jpg",
+    "latitude": 44.404492,
+    "name": "House of experiments",
+    "rating": 4.2,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2000",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 1
+        },
+        "open": {
+          "time": "1000",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 2
+        },
+        "open": {
+          "time": "1000",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "1800",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 44,
+    "checkIns": 0,
+    "longitude": 26.141369599999962,
+    "tags": [
+      "museum",
+      "science"
+    ]
+  },
+  {
+    "duration": 90,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "https://bucurestiulmeudrag.ro/img/photos/s1920/57f82478-9fa0-4584-953e-4da9592b13d5.jpg",
+    "latitude": 44.448623,
+    "name": "Admiral Vasile Urseanu Astronomical Observatory",
+    "rating": 4.3,
+    "openingHours": [
+      {
+        "close": {
+          "time": "1800",
+          "day": 0
+        },
+        "open": {
+          "time": "1000",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2115",
+          "day": 3
+        },
+        "open": {
+          "time": "1000",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2115",
+          "day": 4
+        },
+        "open": {
+          "time": "1000",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2115",
+          "day": 5
+        },
+        "open": {
+          "time": "1000",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "1000",
+          "day": 6
+        }
+      }
+    ],
+    "id": 45,
+    "checkIns": 0,
+    "longitude": 26.093105000000037,
+    "tags": [
+      "museum",
+      "science"
+    ]
+  },
+  {
+    "duration": 85,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Gradina_Botanica_iunie_2014_IMG_3798_01.JPG/1200px-Gradina_Botanica_iunie_2014_IMG_3798_01.JPG",
+    "latitude": 44.4372286,
+    "name": "The Botanical Garden",
+    "rating": 4.4,
+    "openingHours": [
+      {
+        "close": {
+          "time": "2000",
+          "day": 0
+        },
+        "open": {
+          "time": "0800",
+          "day": 0
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 1
+        },
+        "open": {
+          "time": "0800",
+          "day": 1
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 2
+        },
+        "open": {
+          "time": "0800",
+          "day": 2
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 3
+        },
+        "open": {
+          "time": "0800",
+          "day": 3
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 4
+        },
+        "open": {
+          "time": "0800",
+          "day": 4
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 5
+        },
+        "open": {
+          "time": "0800",
+          "day": 5
+        }
+      },
+      {
+        "close": {
+          "time": "2000",
+          "day": 6
+        },
+        "open": {
+          "time": "0800",
+          "day": 6
+        }
+      }
+    ],
+    "id": 46,
+    "checkIns": 0,
+    "longitude": 26.062677099999974,
+    "tags": [
+      "park",
+      "nature"
+    ]
+  },
+  {
+    "duration": 30,
+    "parkTime": 300,
+    "wantToGo": 0,
+    "imageUrl": "http://100delocuri.ro/wp-content/gallery/gradina-icoanei/IMG_9068.JPG",
+    "latitude": 44.4432958,
+    "name": "The Icon Garden",
+    "rating": 4.2,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 47,
+    "checkIns": 0,
+    "longitude": 26.103944800000022,
+    "tags": [
+      "park",
+      "nature"
+    ]
+  },
+  {
+    "duration": 120,
+    "parkTime": 300,
+    "wantToGo": 1,
+    "imageUrl": "https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/NbpcYCaueijsosfhd/aerial-flight-above-moghioros-park-in-bucharest-romania_h7uiwbbr_thumbnail-full01.png",
+    "latitude": 44.4208643,
+    "name": "Park Camp Road",
+    "rating": 4.1,
+    "openingHours": [{"open": {
+      "time": "0000",
+      "day": 0
+    }}],
+    "id": 48,
+    "checkIns": 2,
+    "longitude": 26.03130239999996,
+    "tags": [
+      "park",
+      "nature"
+    ]
+  }
+]
