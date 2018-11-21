@@ -39,7 +39,7 @@ public class PeopleManager {
             String md5KeyTo = request.getString("md5KeyTo");
             String operation = follow ? "follow" : "unfollow";
 
-            LOGGER.log(Level.FINE, "New request from {0} to {1} {2}", new Object[]{md5KeyFrom, md5KeyTo});
+            LOGGER.log(Level.FINE, "New request from {0} to {1} {2}", new Object[]{md5KeyFrom, operation, md5KeyTo});
 
             return DatabaseManager.updatePeople(md5KeyFrom, md5KeyTo, operation);
         } catch (Exception e) {
