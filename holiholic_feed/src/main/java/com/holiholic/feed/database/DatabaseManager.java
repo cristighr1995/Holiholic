@@ -128,7 +128,7 @@ public class DatabaseManager {
      *  @md5Key             : unique identifier for the current user
      */
     public static String getQuestionDetails(String city, String qid, String md5Key) {
-        String url = Constants.GET_QUESTION_USER_URL
+        String url = Constants.GET_QUESTION_DETAILS_USER_URL
                 + "city=" + city
                 + "&qid=" + qid
                 + "&md5Key=" + md5Key;
