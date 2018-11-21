@@ -64,44 +64,6 @@ public class DatabaseManager {
         }
     }
 
-    /* getContentFromURL - Returns the content from a http get request
-     *
-     *  @return             : the content
-     *  @strUrl             : the url with the get request
-     */
-    private static String getContentFromURL(String strUrl) throws IOException {
-        String data = null;
-        InputStream iStream = null;
-        HttpURLConnection urlConnection = null;
-        String line;
-        try {
-            URL url = new URL(strUrl);
-            // Creating an http connection to communicate with url
-            urlConnection = (HttpURLConnection) url.openConnection();
-            // Connecting to url
-            urlConnection.connect();
-            // Reading data from url
-            iStream = urlConnection.getInputStream();
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
-            StringBuilder sb = new StringBuilder();
-
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-            data = sb.toString();
-            br.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            assert iStream != null;
-            iStream.close();
-            urlConnection.disconnect();
-        }
-        return data;
-    }
-
     /* getQuestions - Returns a list of questions for a specific city
      *
      *  @return             : the list of questions
@@ -129,9 +91,9 @@ public class DatabaseManager {
      */
     public static String getQuestionDetails(String city, String qid, String md5Key) {
         String url = Constants.GET_QUESTION_DETAILS_USER_URL
-                + "city=" + city
-                + "&qid=" + qid
-                + "&md5Key=" + md5Key;
+                     + "city=" + city
+                     + "&qid=" + qid
+                     + "&md5Key=" + md5Key;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -234,6 +196,4 @@ public class DatabaseManager {
         }
         return data;
     }
-}
-
 }
