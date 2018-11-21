@@ -1,15 +1,15 @@
-package com.holiholic.feed.controller;
+package com.holiholic.database.controller;
 
-import com.holiholic.feed.database.DatabaseManager;
+import com.holiholic.database.DatabaseManager;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-public class PostController {
+public class QuestionsController {
 
-    /*@RequestMapping(value = "/updateQuestion", headers="Content-Type=application/json", method = RequestMethod.POST)
+    @RequestMapping(value = "/updateQuestion", headers="Content-Type=application/json", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<Boolean> updateQuestion(@RequestBody String request)  {
         boolean result;
@@ -35,5 +35,5 @@ public class PostController {
                                                      @RequestParam String qid,
                                                      @RequestParam String md5Key)  {
         return new ResponseEntity<>(DatabaseManager.getQuestionDetails(city, qid, md5Key), HttpStatus.OK);
-    }*/
+    }
 }

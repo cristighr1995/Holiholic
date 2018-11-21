@@ -5,4 +5,5 @@ package com.holiholic.database.constant;
  */
 public class Constants {
     public final static String USERS_DB_PATH = System.getProperty("user.dir") + "/db/users/users.json";
+    public final static String QUESTIONS_DB_PATH = System.getProperty("user.dir") + "/db/questions/questions_";
 }
