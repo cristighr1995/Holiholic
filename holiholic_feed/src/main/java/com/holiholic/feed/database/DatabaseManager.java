@@ -139,4 +139,101 @@ public class DatabaseManager {
             return new JSONArray().toString(2);
         }
     }
+
+    /* updatePost - Updates the content of a post
+     *
+     *  @return             : success or not
+     *  @postBody           : the post body
+     */
+    public static boolean updatePost(JSONObject postBody) {
+        try {
+            StringEntity entity = new StringEntity(postBody.toString(2),
+                    ContentType.APPLICATION_JSON);
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpPost request = new HttpPost(Constants.UPDATE_POST_USER_URL);
+            request.setEntity(entity);
+
+            HttpResponse response = httpClient.execute(request);
+            int responseCode = response.getStatusLine().getStatusCode();
+            return responseCode == HttpStatus.OK.value();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* getPosts - Returns a list of posts
+     *
+     *  @return             : the list of post
+     *  @md5Key             : unique identifier for the current user
+     */
+    public static String getPosts(String md5Key) {
+        String url = Constants.GET_POSTS_USER_URL
+                + "&md5Key=" + md5Key;
+        try {
+            return getContentFromURL(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
+    }
+
+    /* getPostDetails - Returns the details for a specific post
+     *
+     *  @return             : the details for the specific question
+     *  @pid                : the post id
+     *  @md5Key             : unique identifier for the current user
+     */
+    public static String getPostDetails(String pid, String md5Key) {
+        String url = Constants.GET_POST_DETAILS_USER_URL
+                + "&pid=" + pid
+                + "&md5Key=" + md5Key;
+        try {
+            return getContentFromURL(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
+    }
+
+    /* getContentFromURL - Returns the content from a http get request
+    *
+    *  @return             : the content
+    *  @strUrl             : the url with the get request
+    */
+    private static String getContentFromURL(String strUrl) throws IOException {
+        String data = null;
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        String line;
+        try {
+            URL url = new URL(strUrl);
+            // Creating an http connection to communicate with url
+            urlConnection = (HttpURLConnection) url.openConnection();
+            // Connecting to url
+            urlConnection.connect();
+            // Reading data from url
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+            data = sb.toString();
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            assert iStream != null;
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
+    }
+}
+
 }
