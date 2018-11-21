@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class PostController {
 
-    @RequestMapping(value = "/updateQuestion", headers="Content-Type=application/json", method = RequestMethod.POST)
+    @RequestMapping(value = "/updatePost", headers="Content-Type=application/json", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Boolean> updateQuestion(@RequestBody String request)  {
+    public ResponseEntity<Boolean> updatePost(@RequestBody String request)  {
         boolean result;
         try {
-            result = DatabaseManager.updateQuestion(new JSONObject(request));
+            result = DatabaseManager.updatePost(new JSONObject(request));
         } catch (Exception e) {
             e.printStackTrace();
             result = false;
@@ -22,18 +22,16 @@ public class PostController {
         return new ResponseEntity<>(result, result ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }
 
-    @RequestMapping(value = "/getQuestions", method = RequestMethod.GET)
+    @RequestMapping(value = "/getPosts", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getQuestions(@RequestParam String city,
-                                               @RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getQuestions(city, md5Key), HttpStatus.OK);
+    public ResponseEntity<String> getPosts(@RequestParam String md5Key)  {
+        return new ResponseEntity<>(DatabaseManager.getPosts(md5Key), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/getQuestionDetails", method = RequestMethod.GET)
+    @RequestMapping(value = "/getPostDetails", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getQuestionDetails(@RequestParam String city,
-                                                     @RequestParam String qid,
+    public ResponseEntity<String> getPostDetails(@RequestParam String pid,
                                                      @RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getQuestionDetails(city, qid, md5Key), HttpStatus.OK);
+        return new ResponseEntity<>(DatabaseManager.getPostDetails(pid, md5Key), HttpStatus.OK);
     }
 }
