@@ -215,6 +215,18 @@ public class DatabaseManager {
         }
     }
 
+    /* createEmptyLikesObject - Create an empty json object for the likes (reacts)
+     *                          In the future we can add more than just 2 reactions
+     *
+     *  @return             : the react json
+     */
+    private static JSONObject createEmptyLikesObject() {
+        JSONObject likes = new JSONObject();
+        likes.put("like", new JSONObject());
+        likes.put("dislike", new JSONObject());
+        return likes;
+    }
+
     /* addQuestion - Add a question in the database
      *
      *  @return             : success or not
@@ -243,10 +255,10 @@ public class DatabaseManager {
                 // empty list of comments
                 questionBody.put("comments", new JSONArray());
                 // zero likes
-                questionBody.put("likes", 0);
+                questionBody.put("likes", createEmptyLikesObject());
                 // set an id
-                questionBody.put("id", questionsCount);
-                userQuestions.put(String.valueOf(questionsCount), questionBody);
+                questionBody.put("qid", generateMD5(questionBody.toString()));
+                userQuestions.put(questionBody.getString("qid"), questionBody);
 
                 // update questions
                 questions.put("questionsCount", questionsCount + 1);
@@ -277,12 +289,12 @@ public class DatabaseManager {
                 if (!md5KeyCurrent.equals(md5KeyQuestionAuthor)) {
                     return false;
                 }
-                if (!questions.getJSONObject("questions").has(md5KeyCurrent)) {
+                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
                     return true;
                 }
 
-                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyCurrent);
-                String qid = String.valueOf(questionBody.getInt("qid"));
+                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                String qid = questionBody.getString("qid");
 
                 if (!userQuestions.has(qid)) {
                     return true;
@@ -291,7 +303,7 @@ public class DatabaseManager {
                 userQuestions.remove(qid);
                 // update questions
                 questions.put("questionsCount", questionsCount - 1);
-                questions.getJSONObject("questions").put(md5KeyCurrent, userQuestions);
+                questions.getJSONObject("questions").put(md5KeyQuestionAuthor, userQuestions);
 
                 return saveQuestions(city, questions);
             }
@@ -318,12 +330,12 @@ public class DatabaseManager {
                if (!md5KeyCurrent.equals(md5KeyQuestionAuthor)) {
                    return false;
                }
-               if (!questions.getJSONObject("questions").has(md5KeyCurrent)) {
+               if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
                    return false;
                }
 
-               JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyCurrent);
-               String qid = String.valueOf(questionBody.getInt("qid"));
+               JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+               String qid = questionBody.getString("qid");
 
                if (!userQuestions.has(qid)) {
                    return false;
@@ -361,7 +373,7 @@ public class DatabaseManager {
                 }
 
                 JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
-                String qid = String.valueOf(questionBody.getInt("qid"));
+                String qid = questionBody.getString("qid");
 
                 if (!userQuestions.has(qid)) {
                     return false;
@@ -405,7 +417,7 @@ public class DatabaseManager {
                 }
 
                 JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
-                String qid = String.valueOf(questionBody.getInt("qid"));
+                String qid = questionBody.getString("qid");
 
                 if (!userQuestions.has(qid)) {
                     return false;
@@ -462,7 +474,7 @@ public class DatabaseManager {
                 }
 
                 JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
-                String qid = String.valueOf(questionBody.getInt("qid"));
+                String qid = questionBody.getString("qid");
 
                 if (!userQuestions.has(qid)) {
                     return false;
@@ -525,6 +537,67 @@ public class DatabaseManager {
         }
     }
 
+    /* editQuestionLikes - Edit the likes of a specific question
+     *
+     *  @return             : success or not
+     *  @questionBody       : the question body (json format)
+     *  @editField          : contains information about the operation (add/remove reacts) and edit information
+     */
+    private static boolean editQuestionLikes(JSONObject questionBody, JSONObject editField) {
+        try {
+            synchronized (DatabaseManager.class) {
+                String city = questionBody.getString("city");
+                JSONObject questions = fetchQuestions(city);
+                String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
+                String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
+
+                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
+                    return false;
+                }
+
+                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                String qid = questionBody.getString("qid");
+
+                if (!userQuestions.has(qid)) {
+                    return false;
+                }
+
+                JSONObject question = userQuestions.getJSONObject(qid);
+                JSONObject likes = question.getJSONObject("likes");
+                String operation = editField.getString("operation");
+                String react = editField.getString("react");
+                JSONObject reactJson = likes.getJSONObject(react);
+
+                switch (operation) {
+                    case "add":
+                        if (reactJson.has(md5KeyCurrent)) {
+                            return true;
+                        }
+                        reactJson.put(md5KeyCurrent, true);
+                        break;
+                    case "remove":
+                        if (!reactJson.has(md5KeyCurrent)) {
+                            return true;
+                        }
+                        reactJson.remove(md5KeyCurrent);
+                        break;
+                    default:
+                        return false;
+                }
+
+                likes.put(react, reactJson);
+                question.put("likes", likes);
+                userQuestions.put(qid, question);
+                questions.getJSONObject("questions").put(md5KeyQuestionAuthor, userQuestions);
+
+                return saveQuestions(city, questions);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     /* editQuestion - Edits a question - the user can do multiple edits like:
      *                change the title,
      *                add/remove/edit comments,
@@ -545,6 +618,8 @@ public class DatabaseManager {
                     return editQuestionTitle(questionBody, editField.getString(field));
                 case "comments":
                     return editQuestionComment(questionBody, editField.getJSONObject(field));
+                case "likes":
+                    return editQuestionLikes(questionBody, editField.getJSONObject(field));
                 default:
                     return false;
             }
@@ -574,10 +649,18 @@ public class DatabaseManager {
                 // for each question
                 for (String qid : questions.getJSONObject(author).keySet()) {
                     JSONObject question = questions.getJSONObject(author).getJSONObject(qid);
+                    // display only the last comment
                     JSONArray comments = question.getJSONArray("comments");
                     JSONObject comment = comments.getJSONObject(comments.length() - 1);
                     question.remove("comments");
                     question.put("comments", new JSONArray().put(comment));
+                    // display only the number of reactions
+                    JSONObject likes = question.getJSONObject("likes");
+                    // for each react store only the count
+                    for (String react : likes.keySet()) {
+                        likes.put(react, likes.getJSONObject(react).length());
+                    }
+                    question.put("likes", likes);
                     result.put(question);
                 }
             }
@@ -605,7 +688,7 @@ public class DatabaseManager {
                 return new JSONArray().toString(2);
             }
 
-            JSONObject questions = fetchQuestions(city);
+            JSONObject questions = fetchQuestions(city).getJSONObject("questions");
             if (!questions.has(md5KeyQuestionAuthor)) {
                 return new JSONArray().toString(2);
             }
