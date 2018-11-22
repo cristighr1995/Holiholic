@@ -40,7 +40,7 @@ public class DatabaseManager {
      *  @return             : the md5 key
      *  @plain              : the plain text we want to hash
      */
-    public static String generateMD5(String plain) {
+    private static String generateMD5(String plain) {
         String hash = null;
         try {
             MessageDigest m = MessageDigest.getInstance("MD5");
@@ -70,14 +70,7 @@ public class DatabaseManager {
      *  @return             : users in the json format
      */
     private static JSONObject getUsers() {
-        try {
-            InputStream is = new FileInputStream(Constants.USERS_DB_PATH);
-            String text = IOUtils.toString(is, "UTF-8");
-            return new JSONObject(text);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return fetchObjectFromDatabase(Constants.USERS_DB_PATH);
     }
 
     /* createProfile - Create a new profile for the current user to be stored in the database
@@ -101,15 +94,7 @@ public class DatabaseManager {
      *  @users              : all users (json format)
      */
     private static boolean updateUsers(JSONObject users) {
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(Constants.USERS_DB_PATH), 32768);
-            out.write(users.toString(2));
-            out.close();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return syncDatabase(Constants.USERS_DB_PATH, users);
     }
 
     /* registerUser - Save the new user in the database
@@ -119,21 +104,15 @@ public class DatabaseManager {
      */
     public static boolean registerUser(JSONObject request) {
         try {
-            LOGGER.log(Level.FINE, "Started registration for user {0}", request.getString("md5Key"));
-
+            LOGGER.log(Level.FINE, "New request to register user {0}", request.getString("md5Key"));
             synchronized (DatabaseManager.class) {
                 JSONObject users = getUsers();
                 if (users == null) {
                     return false;
                 }
                 users.put(request.getString("md5Key"), createProfile(request, users.length()));
-                if (!updateUsers(users)) {
-                    return false;
-                }
+                return updateUsers(users);
             }
-
-            LOGGER.log(Level.FINE, "Successfully updated registration for user {0}", request.getString("md5Key"));
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -159,14 +138,8 @@ public class DatabaseManager {
      *  @city               : the city the user wants to see questions
      */
     private static JSONObject fetchQuestions(String city) {
-        try {
-            InputStream is = new FileInputStream(Constants.QUESTIONS_DB_PATH + city.toLowerCase() + ".json");
-            String text = IOUtils.toString(is, "UTF-8");
-            return new JSONObject(text);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        String path = Constants.QUESTIONS_DB_PATH + city.toLowerCase() + ".json";
+        return fetchObjectFromDatabase(path);
     }
 
     /* saveQuestions - Saves in the database the updates for the question
@@ -176,16 +149,8 @@ public class DatabaseManager {
      *  @questions          : the updated questions
      */
     private static boolean saveQuestions(String city, JSONObject questions) {
-        try {
-            String filename = Constants.QUESTIONS_DB_PATH + city + ".json";
-            BufferedWriter out = new BufferedWriter(new FileWriter(filename), 32768);
-            out.write(questions.toString(2));
-            out.close();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        String path = Constants.QUESTIONS_DB_PATH + city + ".json";
+        return syncDatabase(path, questions);
     }
 
     /* updateQuestion - Updates a specific question
@@ -197,8 +162,8 @@ public class DatabaseManager {
         try {
             String operation = questionBody.getString("operation");
             String city = questionBody.getString("city");
-            LOGGER.log(Level.FINE, "Started {0} question operation from city {2}", new Object[]{operation, city});
-
+            LOGGER.log(Level.FINE, "New request to {0} question in {1} city",
+                       new Object[]{operation, city});
             switch (operation) {
                 case "add":
                     return addQuestion(questionBody);
@@ -227,6 +192,27 @@ public class DatabaseManager {
         return likes;
     }
 
+    /* fetchUserQuestions - Fetch questions for a specific user
+     *
+     *  @return                 : the user questions (json object format)
+     *  @questions              : all questions
+     *  @md5KeyQuestionAuthor   : uniques identifier for the author of the questions
+     */
+    private static JSONObject fetchUserQuestions(JSONObject questions, String md5KeyQuestionAuthor) {
+        try {
+            JSONObject userQuestions;
+            if (questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
+                userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+            } else {
+                userQuestions = new JSONObject();
+            }
+            return userQuestions;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /* addQuestion - Add a question in the database
      *
      *  @return             : success or not
@@ -243,12 +229,10 @@ public class DatabaseManager {
                 String city = questionBody.getString("city");
                 JSONObject questions = fetchQuestions(city);
                 int questionsCount = questions.getInt("questionsCount");
-                JSONObject userQuestions;
-                if (questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
-                    userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
-                } else {
-                    userQuestions = new JSONObject();
-                }
+                JSONObject userQuestions = fetchUserQuestions(questions, md5KeyQuestionAuthor);
+
+                LOGGER.log(Level.FINE, "User {0} wants to ask \"{1}\" in {2} city",
+                           new Object[]{md5KeyQuestionAuthor, questionBody.getString("title"), city});
 
                 // remove operation
                 questionBody.remove("operation");
@@ -285,17 +269,16 @@ public class DatabaseManager {
                 int questionsCount = questions.getInt("questionsCount");
                 String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
                 String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
+                String qid = questionBody.getString("qid");
+
+                LOGGER.log(Level.FINE, "User {0} wants to remove the question {1} from {2} city",
+                           new Object[]{md5KeyCurrent, qid, city});
 
                 if (!md5KeyCurrent.equals(md5KeyQuestionAuthor)) {
                     return false;
                 }
-                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
-                    return true;
-                }
 
-                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
-                String qid = questionBody.getString("qid");
-
+                JSONObject userQuestions = fetchUserQuestions(questions, md5KeyQuestionAuthor);
                 if (!userQuestions.has(qid)) {
                     return true;
                 }
@@ -326,17 +309,16 @@ public class DatabaseManager {
                JSONObject questions = fetchQuestions(city);
                String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
                String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
+               String qid = questionBody.getString("qid");
+
+               LOGGER.log(Level.FINE, "User {0} wants to edit title of the question {1} from {2} city to \"{3}\"",
+                          new Object[]{md5KeyCurrent, qid, city, title});
 
                if (!md5KeyCurrent.equals(md5KeyQuestionAuthor)) {
                    return false;
                }
-               if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
-                   return false;
-               }
 
-               JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
-               String qid = questionBody.getString("qid");
-
+               JSONObject userQuestions = fetchUserQuestions(questions, md5KeyQuestionAuthor);
                if (!userQuestions.has(qid)) {
                    return false;
                }
@@ -367,13 +349,11 @@ public class DatabaseManager {
                 JSONObject questions = fetchQuestions(city);
                 String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
                 String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
-
-                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
-                    return false;
-                }
-
-                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                JSONObject userQuestions = fetchUserQuestions(questions, md5KeyQuestionAuthor);
                 String qid = questionBody.getString("qid");
+
+                LOGGER.log(Level.FINE, "User {0} wants to add comment \"{1}\" of the question {2} from {3} city",
+                           new Object[]{md5KeyCurrent, editField.getString("comment"), qid, city});
 
                 if (!userQuestions.has(qid)) {
                     return false;
@@ -411,13 +391,11 @@ public class DatabaseManager {
                 JSONObject questions = fetchQuestions(city);
                 String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
                 String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
-
-                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
-                    return false;
-                }
-
-                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                JSONObject userQuestions = fetchUserQuestions(questions, md5KeyQuestionAuthor);
                 String qid = questionBody.getString("qid");
+
+                LOGGER.log(Level.FINE, "User {0} wants to remove comment {1} of the question {2} from {3} city",
+                           new Object[]{md5KeyCurrent, editField.getString("commId"), qid, city});
 
                 if (!userQuestions.has(qid)) {
                     return false;
@@ -468,13 +446,12 @@ public class DatabaseManager {
                 JSONObject questions = fetchQuestions(city);
                 String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
                 String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
-
-                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
-                    return false;
-                }
-
-                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                JSONObject userQuestions = fetchUserQuestions(questions, md5KeyQuestionAuthor);
                 String qid = questionBody.getString("qid");
+
+                LOGGER.log(Level.FINE, "User {0} wants to edit comment {1} of the question {2} from {3} city to \"{4}\"",
+                           new Object[]{md5KeyCurrent, editField.getString("commId"),
+                                        qid, city, editField.getString("comment")});
 
                 if (!userQuestions.has(qid)) {
                     return false;
@@ -550,12 +527,7 @@ public class DatabaseManager {
                 JSONObject questions = fetchQuestions(city);
                 String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
                 String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
-
-                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
-                    return false;
-                }
-
-                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                JSONObject userQuestions = fetchUserQuestions(questions, md5KeyQuestionAuthor);
                 String qid = questionBody.getString("qid");
 
                 if (!userQuestions.has(qid)) {
@@ -567,6 +539,9 @@ public class DatabaseManager {
                 String operation = editField.getString("operation");
                 String react = editField.getString("react");
                 JSONObject reactJson = likes.getJSONObject(react);
+
+                LOGGER.log(Level.FINE, "User {0} wants to {1} {2} the question {3} from {4} city",
+                           new Object[]{md5KeyCurrent, operation, react, qid, city});
 
                 switch (operation) {
                     case "add":
@@ -637,6 +612,8 @@ public class DatabaseManager {
      *  @md5KeyCurrent      : unique identifier for the current user
      */
     public static String getQuestions(String city, String md5KeyCurrent) {
+        LOGGER.log(Level.FINE, "New request from user {0} to get question from {1} city",
+                   new Object[]{md5KeyCurrent, city});
         try {
             if (!containsUser(md5KeyCurrent)) {
                 return new JSONArray().toString(2);
@@ -683,6 +660,8 @@ public class DatabaseManager {
                                             String qid,
                                             String md5KeyCurrent,
                                             String md5KeyQuestionAuthor) {
+        LOGGER.log(Level.FINE, "New request from user {0} to get question {1} details from {2} city",
+                   new Object[]{md5KeyCurrent, qid, city});
         try {
             if (!containsUser(md5KeyCurrent)) {
                 return new JSONArray().toString(2);
@@ -710,14 +689,7 @@ public class DatabaseManager {
      *  @return             : the topics json
      */
     private static JSONObject fetchTopics() {
-        try {
-            InputStream is = new FileInputStream(Constants.TOPICS_DB_PATH);
-            String text = IOUtils.toString(is, "UTF-8");
-            return new JSONObject(text);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return fetchObjectFromDatabase(Constants.TOPICS_DB_PATH);
     }
 
     /* fetchAvailableTopics - Get all available topics to follow
@@ -725,14 +697,7 @@ public class DatabaseManager {
      *  @return             : all available topics (json array format)
      */
     private static JSONArray fetchAvailableTopics() {
-        try {
-            InputStream is = new FileInputStream(Constants.AVAILABLE_TOPICS_DB_PATH);
-            String text = IOUtils.toString(is, "UTF-8");
-            return new JSONArray(text);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return fetchArrayFromDatabase(Constants.AVAILABLE_TOPICS_DB_PATH);
     }
 
     /* getTopics - Get topics for a specific user
@@ -742,6 +707,7 @@ public class DatabaseManager {
      *  @md5Key             : unique identifier for the current user
      */
     public static String getTopics(String md5Key) {
+        LOGGER.log(Level.FINE, "New request from user {0} to get topics", md5Key);
         JSONObject topics = fetchTopics();
         JSONObject response = new JSONObject();
         response.put("availableTopics", fetchAvailableTopics());
@@ -760,15 +726,7 @@ public class DatabaseManager {
      *  @topics             : the topics to save in database
      */
     private static boolean saveTopics(JSONObject topics) {
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(Constants.TOPICS_DB_PATH), 32768);
-            out.write(topics.toString(2));
-            out.close();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return syncDatabase(Constants.TOPICS_DB_PATH, topics);
     }
 
     /* updateTopics - Save in the database the updated topics for a specific user given the request
@@ -778,9 +736,8 @@ public class DatabaseManager {
      */
     public static boolean updateTopics(JSONObject request) {
         try {
-            LOGGER.log(Level.FINE, "Started updating topics for user {0}", request.getString("md5Key"));
-
             String md5Key = request.getString("md5Key");
+            LOGGER.log(Level.FINE, "New request from user {0} to update his topics", md5Key);
             JSONArray followedTopics = request.getJSONArray("followedTopics");
 
             if (!containsUser(md5Key)) {
@@ -791,13 +748,8 @@ public class DatabaseManager {
                 JSONObject topics = fetchTopics();
                 assert topics != null;
                 topics.put(md5Key, followedTopics);
-                if (!saveTopics(topics)) {
-                    return false;
-                }
+                return saveTopics(topics);
             }
-
-            LOGGER.log(Level.FINE, "Successfully updated topics for user {0}", request.getString("md5Key"));
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -809,14 +761,7 @@ public class DatabaseManager {
      *  @return             : the follow graph (json format)
      */
     private static JSONObject fetchGraph() {
-        try {
-            InputStream is = new FileInputStream(Constants.PEOPLE_DB_PATH);
-            String text = IOUtils.toString(is, "UTF-8");
-            return new JSONObject(text);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return fetchObjectFromDatabase(Constants.PEOPLE_DB_PATH);
     }
 
     /* getTopics - Get following people for a specific user
@@ -826,6 +771,7 @@ public class DatabaseManager {
      *  @md5Key             : unique identifier for the current user
      */
     public static String getPeople(String md5Key) {
+        LOGGER.log(Level.FINE, "New request from user {0} to get people", md5Key);
         JSONObject followGraph = fetchGraph();
         assert followGraph != null;
         if (followGraph.has(md5Key)) {
@@ -844,10 +790,8 @@ public class DatabaseManager {
             String from = followGraphEdge.getString("md5KeyFrom");
             String to = followGraphEdge.getString("md5KeyTo");
             String operation = followGraphEdge.getString("operation");
+            LOGGER.log(Level.FINE, "New request from user {0} to {1} user {2}", new Object[]{operation, from, to});
 
-            LOGGER.log(Level.FINE, "Started {0} operation from user {1} to user {2}", new Object[]{operation,
-                                                                                      from,
-                                                                                      to});
             if (!containsUser(from) || !containsUser(to)) {
                 return false;
             }
@@ -895,11 +839,8 @@ public class DatabaseManager {
                 }
 
                 followGraph.put(from, followers);
-                if (!saveFollowGraph(followGraph)) {
-                    return false;
-                }
+                return saveFollowGraph(followGraph);
             }
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -932,11 +873,8 @@ public class DatabaseManager {
 
                 followers.put(to);
                 followGraph.put(from, followers);
-                if (!saveFollowGraph(followGraph)) {
-                    return false;
-                }
+                return saveFollowGraph(followGraph);
             }
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -949,14 +887,56 @@ public class DatabaseManager {
      *  @followGraph        : the follow graph to save in database
      */
     private static boolean saveFollowGraph(JSONObject followGraph) {
+        return syncDatabase(Constants.PEOPLE_DB_PATH, followGraph);
+    }
+
+    /* syncDatabase - Save in the database the updated json object
+     *
+     *  @return             : success or not
+     *  @path               : the path for the database
+     *  @jsonObject         : the object we want to save in the database
+     */
+    private static boolean syncDatabase(String path, JSONObject jsonObject) {
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(Constants.PEOPLE_DB_PATH), 32768);
-            out.write(followGraph.toString(2));
+            BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
+            out.write(jsonObject.toString(2));
             out.close();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /* fetchObjectFromDatabase - Retrieve from database a json object
+     *
+     *  @return             : the json object from the database or null
+     *  @path               : the path for the database
+     */
+    private static JSONObject fetchObjectFromDatabase(String path) {
+        try {
+            InputStream is = new FileInputStream(path);
+            String text = IOUtils.toString(is, "UTF-8");
+            return new JSONObject(text);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /* fetchArrayFromDatabase - Retrieve from database a json array
+     *
+     *  @return             : the json array from the database or null
+     *  @path               : the path for the database
+     */
+    private static JSONArray fetchArrayFromDatabase(String path) {
+        try {
+            InputStream is = new FileInputStream(path);
+            String text = IOUtils.toString(is, "UTF-8");
+            return new JSONArray(text);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }
