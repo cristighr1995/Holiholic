@@ -31,7 +31,10 @@ public class PostController {
     @RequestMapping(value = "/getPostDetails", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getPostDetails(@RequestParam String pid,
-                                                 @RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getPostDetails(pid, md5Key), HttpStatus.OK);
+                                                 @RequestParam String md5KeyCurrent,
+                                                 @RequestParam String md5KeyPostAuthor)  {
+        return new ResponseEntity<>(DatabaseManager.getPostDetails(pid,
+                                                                   md5KeyCurrent,
+                                                                   md5KeyPostAuthor), HttpStatus.OK);
     }
 }

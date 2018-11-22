@@ -47,21 +47,7 @@ public class DatabaseManager {
      *  @questionBody       : the question body
      */
     public static boolean updateQuestion(JSONObject questionBody) {
-        try {
-            StringEntity entity = new StringEntity(questionBody.toString(2),
-                                                   ContentType.APPLICATION_JSON);
-
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpPost request = new HttpPost(Constants.UPDATE_QUESTION_USER_URL);
-            request.setEntity(entity);
-
-            HttpResponse response = httpClient.execute(request);
-            int responseCode = response.getStatusLine().getStatusCode();
-            return responseCode == HttpStatus.OK.value();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return postContentToURL(questionBody, Constants.UPDATE_QUESTION_USER_URL);
     }
 
     /* getQuestions - Returns a list of questions for a specific city
@@ -112,21 +98,7 @@ public class DatabaseManager {
      *  @postBody           : the post body
      */
     public static boolean updatePost(JSONObject postBody) {
-        try {
-            StringEntity entity = new StringEntity(postBody.toString(2),
-                    ContentType.APPLICATION_JSON);
-
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpPost request = new HttpPost(Constants.UPDATE_POST_USER_URL);
-            request.setEntity(entity);
-
-            HttpResponse response = httpClient.execute(request);
-            int responseCode = response.getStatusLine().getStatusCode();
-            return responseCode == HttpStatus.OK.value();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return postContentToURL(postBody, Constants.UPDATE_POST_USER_URL);
     }
 
     /* getPosts - Returns a list of posts
@@ -136,7 +108,7 @@ public class DatabaseManager {
      */
     public static String getPosts(String md5Key) {
         String url = Constants.GET_POSTS_USER_URL
-                + "?md5Key=" + md5Key;
+                     + "?md5Key=" + md5Key;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -149,12 +121,14 @@ public class DatabaseManager {
      *
      *  @return             : the details for the specific question
      *  @pid                : the post id
-     *  @md5Key             : unique identifier for the current user
+     *  @md5KeyCurrent      : unique identifier for the current user
+     *  @md5KeyPostAuthor   : unique identifier for the author of the post
      */
-    public static String getPostDetails(String pid, String md5Key) {
+    public static String getPostDetails(String pid, String md5KeyCurrent, String md5KeyPostAuthor) {
         String url = Constants.GET_POST_DETAILS_USER_URL
-                + "?pid=" + pid
-                + "&md5Key=" + md5Key;
+                     + "?pid=" + pid
+                     + "&md5KeyCurrent=" + md5KeyCurrent
+                     + "&md5KeyPostAuthor=" + md5KeyPostAuthor;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -199,5 +173,29 @@ public class DatabaseManager {
             urlConnection.disconnect();
         }
         return data;
+    }
+
+    /* postContentToURL - Create a post request given the body and the url
+     *
+     *  @return             : success or not
+     *  @body               : the body of the HTTP POST request
+     *  @strUrl             : the url for the HTTP POST request
+     */
+    private static boolean postContentToURL(JSONObject body, String strUrl) {
+        try {
+            StringEntity entity = new StringEntity(body.toString(2),
+                                                   ContentType.APPLICATION_JSON);
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpPost request = new HttpPost(strUrl);
+            request.setEntity(entity);
+
+            HttpResponse response = httpClient.execute(request);
+            int responseCode = response.getStatusLine().getStatusCode();
+            return responseCode == HttpStatus.OK.value();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
