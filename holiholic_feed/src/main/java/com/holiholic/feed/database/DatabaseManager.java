@@ -72,7 +72,7 @@ public class DatabaseManager {
      */
     public static String getQuestions(String city, String md5Key) {
         String url = Constants.GET_QUESTION_USER_URL
-                     + "city=" + city
+                     + "?city=" + city
                      + "&md5Key=" + md5Key;
         try {
             return getContentFromURL(url);
@@ -89,11 +89,15 @@ public class DatabaseManager {
      *  @qid                : the question id
      *  @md5Key             : unique identifier for the current user
      */
-    public static String getQuestionDetails(String city, String qid, String md5Key) {
+    public static String getQuestionDetails(String city,
+                                            String qid,
+                                            String md5KeyCurrent,
+                                            String md5KeyQuestionAuthor) {
         String url = Constants.GET_QUESTION_DETAILS_USER_URL
-                     + "city=" + city
+                     + "?city=" + city
                      + "&qid=" + qid
-                     + "&md5Key=" + md5Key;
+                     + "&md5KeyCurrent=" + md5KeyCurrent
+                     + "&md5KeyQuestionAuthor=" + md5KeyQuestionAuthor;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -132,7 +136,7 @@ public class DatabaseManager {
      */
     public static String getPosts(String md5Key) {
         String url = Constants.GET_POSTS_USER_URL
-                + "&md5Key=" + md5Key;
+                + "?md5Key=" + md5Key;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -149,7 +153,7 @@ public class DatabaseManager {
      */
     public static String getPostDetails(String pid, String md5Key) {
         String url = Constants.GET_POST_DETAILS_USER_URL
-                + "&pid=" + pid
+                + "?pid=" + pid
                 + "&md5Key=" + md5Key;
         try {
             return getContentFromURL(url);

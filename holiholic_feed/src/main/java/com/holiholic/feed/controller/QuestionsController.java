@@ -33,7 +33,11 @@ public class QuestionsController {
     @ResponseBody
     public ResponseEntity<String> getQuestionDetails(@RequestParam String city,
                                                      @RequestParam String qid,
-                                                     @RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getQuestionDetails(city, qid, md5Key), HttpStatus.OK);
+                                                     @RequestParam String md5KeyCurrent,
+                                                     @RequestParam String md5KeyQuestionAuthor)  {
+        return new ResponseEntity<>(DatabaseManager.getQuestionDetails(city,
+                                                                       qid,
+                                                                       md5KeyCurrent,
+                                                                       md5KeyQuestionAuthor), HttpStatus.OK);
     }
 }

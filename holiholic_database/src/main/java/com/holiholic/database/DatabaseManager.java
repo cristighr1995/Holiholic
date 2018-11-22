@@ -9,6 +9,8 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +33,36 @@ public class DatabaseManager {
 
         LOGGER.addHandler(ch);
         LOGGER.setLevel(Level.ALL);
+    }
+
+    /* generateMD5 - Generates an md5 key for a plain text
+     *
+     *  @return             : the md5 key
+     *  @plain              : the plain text we want to hash
+     */
+    public static String generateMD5(String plain) {
+        String hash = null;
+        try {
+            MessageDigest m = MessageDigest.getInstance("MD5");
+            m.reset();
+            m.update(plain.getBytes());
+            byte[] digest = m.digest();
+            BigInteger bigInt = new BigInteger(1, digest);
+            hash = bigInt.toString(16);
+            // pad with zeros to have full 32 characters
+            if (hash.length() != 32) {
+                int diff = 32 - hash.length();
+                StringBuilder sb = new StringBuilder();
+                for (int d = 0; d < diff; d++) {
+                    sb.append("0");
+                }
+                hash = sb.append(hash).toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return hash;
     }
 
     /* getUsers - Retrieve users from database
@@ -300,7 +332,7 @@ public class DatabaseManager {
                JSONObject question = userQuestions.getJSONObject(qid);
                question.put("title", title);
                userQuestions.put(qid, question);
-               questions.getJSONObject("questions").put(md5KeyCurrent, userQuestions);
+               questions.getJSONObject("questions").put(md5KeyQuestionAuthor, userQuestions);
 
                return saveQuestions(city, questions);
            }
@@ -308,6 +340,189 @@ public class DatabaseManager {
            e.printStackTrace();
            return false;
        }
+    }
+
+    /* addQuestionComment - Add a comment to a specific question
+     *
+     *  @return             : success or not
+     *  @questionBody       : the question body (json format)
+     *  @editField          : contains information about the comment like time stamp, author, comment etc
+     */
+    private static boolean addQuestionComment(JSONObject questionBody, JSONObject editField) {
+        try {
+            synchronized (DatabaseManager.class) {
+                String city = questionBody.getString("city");
+                JSONObject questions = fetchQuestions(city);
+                String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
+                String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
+
+                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
+                    return false;
+                }
+
+                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                String qid = String.valueOf(questionBody.getInt("qid"));
+
+                if (!userQuestions.has(qid)) {
+                    return false;
+                }
+
+                JSONObject newComment = new JSONObject();
+                newComment.put("md5KeyCommAuthor", md5KeyCurrent);
+                newComment.put("comment", editField.getString("comment"));
+                newComment.put("timeStamp", editField.getString("timeStamp"));
+                newComment.put("commId", generateMD5(newComment.toString()));
+
+                JSONObject question = userQuestions.getJSONObject(qid);
+                question.getJSONArray("comments").put(newComment);
+                userQuestions.put(qid, question);
+                questions.getJSONObject("questions").put(md5KeyQuestionAuthor, userQuestions);
+
+                return saveQuestions(city, questions);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* removeQuestionComment - Remove a comment from a specific question
+     *
+     *  @return             : success or not
+     *  @questionBody       : the question body (json format)
+     *  @editField          : contains information about the comment like comment id, user that wants to remove etc
+     */
+    private static boolean removeQuestionComment(JSONObject questionBody, JSONObject editField) {
+        try {
+            synchronized (DatabaseManager.class) {
+                String city = questionBody.getString("city");
+                JSONObject questions = fetchQuestions(city);
+                String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
+                String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
+
+                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
+                    return false;
+                }
+
+                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                String qid = String.valueOf(questionBody.getInt("qid"));
+
+                if (!userQuestions.has(qid)) {
+                    return false;
+                }
+
+                JSONObject question = userQuestions.getJSONObject(qid);
+                JSONArray comments = question.getJSONArray("comments");
+
+                int commentIndex = -1;
+                for (int i = 0; i < comments.length(); i++) {
+                    if (comments.getJSONObject(i).getString("commId").equals(editField.getString("commId"))) {
+                        commentIndex = i;
+                        break;
+                    }
+                }
+                if (commentIndex == -1) {
+                    return false;
+                }
+
+                JSONObject comment = comments.getJSONObject(commentIndex);
+                if (!comment.getString("md5KeyCommAuthor").equals(md5KeyCurrent)) {
+                    return false;
+                }
+
+                comments.remove(commentIndex);
+                question.put("comments", comments);
+                userQuestions.put(qid, question);
+                questions.getJSONObject("questions").put(md5KeyQuestionAuthor, userQuestions);
+
+                return saveQuestions(city, questions);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* editQuestionCommentContent - Edit the message of a specific comment
+     *
+     *  @return             : success or not
+     *  @questionBody       : the question body (json format)
+     *  @editField          : contains information about the comment like comment id, author, new message etc
+     */
+    private static boolean editQuestionCommentContent(JSONObject questionBody, JSONObject editField) {
+        try {
+            synchronized (DatabaseManager.class) {
+                String city = questionBody.getString("city");
+                JSONObject questions = fetchQuestions(city);
+                String md5KeyCurrent = questionBody.getString("md5KeyCurrent");
+                String md5KeyQuestionAuthor = questionBody.getString("md5KeyQuestionAuthor");
+
+                if (!questions.getJSONObject("questions").has(md5KeyQuestionAuthor)) {
+                    return false;
+                }
+
+                JSONObject userQuestions = questions.getJSONObject("questions").getJSONObject(md5KeyQuestionAuthor);
+                String qid = String.valueOf(questionBody.getInt("qid"));
+
+                if (!userQuestions.has(qid)) {
+                    return false;
+                }
+
+                JSONObject question = userQuestions.getJSONObject(qid);
+                JSONArray comments = question.getJSONArray("comments");
+
+                int commentIndex = -1;
+                for (int i = 0; i < comments.length(); i++) {
+                    if (comments.getJSONObject(i).getString("commId").equals(editField.getString("commId"))) {
+                        commentIndex = i;
+                        break;
+                    }
+                }
+                if (commentIndex == -1) {
+                    return false;
+                }
+
+                JSONObject comment = comments.getJSONObject(commentIndex);
+                if (!comment.getString("md5KeyCommAuthor").equals(md5KeyCurrent)) {
+                    return false;
+                }
+
+                comment.put("comment", editField.getString("comment"));
+                comments.put(commentIndex, comment);
+                question.put("comments", comments);
+                userQuestions.put(qid, question);
+                questions.getJSONObject("questions").put(md5KeyQuestionAuthor, userQuestions);
+
+                return saveQuestions(city, questions);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* editQuestionComment - Edit the comment of a specific comment
+     *
+     *  @return             : success or not
+     *  @questionBody       : the question body (json format)
+     *  @editField          : contains information about the operation (add/remove/edit comment) and edit information
+     */
+    private static boolean editQuestionComment(JSONObject questionBody, JSONObject editField) {
+        try {
+            switch (editField.getString("operation")) {
+                case "add":
+                    return addQuestionComment(questionBody, editField);
+                case "remove":
+                    return removeQuestionComment(questionBody, editField);
+                case "edit":
+                    return editQuestionCommentContent(questionBody, editField);
+                default:
+                    return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /* editQuestion - Edits a question - the user can do multiple edits like:
@@ -328,6 +543,8 @@ public class DatabaseManager {
             switch (field) {
                 case "title":
                     return editQuestionTitle(questionBody, editField.getString(field));
+                case "comments":
+                    return editQuestionComment(questionBody, editField.getJSONObject(field));
                 default:
                     return false;
             }
@@ -337,12 +554,72 @@ public class DatabaseManager {
         }
     }
 
-    public static String getQuestions(String city, String md5Key) {
-        return null;
+    /* getQuestions - Get a list of questions for a specific city
+     *                Each question has only the last comment
+     *
+     *  @return             : a list of questions (json string format)
+     *  @city               : the requested city
+     *  @md5KeyCurrent      : unique identifier for the current user
+     */
+    public static String getQuestions(String city, String md5KeyCurrent) {
+        try {
+            if (!containsUser(md5KeyCurrent)) {
+                return new JSONArray().toString(2);
+            }
+
+            JSONObject questions = fetchQuestions(city).getJSONObject("questions");
+            JSONArray result = new JSONArray();
+            // for each author
+            for (String author : questions.keySet()) {
+                // for each question
+                for (String qid : questions.getJSONObject(author).keySet()) {
+                    JSONObject question = questions.getJSONObject(author).getJSONObject(qid);
+                    JSONArray comments = question.getJSONArray("comments");
+                    JSONObject comment = comments.getJSONObject(comments.length() - 1);
+                    question.remove("comments");
+                    question.put("comments", new JSONArray().put(comment));
+                    result.put(question);
+                }
+            }
+            return result.toString(2);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
     }
 
-    public static String getQuestionDetails(String city, String qid, String md5Key) {
-        return null;
+    /* getQuestionDetails - Get details for a specific question
+     *
+     *  @return                 : the details for a question (json string format)
+     *  @city                   : the requested city
+     *  @qid                    : unique identifier for the question
+     *  @md5KeyCurrent          : unique identifier for the current user
+     *  @md5KeyQuestionAuthor   : the id for the user who wrote the question
+     */
+    public static String getQuestionDetails(String city,
+                                            String qid,
+                                            String md5KeyCurrent,
+                                            String md5KeyQuestionAuthor) {
+        try {
+            if (!containsUser(md5KeyCurrent)) {
+                return new JSONArray().toString(2);
+            }
+
+            JSONObject questions = fetchQuestions(city);
+            if (!questions.has(md5KeyQuestionAuthor)) {
+                return new JSONArray().toString(2);
+            }
+
+            JSONObject questionsAuthor = questions.getJSONObject(md5KeyQuestionAuthor);
+            if (!questionsAuthor.has(qid)) {
+                return new JSONArray().toString(2);
+            }
+
+            return questionsAuthor.getJSONObject(qid).toString(2);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
     }
 
     /* fetchTopics - Get in memory json for user topics
