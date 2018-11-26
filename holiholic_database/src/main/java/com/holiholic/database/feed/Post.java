@@ -18,7 +18,7 @@ public class Post extends Feed implements IFeedEditable {
     Post(String city, JSONObject body) {
         this.city = city;
         this.body = body;
-        path = Constants.QUESTIONS_DB_PATH;
+        path = Constants.POSTS_DB_PATH;
         idField = "pid";
         type = "post";
         setLogger(LOGGER);

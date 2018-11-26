@@ -60,9 +60,112 @@ public abstract class Feed {
      *  @path               : the database path
      *  @city               : the city the user wants to see feed items
      */
-    public static JSONObject fetch(String path, String city) {
+    static JSONObject fetch(String path, String city) {
         String filename = path + city.toLowerCase() + ".json";
         return DatabaseManager.fetchObjectFromDatabase(filename);
+    }
+
+    /* getFeed - Get feed (questions or posts)
+     *
+     *  @return             : an array of object with feeds
+     *  @md5Key             : the current user id
+     *  @path               : the database path
+     *  @city               : the city the user wants to see feed items
+     *  @type               : question or post
+     *  @LOGGER             : logger instance to print useful information
+     */
+    private static JSONArray getFeed(String md5Key,
+                                     String path,
+                                     String city,
+                                     String type,
+                                     Logger LOGGER) {
+        LOGGER.log(Level.FINE, "New request from user {0} to get {1}s from {2} city",
+                   new Object[]{md5Key, type, city});
+        try {
+            if (!DatabaseManager.containsUser(md5Key)) {
+                return new JSONArray();
+            }
+
+            JSONObject feeds = fetch(path, city).getJSONObject(type);
+            JSONArray result = new JSONArray();
+            // for each author
+            for (String author : feeds.keySet()) {
+                // for each feed item
+                for (String id : feeds.getJSONObject(author).keySet()) {
+                    JSONObject feed = feeds.getJSONObject(author).getJSONObject(id);
+                    // display only the last comment
+                    JSONArray comments = feed.getJSONArray("comments");
+                    if (comments.length() >= 2) {
+                        JSONObject comment = comments.getJSONObject(comments.length() - 1);
+                        feeds.remove("comments");
+                        feeds.put("comments", new JSONArray().put(comment));
+                    }
+                    // display only the number of reactions
+                    JSONObject likes = feed.getJSONObject("likes");
+                    // for each react store only the count
+                    for (String react : likes.keySet()) {
+                        likes.put(react, likes.getJSONObject(react).length());
+                    }
+                    feed.put("likes", likes);
+                    result.put(feed);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray();
+        }
+    }
+
+    /* getQuestions - Get a list of questions for a specific city
+     *                Each question has only the last comment
+     *
+     *  @return             : a list of questions (json string format)
+     *  @md5Key             : current user id
+     *  @path               : the database path
+     *  @city               : the requested city
+     *  @type               : question or post
+     *  @LOGGER             : logger to print useful information
+     */
+    public static JSONArray getQuestions(String md5Key,
+                                         String path,
+                                         String city,
+                                         String type,
+                                         Logger LOGGER) {
+        return getFeed(md5Key, path, city, type, LOGGER);
+    }
+
+    /* getAvailableCities - Get a list of available cities for the application
+     *
+     *  @return             : a list with cities
+     */
+    private static JSONArray getAvailableCities() {
+        return DatabaseManager.fetchCities();
+    }
+
+    /* getPosts - Get a list of posts
+     *            Each post has only the last comment
+     *
+     *  @return             : a list of posts (json string format)
+     *  @md5Key             : current user id
+     *  @path               : the database path
+     *  @type               : question or post
+     *  @LOGGER             : logger to print useful information
+     */
+    public static JSONArray getPosts(String md5Key,
+                                      String path,
+                                      String type,
+                                      Logger LOGGER) {
+        JSONArray cities = getAvailableCities();
+        JSONArray result = new JSONArray();
+        // merge cities
+        for (int i = 0; i < cities.length(); i++) {
+            JSONArray cityFeed = getFeed(md5Key, path, cities.getString(i), type, LOGGER);
+            for (int j = 0; j < cityFeed.length(); j++) {
+                result.put(cityFeed.getJSONObject(i));
+            }
+        }
+        return result;
     }
 
     /* getDetails - Get details about a specific feed item

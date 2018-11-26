@@ -34,10 +34,10 @@ public class QuestionsController {
     public ResponseEntity<String> getQuestionDetails(@RequestParam String city,
                                                      @RequestParam String qid,
                                                      @RequestParam String md5KeyCurrent,
-                                                     @RequestParam String md5KeyQuestionAuthor)  {
+                                                     @RequestParam String md5KeyAuthor)  {
         return new ResponseEntity<>(DatabaseManager.getQuestionDetails(city,
                                                                        qid,
                                                                        md5KeyCurrent,
-                                                                       md5KeyQuestionAuthor), HttpStatus.OK);
+                                                                       md5KeyAuthor), HttpStatus.OK);
     }
 }

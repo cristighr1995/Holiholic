@@ -173,43 +173,28 @@ public class DatabaseManager {
      *
      *  @return             : a list of questions (json string format)
      *  @city               : the requested city
-     *  @md5KeyCurrent      : unique identifier for the current user
+     *  @md5Key             : unique identifier for the current user
      */
-    public static String getQuestions(String city, String md5KeyCurrent) {
-        LOGGER.log(Level.FINE, "New request from user {0} to get question from {1} city",
-                   new Object[]{md5KeyCurrent, city});
-        try {
-            if (!containsUser(md5KeyCurrent)) {
-                return new JSONArray().toString(2);
-            }
+    public static String getQuestions(String city, String md5Key) {
+        return Feed.getQuestions(md5Key, Constants.QUESTIONS_DB_PATH, city, "question", LOGGER).toString(2);
+    }
 
-            JSONObject questions = Feed.fetch(Constants.QUESTIONS_DB_PATH, city).getJSONObject("questions");
-            JSONArray result = new JSONArray();
-            // for each author
-            for (String author : questions.keySet()) {
-                // for each question
-                for (String qid : questions.getJSONObject(author).keySet()) {
-                    JSONObject question = questions.getJSONObject(author).getJSONObject(qid);
-                    // display only the last comment
-                    JSONArray comments = question.getJSONArray("comments");
-                    JSONObject comment = comments.getJSONObject(comments.length() - 1);
-                    question.remove("comments");
-                    question.put("comments", new JSONArray().put(comment));
-                    // display only the number of reactions
-                    JSONObject likes = question.getJSONObject("likes");
-                    // for each react store only the count
-                    for (String react : likes.keySet()) {
-                        likes.put(react, likes.getJSONObject(react).length());
-                    }
-                    question.put("likes", likes);
-                    result.put(question);
-                }
-            }
-            return result.toString(2);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new JSONArray().toString(2);
-        }
+    /* getPosts - Get a list of posts
+     *            Each post has only the last comment
+     *
+     *  @return             : a list of posts (json string format)
+     *  @md5Key             : current user id
+     */
+    public static String getPosts(String md5Key) {
+        return Feed.getPosts(md5Key, Constants.POSTS_DB_PATH, "post", LOGGER).toString(2);
+    }
+
+    /* fetchCities - Get a list of available cities for the application
+     *
+     *  @return             : a list of cities
+     */
+    public static JSONArray fetchCities() {
+        return fetchArrayFromDatabase(Constants.CITIES_DB_PATH);
     }
 
     /* getQuestionDetails - Get details for a specific question
@@ -225,6 +210,21 @@ public class DatabaseManager {
                                             String md5KeyCurrent,
                                             String md5KeyAuthor) {
         return Feed.getDetails(city, qid, "question", Constants.QUESTIONS_DB_PATH, md5KeyCurrent, md5KeyAuthor, LOGGER);
+    }
+
+    /* getPostDetails - Get details for a specific post
+     *
+     *  @return                 : the details for a post (json string format)
+     *  @city                   : the requested city
+     *  @pid                    : unique identifier for the post
+     *  @md5KeyCurrent          : unique identifier for the current user
+     *  @md5KeyQuestionAuthor   : the id for the user who wrote the post
+     */
+    public static String getPostDetails(String city,
+                                        String pid,
+                                        String md5KeyCurrent,
+                                        String md5KeyAuthor) {
+        return Feed.getDetails(city, pid, "post", Constants.POSTS_DB_PATH, md5KeyCurrent, md5KeyAuthor, LOGGER);
     }
 
     /* fetchTopics - Get in memory json for user topics
@@ -472,7 +472,7 @@ public class DatabaseManager {
      *  @return             : the json array from the database or null
      *  @path               : the path for the database
      */
-    public static JSONArray fetchArrayFromDatabase(String path) {
+    private static JSONArray fetchArrayFromDatabase(String path) {
         try {
             InputStream is = new FileInputStream(path);
             String text = IOUtils.toString(is, "UTF-8");

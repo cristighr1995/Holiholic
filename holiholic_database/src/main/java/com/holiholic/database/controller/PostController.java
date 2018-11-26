@@ -1,6 +1,6 @@
-package com.holiholic.feed.controller;
+package com.holiholic.database.controller;
 
-import com.holiholic.feed.database.DatabaseManager;
+import com.holiholic.database.DatabaseManager;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +14,7 @@ public class PostController {
     public ResponseEntity<Boolean> updatePost(@RequestBody String request)  {
         boolean result;
         try {
-            result = DatabaseManager.updatePost(new JSONObject(request));
+            result = DatabaseManager.updateFeed(new JSONObject(request));
         } catch (Exception e) {
             e.printStackTrace();
             result = false;
