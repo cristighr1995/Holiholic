@@ -14,7 +14,7 @@ public class QuestionsController {
     public ResponseEntity<Boolean> updateQuestion(@RequestBody String request)  {
         boolean result;
         try {
-            result = DatabaseManager.updateQuestion(new JSONObject(request));
+            result = DatabaseManager.updateFeed(new JSONObject(request));
         } catch (Exception e) {
             e.printStackTrace();
             result = false;
