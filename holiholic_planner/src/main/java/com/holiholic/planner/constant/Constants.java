@@ -6,9 +6,8 @@ import com.holiholic.planner.utils.Interval;
  *
  */
 public class Constants {
-    // Paths
-    public final static String DATABASE_PATH = System.getProperty("user.dir") + "/../holiholic_planner/places_db/";
-    public final static String LOGS_PATH = System.getProperty("user.dir") + "/../holiholic_planner/logs/application.txt";
+    public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser";
+    public final static String DATABASE_PATH = System.getProperty("user.dir") + "/db/";
 
     // Eating defaults
     public final static Interval defaultLunchInterval = new Interval(Interval.getHour(12, 0, 0),
