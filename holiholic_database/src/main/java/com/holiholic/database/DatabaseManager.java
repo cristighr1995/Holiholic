@@ -193,6 +193,15 @@ public class DatabaseManager {
         return Feed.getQuestions(uid, Constants.QUESTIONS_DB_PATH, city, "question", LOGGER).toString(2);
     }
 
+    /* getGuides - Get a list of guides for a specific city
+     *
+     *  @return             : a list of guides (json string format)
+     *  @city               : the requested city
+     *  @uid                : unique identifier for the current user
+     */
+    public static String getGuides(String city, String uid) {
+        return Feed.getGuides(uid, Constants.GUIDES_DB_PATH, city, "guide", LOGGER).toString(2);
+    }
     /* getPosts - Get a list of posts
      *            Each post has only the last comment
      *
@@ -224,6 +233,21 @@ public class DatabaseManager {
                                             String uidCurrent,
                                             String uidAuthor) {
         return Feed.getDetails(city, qid, "question", Constants.QUESTIONS_DB_PATH, uidCurrent, uidAuthor, LOGGER);
+    }
+
+    /* getGuideDetails - Get details for a specific guide
+     *
+     *  @return                 : the details for a guide (json string format)
+     *  @city                   : the requested city
+     *  @gid                    : unique identifier for the guide
+     *  @uidCurrent             : unique identifier for the current user
+     *  @uidAuthor              : the id for the user who added the guide ad
+     */
+    public static String getGuideDetails(String city,
+                                         String gid,
+                                         String uidCurrent,
+                                         String uidAuthor) {
+        return Feed.getDetails(city, gid, "guide", Constants.GUIDES_DB_PATH, uidCurrent, uidAuthor, LOGGER);
     }
 
     /* getPostDetails - Get details for a specific post

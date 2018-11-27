@@ -10,7 +10,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/* Feed - Handle the questions and posts operations (is abstract!)
+/* Feed - Handle the questions, guides and posts operations (is abstract!)
  *
  */
 public abstract class Feed {
@@ -33,6 +33,8 @@ public abstract class Feed {
                     return new Post(city, body);
                 case "question":
                     return new Question(city, body);
+                case "guide":
+                    return new Guide(city, body);
                 default:
                     return null;
             }
@@ -58,7 +60,7 @@ public abstract class Feed {
     /* fetch - Get feed items for a specific city from the database
      *         Can be used also from outside if the parameters are known
      *
-     *  @return             : questions for the city
+     *  @return             : feed items for the city
      *  @path               : the database path
      *  @city               : the city the user wants to see feed items
      */
@@ -67,13 +69,13 @@ public abstract class Feed {
         return DatabaseManager.fetchObjectFromDatabase(filename);
     }
 
-    /* getFeed - Get feed (questions or posts)
+    /* getFeed - Get feed (questions, guides or posts)
      *
      *  @return             : an array of object with feeds
      *  @uid                : the current user id
      *  @path               : the database path
      *  @city               : the city the user wants to see feed items
-     *  @type               : question or post
+     *  @type               : question, guide or post
      *  @LOGGER             : logger instance to print useful information
      */
     private static JSONArray getFeed(String uid,
@@ -137,12 +139,21 @@ public abstract class Feed {
         return getFeed(uid, path, city, type, LOGGER);
     }
 
-    /* getAvailableCities - Get a list of available cities for the application
+    /* getGuides - Get a list of guides for a specific city
      *
-     *  @return             : a list with cities
+     *  @return             : a list of guides (json string format)
+     *  @uid                : current user id
+     *  @path               : the database path
+     *  @city               : the requested city
+     *  @type               : question, guide or post
+     *  @LOGGER             : logger to print useful information
      */
-    private static JSONArray getAvailableCities() {
-        return DatabaseManager.fetchCities();
+    public static JSONArray getGuides(String uid,
+                                         String path,
+                                         String city,
+                                         String type,
+                                         Logger LOGGER) {
+        return getFeed(uid, path, city, type, LOGGER);
     }
 
     /* getPosts - Get a list of posts
@@ -182,12 +193,20 @@ public abstract class Feed {
         return result;
     }
 
+    /* getAvailableCities - Get a list of available cities for the application
+     *
+     *  @return             : a list with cities
+     */
+    private static JSONArray getAvailableCities() {
+        return DatabaseManager.fetchCities();
+    }
+
     /* getDetails - Get details about a specific feed item
      *
      *  @return             : the details json string format
      *  @city               : the city the user wants to see feed items
      *  @id                 : the id of the feed item
-     *  @type               : question or post
+     *  @type               : question, guide or post
      *  @path               : the database path
      *  @uidCurrent         : the id of the current user
      *  @uidAuthor          : the id of the author of the feed item

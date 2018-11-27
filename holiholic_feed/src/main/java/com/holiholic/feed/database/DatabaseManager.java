@@ -132,7 +132,47 @@ public class DatabaseManager {
             return new JSONArray().toString(2);
         }
     }
+    /* getGuides - Returns a list of guides for a specific city
+     *
+     *  @return             : the list of guides
+     *  @city               : the city where the user wants to see guides
+     *  @uid                : unique identifier for the current user
+     */
+    public static String getGuides(String city, String uid) {
+        String url = Constants.GET_GUIDES_URL
+                + "?city=" + city
+                + "&uid=" + uid;
+        try {
+            return getContentFromURL(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
+    }
 
+    /* getGuideDetails - Returns the details for a specific guide
+     *
+     *  @return             : the details for the specific guide
+     *  @city               : the city where the user wants to see guides
+     *  @gid                : the guide id
+     *  @uid                : unique identifier for the current user
+     */
+    public static String getGuideDetails(String city,
+                                            String gid,
+                                            String uidCurrent,
+                                            String uidAuthor) {
+        String url = Constants.GET_GUIDE_DETAILS_URL
+                + "?city=" + city
+                + "&qid=" + gid
+                + "&uidCurrent=" + uidCurrent
+                + "&uidAuthor=" + uidAuthor;
+        try {
+            return getContentFromURL(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
+    }
     /* getContentFromURL - Returns the content from a http get request
     *
     *  @return             : the content
