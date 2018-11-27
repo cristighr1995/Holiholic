@@ -35,4 +35,5 @@ public class Constants {
     // Calculated in km / h
     public final static double drivingMedVelocity = 20;
     public final static double walkingMedVelocity = 6;
+    
 }
