@@ -149,10 +149,10 @@ public abstract class Feed {
      *  @LOGGER             : logger to print useful information
      */
     public static JSONArray getGuides(String uid,
-                                         String path,
-                                         String city,
-                                         String type,
-                                         Logger LOGGER) {
+                                      String path,
+                                      String city,
+                                      String type,
+                                      Logger LOGGER) {
         return getFeed(uid, path, city, type, LOGGER);
     }
 
@@ -166,9 +166,9 @@ public abstract class Feed {
      *  @LOGGER             : logger to print useful information
      */
     public static JSONArray getPosts(String uid,
-                                      String path,
-                                      String type,
-                                      Logger LOGGER) {
+                                     String path,
+                                     String type,
+                                     Logger LOGGER) {
         JSONArray cities = getAvailableCities();
         JSONArray result = new JSONArray();
         JSONArray people = DatabaseManager.fetchPeople(uid);

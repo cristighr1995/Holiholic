@@ -140,8 +140,8 @@ public class DatabaseManager {
      */
     public static String getGuides(String city, String uid) {
         String url = Constants.GET_GUIDES_URL
-                + "?city=" + city
-                + "&uid=" + uid;
+                     + "?city=" + city
+                     + "&uid=" + uid;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -158,14 +158,14 @@ public class DatabaseManager {
      *  @uid                : unique identifier for the current user
      */
     public static String getGuideDetails(String city,
-                                            String gid,
-                                            String uidCurrent,
-                                            String uidAuthor) {
+                                         String gid,
+                                         String uidCurrent,
+                                         String uidAuthor) {
         String url = Constants.GET_GUIDE_DETAILS_URL
-                + "?city=" + city
-                + "&qid=" + gid
-                + "&uidCurrent=" + uidCurrent
-                + "&uidAuthor=" + uidAuthor;
+                     + "?city=" + city
+                     + "&qid=" + gid
+                     + "&uidCurrent=" + uidCurrent
+                     + "&uidAuthor=" + uidAuthor;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
