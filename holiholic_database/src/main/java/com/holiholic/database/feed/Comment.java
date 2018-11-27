@@ -62,6 +62,7 @@ public class Comment implements ICommentAction {
                 newComment.put("comment", comment);
                 newComment.put("timeStamp", editField.getString("timeStamp"));
                 newComment.put("commId", DatabaseManager.generateMD5(newComment.toString()));
+                newComment.put("authorInformation", DatabaseManager.getUserProfile(md5KeyCurrent));
 
                 JSONObject item = userFeed.getJSONObject(id);
                 item.getJSONArray("comments").put(newComment);

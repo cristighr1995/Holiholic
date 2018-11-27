@@ -78,14 +78,12 @@ public class DatabaseManager {
      *
      *  @return             : profile (json format)
      *  @request            : user information
-     *  @id                 : the id (unique) for the current user
      */
-    private static JSONObject createProfile(JSONObject request, int id) {
+    private static JSONObject createProfile(JSONObject request) {
         JSONObject profile = new JSONObject();
         profile.put("name", request.getString("name"));
         profile.put("email", request.getString("email"));
         profile.put("imageUrl", request.getString("imageUrl"));
-        profile.put("id", id);
         return profile;
     }
 
@@ -111,7 +109,7 @@ public class DatabaseManager {
                 if (users == null) {
                     return false;
                 }
-                users.put(request.getString("md5Key"), createProfile(request, users.length()));
+                users.put(request.getString("md5Key"), createProfile(request));
                 return updateUsers(users);
             }
         } catch (Exception e) {
@@ -166,6 +164,22 @@ public class DatabaseManager {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /* getUserProfile - Get profile information about the current user id
+     *
+     *  @return             : profile information
+     *  @userId             : the user id we want to get profile
+     */
+    public static JSONObject getUserProfile(String userId) {
+        if (!containsUser(userId)) {
+            return null;
+        }
+        JSONObject users = getUsers();
+        if (!users.has(userId)) {
+            return null;
+        }
+        return users.getJSONObject(userId);
     }
 
     /* getQuestions - Get a list of questions for a specific city

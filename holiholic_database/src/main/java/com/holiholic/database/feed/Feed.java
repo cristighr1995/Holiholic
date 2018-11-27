@@ -266,6 +266,8 @@ public abstract class Feed {
         body.put("likes", createEmptyLikesObject());
         // set an id
         body.put(idField, DatabaseManager.generateMD5(body.toString()));
+        // add user information for display
+        body.put("authorInformation", DatabaseManager.getUserProfile(body.getString("md5KeyAuthor")));
 
         // the body here is modified because the method param is passed by value
         return body;
