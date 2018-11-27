@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import com.holiholic.database.DatabaseManager;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -158,11 +160,23 @@ public abstract class Feed {
                                       Logger LOGGER) {
         JSONArray cities = getAvailableCities();
         JSONArray result = new JSONArray();
+        JSONArray people = DatabaseManager.fetchPeople(md5Key);
+        Set<String> followingIds = new HashSet<>();
+        for (int i = 0; i < people.length(); i++) {
+            followingIds.add(people.getString(i));
+        }
+        // current user should also see his own posts
+        followingIds.add(md5Key);
+
         // merge cities
         for (int i = 0; i < cities.length(); i++) {
             JSONArray cityFeed = getFeed(md5Key, path, cities.getString(i), type, LOGGER);
             for (int j = 0; j < cityFeed.length(); j++) {
-                result.put(cityFeed.getJSONObject(i));
+                JSONObject item = cityFeed.getJSONObject(j);
+                // only posts from people the user is following
+                if (followingIds.contains(item.getString("md5KeyAuthor"))) {
+                    result.put(item);
+                }
             }
         }
         return result;

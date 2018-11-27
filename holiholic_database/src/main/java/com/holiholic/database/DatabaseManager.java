@@ -321,7 +321,7 @@ public class DatabaseManager {
         return fetchObjectFromDatabase(Constants.PEOPLE_DB_PATH);
     }
 
-    /* getTopics - Get following people for a specific user
+    /* getPeople - Get following people for a specific user
      *             In case the user does not have any following people return empty json array
      *
      *  @return             : following people for a specific user (json in string format)
@@ -329,12 +329,22 @@ public class DatabaseManager {
      */
     public static String getPeople(String md5Key) {
         LOGGER.log(Level.FINE, "New request from user {0} to get people", md5Key);
+        return fetchPeople(md5Key).toString(2);
+    }
+
+    /* fetchPeople - Get following people for a specific user
+     *               In case the user does not have any following people return empty json array
+     *
+     *  @return             : following people for a specific user (json in string format)
+     *  @md5Key             : unique identifier for the current user
+     */
+    public static JSONArray fetchPeople(String md5Key) {
         JSONObject followGraph = fetchGraph();
         assert followGraph != null;
         if (followGraph.has(md5Key)) {
-            return followGraph.getJSONArray(md5Key).toString(2);
+            return followGraph.getJSONArray(md5Key);
         }
-        return new JSONArray().toString(2);
+        return new JSONArray();
     }
 
     /* updatePeople - Save in the database the updated edge between two users given the request
