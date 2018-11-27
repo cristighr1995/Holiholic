@@ -11,19 +11,19 @@ public class PostController {
 
     @RequestMapping(value = "/getPosts", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getPosts(@RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getPosts(md5Key), HttpStatus.OK);
+    public ResponseEntity<String> getPosts(@RequestParam String uid)  {
+        return new ResponseEntity<>(DatabaseManager.getPosts(uid), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/getPostDetails", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getPostDetails(@RequestParam String city,
                                                  @RequestParam String pid,
-                                                 @RequestParam String md5KeyCurrent,
-                                                 @RequestParam String md5KeyAuthor)  {
+                                                 @RequestParam String uidCurrent,
+                                                 @RequestParam String uidAuthor)  {
         return new ResponseEntity<>(DatabaseManager.getPostDetails(city,
                                                                    pid,
-                                                                   md5KeyCurrent,
-                                                                   md5KeyAuthor), HttpStatus.OK);
+                                                                   uidCurrent,
+                                                                   uidAuthor), HttpStatus.OK);
     }
 }

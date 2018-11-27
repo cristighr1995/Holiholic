@@ -11,8 +11,8 @@ public class LoginController {
 
     @RequestMapping(value = "/containsUser", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<Boolean> containsUser(@RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.containsUser(md5Key), HttpStatus.OK);
+    public ResponseEntity<Boolean> containsUser(@RequestParam String uid)  {
+        return new ResponseEntity<>(DatabaseManager.containsUser(uid), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/registerUser", headers="Content-Type=application/json", method = RequestMethod.POST)

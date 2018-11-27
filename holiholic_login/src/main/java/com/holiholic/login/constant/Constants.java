@@ -4,6 +4,6 @@ package com.holiholic.login.constant;
  *
  */
 public class Constants {
-    public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser?md5Key=";
+    public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser?uid=";
     public final static String REGISTER_USER_URL = "http://localhost:8092/registerUser";
 }

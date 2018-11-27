@@ -34,11 +34,11 @@ public class TopicsManager {
      */
     public static boolean updateTopics(JSONObject jsonObject) {
         try {
-            String md5Key = jsonObject.getString("md5Key");
+            String uid = jsonObject.getString("uid");
             JSONArray followedTopics = jsonObject.getJSONArray("followedTopics");
-            LOGGER.log(Level.FINE, "New request from {0} to follow {1} topics", new Object[]{md5Key,
+            LOGGER.log(Level.FINE, "New request from {0} to follow {1} topics", new Object[]{uid,
                                                                                 followedTopics.toString()});
-            return DatabaseManager.updateTopics(md5Key, followedTopics);
+            return DatabaseManager.updateTopics(uid, followedTopics);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -49,7 +49,7 @@ public class TopicsManager {
      *
      * @return              : the followed topics
      */
-    public static String getTopics(String md5Key) {
-        return DatabaseManager.getTopics(md5Key);
+    public static String getTopics(String uid) {
+        return DatabaseManager.getTopics(uid);
     }
 }

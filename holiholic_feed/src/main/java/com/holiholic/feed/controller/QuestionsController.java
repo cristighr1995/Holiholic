@@ -12,19 +12,19 @@ public class QuestionsController {
     @RequestMapping(value = "/getQuestions", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getQuestions(@RequestParam String city,
-                                               @RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getQuestions(city, md5Key), HttpStatus.OK);
+                                               @RequestParam String uid)  {
+        return new ResponseEntity<>(DatabaseManager.getQuestions(city, uid), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/getQuestionDetails", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getQuestionDetails(@RequestParam String city,
                                                      @RequestParam String qid,
-                                                     @RequestParam String md5KeyCurrent,
-                                                     @RequestParam String md5KeyAuthor)  {
+                                                     @RequestParam String uidCurrent,
+                                                     @RequestParam String uidAuthor)  {
         return new ResponseEntity<>(DatabaseManager.getQuestionDetails(city,
                                                                        qid,
-                                                                       md5KeyCurrent,
-                                                                       md5KeyAuthor), HttpStatus.OK);
+                                                                       uidCurrent,
+                                                                       uidAuthor), HttpStatus.OK);
     }
 }

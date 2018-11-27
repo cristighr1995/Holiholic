@@ -35,9 +35,9 @@ public class LoginManager {
         try {
             LOGGER.log(Level.FINE, "New request to authenticate from {0}", request.getString("email"));
 
-            String md5key = DatabaseManager.generateMD5(request.getString("email"));
-            if (!DatabaseManager.containsUser(md5key)) {
-                request.put("md5Key", md5key);
+            String uid = DatabaseManager.generateMD5(request.getString("email"));
+            if (!DatabaseManager.containsUser(uid)) {
+                request.put("uid", uid);
                 return registerUser(request);
             }
         } catch (Exception e) {
