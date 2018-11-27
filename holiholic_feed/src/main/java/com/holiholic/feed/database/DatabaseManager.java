@@ -41,13 +41,13 @@ public class DatabaseManager {
         LOGGER.setLevel(Level.ALL);
     }
 
-    /* updateQuestion - Updates the content of a question
+    /* updateQuestion - Updates the content of a feed item
      *
      *  @return             : success or not
-     *  @questionBody       : the question body
+     *  @body               : the request body
      */
-    public static boolean updateQuestion(JSONObject questionBody) {
-        return postContentToURL(questionBody, Constants.UPDATE_QUESTION_USER_URL);
+    public static boolean updateFeed(JSONObject body) {
+        return postContentToURL(body, Constants.UPDATE_FEED_URL);
     }
 
     /* getQuestions - Returns a list of questions for a specific city
@@ -57,7 +57,7 @@ public class DatabaseManager {
      *  @md5Key             : unique identifier for the current user
      */
     public static String getQuestions(String city, String md5Key) {
-        String url = Constants.GET_QUESTION_USER_URL
+        String url = Constants.GET_QUESTIONS_URL
                      + "?city=" + city
                      + "&md5Key=" + md5Key;
         try {
@@ -79,7 +79,7 @@ public class DatabaseManager {
                                             String qid,
                                             String md5KeyCurrent,
                                             String md5KeyQuestionAuthor) {
-        String url = Constants.GET_QUESTION_DETAILS_USER_URL
+        String url = Constants.GET_QUESTION_DETAILS_URL
                      + "?city=" + city
                      + "&qid=" + qid
                      + "&md5KeyCurrent=" + md5KeyCurrent
@@ -92,22 +92,13 @@ public class DatabaseManager {
         }
     }
 
-    /* updatePost - Updates the content of a post
-     *
-     *  @return             : success or not
-     *  @postBody           : the post body
-     */
-    public static boolean updatePost(JSONObject postBody) {
-        return postContentToURL(postBody, Constants.UPDATE_POST_USER_URL);
-    }
-
     /* getPosts - Returns a list of posts
      *
      *  @return             : the list of post
      *  @md5Key             : unique identifier for the current user
      */
     public static String getPosts(String md5Key) {
-        String url = Constants.GET_POSTS_USER_URL
+        String url = Constants.GET_POSTS_URL
                      + "?md5Key=" + md5Key;
         try {
             return getContentFromURL(url);
@@ -129,7 +120,7 @@ public class DatabaseManager {
                                         String pid,
                                         String md5KeyCurrent,
                                         String md5KeyPostAuthor) {
-        String url = Constants.GET_POST_DETAILS_USER_URL
+        String url = Constants.GET_POST_DETAILS_URL
                      + "?city=" + city
                      + "&pid=" + pid
                      + "&md5KeyCurrent=" + md5KeyCurrent

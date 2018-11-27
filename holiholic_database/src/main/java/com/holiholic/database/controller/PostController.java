@@ -9,19 +9,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class PostController {
 
-    @RequestMapping(value = "/updatePost", headers="Content-Type=application/json", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Boolean> updatePost(@RequestBody String request)  {
-        boolean result;
-        try {
-            result = DatabaseManager.updateFeed(new JSONObject(request));
-        } catch (Exception e) {
-            e.printStackTrace();
-            result = false;
-        }
-        return new ResponseEntity<>(result, result ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
-    }
-
     @RequestMapping(value = "/getPosts", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getPosts(@RequestParam String md5Key)  {

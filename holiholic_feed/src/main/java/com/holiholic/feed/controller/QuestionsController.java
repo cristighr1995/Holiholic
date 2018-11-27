@@ -9,19 +9,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class QuestionsController {
 
-    @RequestMapping(value = "/updateQuestion", headers="Content-Type=application/json", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Boolean> updateQuestion(@RequestBody String request)  {
-        boolean result;
-        try {
-            result = DatabaseManager.updateQuestion(new JSONObject(request));
-        } catch (Exception e) {
-            e.printStackTrace();
-            result = false;
-        }
-        return new ResponseEntity<>(result, result ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
-    }
-
     @RequestMapping(value = "/getQuestions", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getQuestions(@RequestParam String city,
