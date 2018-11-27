@@ -3,7 +3,6 @@ package com.holiholic.database.feed;
 import org.json.JSONObject;
 
 /* FeedEditHandler - Handler for the edit operations of a feed item
- *                   Similar to Visitor Pattern
  *
  */
 public class FeedEditHandler implements IFeedEditable {
