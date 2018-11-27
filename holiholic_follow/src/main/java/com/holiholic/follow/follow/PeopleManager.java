@@ -35,13 +35,13 @@ public class PeopleManager {
      */
     public static boolean updatePeople(JSONObject request, boolean follow) {
         try {
-            String md5KeyFrom = request.getString("md5KeyFrom");
-            String md5KeyTo = request.getString("md5KeyTo");
+            String uidFrom = request.getString("uidFrom");
+            String uidTo = request.getString("uidTo");
             String operation = follow ? "follow" : "unfollow";
 
-            LOGGER.log(Level.FINE, "New request from {0} to {1} {2}", new Object[]{md5KeyFrom, operation, md5KeyTo});
+            LOGGER.log(Level.FINE, "New request from {0} to {1} {2}", new Object[]{uidFrom, operation, uidTo});
 
-            return DatabaseManager.updatePeople(md5KeyFrom, md5KeyTo, operation);
+            return DatabaseManager.updatePeople(uidFrom, uidTo, operation);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -52,7 +52,7 @@ public class PeopleManager {
      *
      * @return              : the followed people
      */
-    public static String getPeople(String md5Key) {
-        return DatabaseManager.getPeople(md5Key);
+    public static String getPeople(String uid) {
+        return DatabaseManager.getPeople(uid);
     }
 }

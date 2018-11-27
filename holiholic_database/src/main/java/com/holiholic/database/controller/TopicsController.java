@@ -11,8 +11,8 @@ public class TopicsController {
 
     @RequestMapping(value = "/getTopics", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getTopics(@RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getTopics(md5Key), HttpStatus.OK);
+    public ResponseEntity<String> getTopics(@RequestParam String uid)  {
+        return new ResponseEntity<>(DatabaseManager.getTopics(uid), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/updateTopics", headers="Content-Type=application/json", method = RequestMethod.POST)

@@ -103,13 +103,13 @@ public class DatabaseManager {
      */
     public static boolean registerUser(JSONObject request) {
         try {
-            LOGGER.log(Level.FINE, "New request to register user {0}", request.getString("md5Key"));
+            LOGGER.log(Level.FINE, "New request to register user {0}", request.getString("uid"));
             synchronized (DatabaseManager.class) {
                 JSONObject users = getUsers();
                 if (users == null) {
                     return false;
                 }
-                users.put(request.getString("md5Key"), createProfile(request));
+                users.put(request.getString("uid"), createProfile(request));
                 return updateUsers(users);
             }
         } catch (Exception e) {
@@ -121,14 +121,14 @@ public class DatabaseManager {
     /* containsUser - Check if the current user is already in the database
      *
      *  @return             : true/false (exists or not)
-     *  @md5Key             : the unique identifier for the current user
+     *  @uid                : the unique identifier for the current user
      */
-    public static boolean containsUser(String md5Key) {
+    public static boolean containsUser(String uid) {
         JSONObject users = getUsers();
         if (users == null) {
             return false;
         }
-        return users.has(md5Key);
+        return users.has(uid);
     }
 
     /* updateFeed - Updates a specific question or post from the feed
@@ -187,20 +187,20 @@ public class DatabaseManager {
      *
      *  @return             : a list of questions (json string format)
      *  @city               : the requested city
-     *  @md5Key             : unique identifier for the current user
+     *  @uid                : unique identifier for the current user
      */
-    public static String getQuestions(String city, String md5Key) {
-        return Feed.getQuestions(md5Key, Constants.QUESTIONS_DB_PATH, city, "question", LOGGER).toString(2);
+    public static String getQuestions(String city, String uid) {
+        return Feed.getQuestions(uid, Constants.QUESTIONS_DB_PATH, city, "question", LOGGER).toString(2);
     }
 
     /* getPosts - Get a list of posts
      *            Each post has only the last comment
      *
      *  @return             : a list of posts (json string format)
-     *  @md5Key             : current user id
+     *  @uid                : current user id
      */
-    public static String getPosts(String md5Key) {
-        return Feed.getPosts(md5Key, Constants.POSTS_DB_PATH, "post", LOGGER).toString(2);
+    public static String getPosts(String uid) {
+        return Feed.getPosts(uid, Constants.POSTS_DB_PATH, "post", LOGGER).toString(2);
     }
 
     /* fetchCities - Get a list of available cities for the application
@@ -216,14 +216,14 @@ public class DatabaseManager {
      *  @return                 : the details for a question (json string format)
      *  @city                   : the requested city
      *  @qid                    : unique identifier for the question
-     *  @md5KeyCurrent          : unique identifier for the current user
-     *  @md5KeyQuestionAuthor   : the id for the user who wrote the question
+     *  @uidCurrent             : unique identifier for the current user
+     *  @uidAuthor              : the id for the user who wrote the question
      */
     public static String getQuestionDetails(String city,
                                             String qid,
-                                            String md5KeyCurrent,
-                                            String md5KeyAuthor) {
-        return Feed.getDetails(city, qid, "question", Constants.QUESTIONS_DB_PATH, md5KeyCurrent, md5KeyAuthor, LOGGER);
+                                            String uidCurrent,
+                                            String uidAuthor) {
+        return Feed.getDetails(city, qid, "question", Constants.QUESTIONS_DB_PATH, uidCurrent, uidAuthor, LOGGER);
     }
 
     /* getPostDetails - Get details for a specific post
@@ -231,14 +231,14 @@ public class DatabaseManager {
      *  @return                 : the details for a post (json string format)
      *  @city                   : the requested city
      *  @pid                    : unique identifier for the post
-     *  @md5KeyCurrent          : unique identifier for the current user
-     *  @md5KeyQuestionAuthor   : the id for the user who wrote the post
+     *  @uidCurrent             : unique identifier for the current user
+     *  @uidAuthor              : the id for the user who wrote the post
      */
     public static String getPostDetails(String city,
                                         String pid,
-                                        String md5KeyCurrent,
-                                        String md5KeyAuthor) {
-        return Feed.getDetails(city, pid, "post", Constants.POSTS_DB_PATH, md5KeyCurrent, md5KeyAuthor, LOGGER);
+                                        String uidCurrent,
+                                        String uidAuthor) {
+        return Feed.getDetails(city, pid, "post", Constants.POSTS_DB_PATH, uidCurrent, uidAuthor, LOGGER);
     }
 
     /* fetchTopics - Get in memory json for user topics
@@ -261,16 +261,16 @@ public class DatabaseManager {
      *             In case the user does not have any topics to follow return empty json array
      *
      *  @return             : topics for a specific user (json in string format)
-     *  @md5Key             : unique identifier for the current user
+     *  @uid                : unique identifier for the current user
      */
-    public static String getTopics(String md5Key) {
-        LOGGER.log(Level.FINE, "New request from user {0} to get topics", md5Key);
+    public static String getTopics(String uid) {
+        LOGGER.log(Level.FINE, "New request from user {0} to get topics", uid);
         JSONObject topics = fetchTopics();
         JSONObject response = new JSONObject();
         response.put("availableTopics", fetchAvailableTopics());
         assert topics != null;
-        if (topics.has(md5Key)) {
-            response.put("userTopics", topics.getJSONArray(md5Key));
+        if (topics.has(uid)) {
+            response.put("userTopics", topics.getJSONArray(uid));
         } else {
             response.put("userTopics", new JSONArray());
         }
@@ -293,18 +293,18 @@ public class DatabaseManager {
      */
     public static boolean updateTopics(JSONObject request) {
         try {
-            String md5Key = request.getString("md5Key");
-            LOGGER.log(Level.FINE, "New request from user {0} to update his topics", md5Key);
+            String uid = request.getString("uid");
+            LOGGER.log(Level.FINE, "New request from user {0} to update his topics", uid);
             JSONArray followedTopics = request.getJSONArray("followedTopics");
 
-            if (!containsUser(md5Key)) {
+            if (!containsUser(uid)) {
                 return false;
             }
 
             synchronized (DatabaseManager.class) {
                 JSONObject topics = fetchTopics();
                 assert topics != null;
-                topics.put(md5Key, followedTopics);
+                topics.put(uid, followedTopics);
                 return saveTopics(topics);
             }
         } catch (Exception e) {
@@ -325,24 +325,24 @@ public class DatabaseManager {
      *             In case the user does not have any following people return empty json array
      *
      *  @return             : following people for a specific user (json in string format)
-     *  @md5Key             : unique identifier for the current user
+     *  @uid                : unique identifier for the current user
      */
-    public static String getPeople(String md5Key) {
-        LOGGER.log(Level.FINE, "New request from user {0} to get people", md5Key);
-        return fetchPeople(md5Key).toString(2);
+    public static String getPeople(String uid) {
+        LOGGER.log(Level.FINE, "New request from user {0} to get people", uid);
+        return fetchPeople(uid).toString(2);
     }
 
     /* fetchPeople - Get following people for a specific user
      *               In case the user does not have any following people return empty json array
      *
      *  @return             : following people for a specific user (json in string format)
-     *  @md5Key             : unique identifier for the current user
+     *  @uid                : unique identifier for the current user
      */
-    public static JSONArray fetchPeople(String md5Key) {
+    public static JSONArray fetchPeople(String uid) {
         JSONObject followGraph = fetchGraph();
         assert followGraph != null;
-        if (followGraph.has(md5Key)) {
-            return followGraph.getJSONArray(md5Key);
+        if (followGraph.has(uid)) {
+            return followGraph.getJSONArray(uid);
         }
         return new JSONArray();
     }
@@ -354,8 +354,8 @@ public class DatabaseManager {
      */
     public static boolean updatePeople(JSONObject followGraphEdge) {
         try {
-            String from = followGraphEdge.getString("md5KeyFrom");
-            String to = followGraphEdge.getString("md5KeyTo");
+            String from = followGraphEdge.getString("uidFrom");
+            String to = followGraphEdge.getString("uidTo");
             String operation = followGraphEdge.getString("operation");
             LOGGER.log(Level.FINE, "New request from user {0} to {1} user {2}", new Object[]{operation, from, to});
 

@@ -54,12 +54,12 @@ public class DatabaseManager {
      *
      *  @return             : the list of questions
      *  @city               : the city where the user wants to see questions
-     *  @md5Key             : unique identifier for the current user
+     *  @uid                : unique identifier for the current user
      */
-    public static String getQuestions(String city, String md5Key) {
+    public static String getQuestions(String city, String uid) {
         String url = Constants.GET_QUESTIONS_URL
                      + "?city=" + city
-                     + "&md5Key=" + md5Key;
+                     + "&uid=" + uid;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -73,17 +73,17 @@ public class DatabaseManager {
      *  @return             : the details for the specific question
      *  @city               : the city where the user wants to see questions
      *  @qid                : the question id
-     *  @md5Key             : unique identifier for the current user
+     *  @uid                : unique identifier for the current user
      */
     public static String getQuestionDetails(String city,
                                             String qid,
-                                            String md5KeyCurrent,
-                                            String md5KeyQuestionAuthor) {
+                                            String uidCurrent,
+                                            String uidAuthor) {
         String url = Constants.GET_QUESTION_DETAILS_URL
                      + "?city=" + city
                      + "&qid=" + qid
-                     + "&md5KeyCurrent=" + md5KeyCurrent
-                     + "&md5KeyAuthor=" + md5KeyQuestionAuthor;
+                     + "&uidCurrent=" + uidCurrent
+                     + "&uidAuthor=" + uidAuthor;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -95,11 +95,11 @@ public class DatabaseManager {
     /* getPosts - Returns a list of posts
      *
      *  @return             : the list of post
-     *  @md5Key             : unique identifier for the current user
+     *  @uid                : unique identifier for the current user
      */
-    public static String getPosts(String md5Key) {
+    public static String getPosts(String uid) {
         String url = Constants.GET_POSTS_URL
-                     + "?md5Key=" + md5Key;
+                     + "?uid=" + uid;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -113,18 +113,18 @@ public class DatabaseManager {
      *  @return             : the details for the specific post
      *  @city               : the city where the post was posted
      *  @pid                : the post id
-     *  @md5KeyCurrent      : unique identifier for the current user
-     *  @md5KeyPostAuthor   : unique identifier for the author of the post
+     *  @uidCurrent         : unique identifier for the current user
+     *  @uidPostAuthor      : unique identifier for the author of the post
      */
     public static String getPostDetails(String city,
                                         String pid,
-                                        String md5KeyCurrent,
-                                        String md5KeyPostAuthor) {
+                                        String uidCurrent,
+                                        String uidPostAuthor) {
         String url = Constants.GET_POST_DETAILS_URL
                      + "?city=" + city
                      + "&pid=" + pid
-                     + "&md5KeyCurrent=" + md5KeyCurrent
-                     + "&md5KeyAuthor=" + md5KeyPostAuthor;
+                     + "&uidCurrent=" + uidCurrent
+                     + "&uidAuthor=" + uidPostAuthor;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
