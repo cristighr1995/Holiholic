@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-public class TopicsController {
+public class TopicController {
 
     @RequestMapping(value = "/getTopics", method = RequestMethod.GET)
     @ResponseBody

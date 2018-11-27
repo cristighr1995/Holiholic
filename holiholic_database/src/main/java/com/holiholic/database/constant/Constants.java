@@ -7,6 +7,7 @@ public class Constants {
     public final static String USERS_DB_PATH = System.getProperty("user.dir") + "/db/users/users.json";
     public final static String QUESTIONS_DB_PATH = System.getProperty("user.dir") + "/db/questions/questions_";
     public final static String POSTS_DB_PATH = System.getProperty("user.dir") + "/db/posts/posts_";
+    public final static String GUIDES_DB_PATH = System.getProperty("user.dir") + "/db/guides/guides_";
     public final static String CITIES_DB_PATH = System.getProperty("user.dir") + "/db/cities/cities.json";
     public final static String TOPICS_DB_PATH = System.getProperty("user.dir") + "/db/topics/topics.json";
     public final static String AVAILABLE_TOPICS_DB_PATH = System.getProperty("user.dir") + "/db/topics/available_topics.json";
