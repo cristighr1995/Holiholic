@@ -11,6 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -75,28 +77,26 @@ public class DatabaseManager {
      *  @jsonPlacesArray    : the list of places from the city
      *  @tags               : the tags for the places the user wants to visit
      */
-    private static String getPlacesBasedOnTags(JSONArray jsonPlacesArray, Set<String> tags) {
+    private static String getPlacesBasedOnTags(JSONArray places, Set<String> tags) {
         JSONArray response = new JSONArray();
-        List<JSONObject> places = new ArrayList<>();
+        List<JSONObject> placesList = new ArrayList<>();
 
         try {
-            for (int i = 0; i < jsonPlacesArray.length(); i++) {
-                JSONObject jsonPlace = jsonPlacesArray.getJSONObject(i);
-                JSONArray jsonPlaceTags = jsonPlace.getJSONArray("tags");
-
-                for (int j = 0; j < jsonPlaceTags.length(); j++) {
-                    String tag = jsonPlaceTags.getString(j);
-
+            for (int i = 0; i < places.length(); i++) {
+                JSONObject place = places.getJSONObject(i);
+                JSONArray placeTags = place.getJSONArray("tags");
+                for (int j = 0; j < placeTags.length(); j++) {
+                    String tag = placeTags.getString(j);
                     if (tags.contains(tag)) {
-                        places.add(jsonPlace);
+                        placesList.add(place);
                         break;
                     }
                 }
             }
             // sort the places based on their rating or popularity
-            sortPlacesBasedOnPopularity(places);
+            sortPlacesBasedOnPopularity(placesList);
             // put the sorted places in the response
-            response.put(places);
+            response.put(placesList);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -104,135 +104,169 @@ public class DatabaseManager {
         return response.toString(2);
     }
 
+    /* containsUser - Check if the current user is in the system
+     *
+     *  @return             : true or false
+     *  @uid                : the current user id
+     */
+    public static boolean containsUser(String uid) {
+        String url = Constants.CONTAINS_USER_URL + "?uid=" + uid;
+        try {
+            return Boolean.parseBoolean(getContentFromURL(url));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     /* getPlaces - Reads the database and collects all the places from a specific city
     *              This function sorts the places before sending them to user
     *
-    *  @return       : a json array with places
-    *  @request      : the json containing user's information
+    *  @return          : a json array with places
+    *  @body            : the json containing user's information
     */
-    public static String getPlacesHttpRequest(String request) {
-        String response = null;
-
+    public static String getPlaces(JSONObject body) {
         try {
-            LOGGER.log(Level.FINE, "New request to process places recommendations");
+            String cityName = body.getString("city");
+            String uid = body.getString("uid");
 
-            JSONObject jsonRequest = new JSONObject(request);
-            String cityName = jsonRequest.getString("city");
+            LOGGER.log(Level.FINE, "New request from user {0} to get places recommendation for {1} city",
+                       new Object[]{uid, cityName});
+
+            if (!containsUser(uid)) {
+                return "[]";
+            }
 
             // decode the city and cache it, to avoid duplicate work
             City city = getCity(cityName);
-
             assert (city.jsonPlacesArray != null);
-
             Set<String> tags = new HashSet<>();
-            JSONArray jsonTags = jsonRequest.getJSONArray("tags");
+            JSONArray jsonTags = body.getJSONArray("tags");
             for (int i = 0; i < jsonTags.length(); i++) {
                 tags.add(jsonTags.getString(i));
             }
-
-            response = getPlacesBasedOnTags(city.jsonPlacesArray, tags);
+            return getPlacesBasedOnTags(city.jsonPlacesArray, tags);
         } catch (Exception e) {
             e.printStackTrace();
+            return "[}";
         }
-
-        return response;
     }
 
-    /* loadRestaurantsFromFile - Loads nearby restaurants for a specific city
+    /* fetchArrayFromDatabase - Retrieve from database a json array
      *
-     *  @return       : a map where for each place we store the nearby restaurants
-     *  @fileName     : the corresponding file name where we already cache in binary format the map
+     *  @return             : the json array from the database or null
+     *  @path               : the path for the database
      */
-    private static Map<Integer, List<Place>> loadRestaurantsFromFile(String fileName) {
-        Map<Integer, List<Place>> restaurants = null;
-
+    private static JSONArray fetchArrayFromDatabase(String path) {
         try {
-            LOGGER.log(Level.FINE, "Started loading restaurants from file - {0} -", fileName);
+            InputStream is = new FileInputStream(path);
+            String text = IOUtils.toString(is, "UTF-8");
+            return new JSONArray(text);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-            restaurants = new HashMap<>();
-            InputStream is = new FileInputStream(fileName);
-            String jsonText = IOUtils.toString(is, "UTF-8");
-            JSONArray jsonRestaurants = new JSONArray(jsonText);
+    /* fetchRestaurantsFromDatabase - Loads nearby restaurants for a specific city
+     *
+     *  @return         : a map where for each place we store the nearby restaurants
+     *  @path           : the corresponding file name where we already cache in binary format the map
+     */
+    private static Map<Integer, List<Place>> fetchRestaurantsFromDatabase(String path) {
+        try {
+            LOGGER.log(Level.FINE, "Load restaurants from database path: {0}", path);
 
-            for (int i = 0; i < jsonRestaurants.length(); i++) {
-                JSONObject jsonPlaceInformation = jsonRestaurants.getJSONObject(i);
-                JSONArray jsonPlaceRestaurants = jsonPlaceInformation.getJSONArray("restaurants");
+            Map<Integer, List<Place>> restaurants = new HashMap<>();
+            JSONArray dbRestaurants = fetchArrayFromDatabase(path);
+
+            for (int i = 0; i < dbRestaurants.length(); i++) {
+                JSONObject placeInformation = dbRestaurants.getJSONObject(i);
+                JSONArray nearbyRestaurants = placeInformation.getJSONArray("restaurants");
                 List<Place> placeRestaurants = new ArrayList<>();
 
-                for (int j = 0; j < jsonPlaceRestaurants.length(); j++) {
-                    JSONObject jsonRestaurant = jsonPlaceRestaurants.getJSONObject(j);
-                    Place restaurant = deserializeRestaurant(jsonRestaurant);
+                for (int j = 0; j < nearbyRestaurants.length(); j++) {
+                    JSONObject dbRestaurant = nearbyRestaurants.getJSONObject(j);
+                    Place restaurant = deserializeRestaurant(dbRestaurant);
                     placeRestaurants.add(restaurant);
                 }
 
-                restaurants.put(jsonPlaceInformation.getInt("id"), placeRestaurants);
+                restaurants.put(placeInformation.getInt("id"), placeRestaurants);
             }
-
-            LOGGER.log(Level.FINE, "Successfully retrieved restaurants from file - {0} -", fileName);
-        } catch(Exception ex) {
-            ex.printStackTrace();
+            return restaurants;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
         }
-
-        return restaurants;
     }
 
-    /* loadCityFromFile - Loads the city from a raw json
+    /* decodePlace - Create Place instance from the database representation
      *
-     *  @return       : void
-     *  @city         : the city instance that we want to build
-     *  @fileName     : the corresponding file name for the raw json where we find information about places from city
+     *  @return             : place instance
+     *  @dbPlace            : the database place representation
      */
-    private static void loadCityFromFile(City city, String fileName) {
+    private static Place decodePlace(JSONObject dbPlace) {
         try {
-            LOGGER.log(Level.FINE, "Start loading city - {0} - from file {1}", new Object[]{city.name, fileName});
-            List<Place> places = new ArrayList<>();
+            int id = dbPlace.getInt("id");
+            String name = dbPlace.getString("name");
+            double latitude = dbPlace.getDouble("latitude");
+            double longitude = dbPlace.getDouble("longitude");
+            int durationVisit = dbPlace.getInt("duration");
+            double rating = dbPlace.getDouble("rating");
+            int checkIns = dbPlace.getInt("checkIns");
+            String imageUrl = dbPlace.getString("imageUrl");
+            int wantToGoNumber = dbPlace.getInt("wantToGo");
+            JSONArray jsonTagsArray = dbPlace.getJSONArray("tags");
+            int parkTime = dbPlace.getInt("parkTime");
+            OpeningPeriod openingPeriod = deserializeOpeningPeriod(dbPlace.getJSONArray("openingHours"));
 
-            InputStream is = new FileInputStream(fileName);
-            String jsonText = IOUtils.toString(is, "UTF-8");
+            Place place = new Place(id, name, new GeoPosition(latitude, longitude),
+                                    durationVisit, rating, openingPeriod);
 
-            JSONArray jsonArray = new JSONArray(jsonText);
-            // save also this array for future manipulation
-            city.jsonPlacesArray = jsonArray;
-            int jsonArrayLength = jsonArray.length();
+            place.checkIns = checkIns;
+            place.imageUrl = imageUrl;
+            place.wantToGoNumber = wantToGoNumber;
+            place.parkTime = parkTime;
 
-            for (int i = 0; i < jsonArrayLength; i++) {
-                JSONObject jsonPlace = jsonArray.getJSONObject(i);
-
-                int id = jsonPlace.getInt("id");
-                String name = jsonPlace.getString("name");
-                double latitude = jsonPlace.getDouble("latitude");
-                double longitude = jsonPlace.getDouble("longitude");
-                int durationVisit = jsonPlace.getInt("duration");
-                double rating = jsonPlace.getDouble("rating");
-                int checkIns = jsonPlace.getInt("checkIns");
-                String imageUrl = jsonPlace.getString("imageUrl");
-                int wantToGoNumber = jsonPlace.getInt("wantToGo");
-                JSONArray jsonTagsArray = jsonPlace.getJSONArray("tags");
-                int parkTime = jsonPlace.getInt("parkTime");
-                OpeningPeriod openingPeriod = deserializeOpeningPeriod(jsonPlace.getJSONArray("openingHours"));
-
-                Place place = new Place(id, name, new GeoPosition(latitude, longitude),
-                                        durationVisit, rating, openingPeriod);
-                place.checkIns = checkIns;
-                place.imageUrl = imageUrl;
-                place.wantToGoNumber = wantToGoNumber;
-                place.parkTime = parkTime;
-
-                for (int t = 0; t < jsonTagsArray.length(); t++) {
-                    place.tags.add(jsonTagsArray.getString(t));
-                }
-
-                places.add(place);
+            for (int t = 0; t < jsonTagsArray.length(); t++) {
+                place.tags.add(jsonTagsArray.getString(t));
             }
 
-            LOGGER.log(Level.FINE, "Successfully retrieved places for city - {0} -", city.name);
+            return place;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-            String restaurantsFileName = Constants.DATABASE_PATH + city.name + "_restaurants.json";
-            Map<Integer, List<Place>> restaurants = loadRestaurantsFromFile(restaurantsFileName);
+    /* fetchCityFromDatabase - Loads the city from a raw json
+     *
+     *  @return         : void
+     *  @city           : the city instance that we want to build
+     *  @path           : the corresponding file name for the raw json where we find information about places from city
+     */
+    private static void fetchCityFromDatabase(City city, String path) {
+        try {
+            LOGGER.log(Level.FINE, "Load {0} city from database path: {1}", new Object[]{city.name, path});
+
+            JSONArray dbPlaces = fetchArrayFromDatabase(path);
+            // save also this array for future manipulation
+            city.jsonPlacesArray = dbPlaces;
+            List<Place> places = new ArrayList<>();
+
+            for (int i = 0; i < dbPlaces.length(); i++) {
+                Place place = decodePlace(dbPlaces.getJSONObject(i));
+                if (place != null) {
+                    places.add(place);
+                }
+            }
+
+            String restaurantsPath = Constants.DATABASE_PATH + city.name + "_restaurants.json";
+            Map<Integer, List<Place>> restaurants = fetchRestaurantsFromDatabase(restaurantsPath);
 
             city.constructInstance(places, restaurants);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -246,16 +280,14 @@ public class DatabaseManager {
             return cacheCity.get(cityName);
         }
 
-        File f;
-        City city = null;
         String fileName = Constants.DATABASE_PATH + cityName + ".json";
-
+        City city = null;
         try {
-            f = new File(fileName);
+            File f = new File(fileName);
             city = City.getInstance(cityName);
 
             if (f.getAbsoluteFile().exists()) {
-                loadCityFromFile(city, fileName);
+                fetchCityFromDatabase(city, fileName);
                 // store the city in the cache
                 cacheCity.put(cityName, city);
             }
@@ -405,12 +437,11 @@ public class DatabaseManager {
      */
     public static synchronized void updateCity(City city) {
         try {
-            LOGGER.log( Level.FINE, "Started updating the city ({0}) database", city.name);
-            String fileName = Constants.DATABASE_PATH + city.name + ".json";
-            BufferedWriter out = new BufferedWriter(new FileWriter(fileName), 32768);
+            LOGGER.log( Level.FINE, "Update {0} city database", city.name);
+            String path = Constants.DATABASE_PATH + city.name + ".json";
+            BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
             out.write(city.jsonPlacesArray.toString(2));
             out.close();
-            LOGGER.log( Level.FINE, "Successfully updated the city ({0}) database", city.name);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -514,5 +545,43 @@ public class DatabaseManager {
             restaurant.openingPeriod = closePeriod;
         }
         return restaurant;
+    }
+
+    /* getContentFromURL - Returns the content from a http get request
+     *
+     *  @return             : the content
+     *  @strUrl             : the url with the get request
+     */
+    private static String getContentFromURL(String strUrl) throws IOException {
+        String data = null;
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        String line;
+        try {
+            URL url = new URL(strUrl);
+            // Creating an http connection to communicate with url
+            urlConnection = (HttpURLConnection) url.openConnection();
+            // Connecting to url
+            urlConnection.connect();
+            // Reading data from url
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+            data = sb.toString();
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            assert iStream != null;
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
     }
 }
