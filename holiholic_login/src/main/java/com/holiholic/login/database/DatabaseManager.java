@@ -99,10 +99,10 @@ public class DatabaseManager {
     /* containsUser - Check if the current user is already in the database
      *
      *  @return             : true/false (existing or not)
-     *  @md5Key             : the unique identifier for the current user
+     *  @uid                : the unique identifier for the current user
      */
-    public static boolean containsUser(String md5key) {
-        String url = Constants.CONTAINS_USER_URL + md5key;
+    public static boolean containsUser(String uid) {
+        String url = Constants.CONTAINS_USER_URL + uid;
         try {
             return Boolean.parseBoolean(getContentFromURL(url));
         } catch (Exception e) {

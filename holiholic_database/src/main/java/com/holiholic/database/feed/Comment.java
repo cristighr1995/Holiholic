@@ -44,30 +44,30 @@ public class Comment implements ICommentAction {
         try {
             synchronized (DatabaseManager.class) {
                 JSONObject feeds = Feed.fetch(feed.getPath(), feed.getCity());
-                String md5KeyCurrent = feed.getBody().getString("md5KeyCurrent");
-                String md5KeyFeedAuthor = feed.getBody().getString("md5KeyAuthor");
-                JSONObject userFeed = feed.fetchUserFeed(feeds.getJSONObject(feed.getType()), md5KeyFeedAuthor);
+                String uidCurrent = feed.getBody().getString("uidCurrent");
+                String uidFeedAuthor = feed.getBody().getString("uidAuthor");
+                JSONObject userFeed = feed.fetchUserFeed(feeds.getJSONObject(feed.getType()), uidFeedAuthor);
                 String id = feed.getBody().getString(feed.getIdField());
                 String comment = editField.getString("comment");
 
                 LOGGER.log(Level.FINE, "User {0} wants to add comment \"{1}\" to the {2} {3} from {4} city",
-                           new Object[]{md5KeyCurrent, comment, feed.getType(), id, feed.getCity()});
+                           new Object[]{uidCurrent, comment, feed.getType(), id, feed.getCity()});
 
                 if (!userFeed.has(id)) {
                     return false;
                 }
 
                 JSONObject newComment = new JSONObject();
-                newComment.put("md5KeyCommAuthor", md5KeyCurrent);
+                newComment.put("uidCommAuthor", uidCurrent);
                 newComment.put("comment", comment);
                 newComment.put("timeStamp", editField.getString("timeStamp"));
                 newComment.put("commId", DatabaseManager.generateMD5(newComment.toString()));
-                newComment.put("authorInformation", DatabaseManager.getUserProfile(md5KeyCurrent));
+                newComment.put("authorInformation", DatabaseManager.getUserProfile(uidCurrent));
 
                 JSONObject item = userFeed.getJSONObject(id);
                 item.getJSONArray("comments").put(newComment);
                 userFeed.put(id, item);
-                feeds.getJSONObject(feed.getType()).put(md5KeyFeedAuthor, userFeed);
+                feeds.getJSONObject(feed.getType()).put(uidFeedAuthor, userFeed);
 
                 return feed.saveFeed(feed.getPath(), feed.getCity(), feeds);
             }
@@ -104,13 +104,13 @@ public class Comment implements ICommentAction {
         try {
             synchronized (DatabaseManager.class) {
                 JSONObject feeds = Feed.fetch(feed.getPath(), feed.getCity());
-                String md5KeyCurrent = feed.getBody().getString("md5KeyCurrent");
-                String md5KeyFeedAuthor = feed.getBody().getString("md5KeyAuthor");
-                JSONObject userFeed = feed.fetchUserFeed(feeds.getJSONObject(feed.getType()), md5KeyFeedAuthor);
+                String uidCurrent = feed.getBody().getString("uidCurrent");
+                String uidFeedAuthor = feed.getBody().getString("uidAuthor");
+                JSONObject userFeed = feed.fetchUserFeed(feeds.getJSONObject(feed.getType()), uidFeedAuthor);
                 String id = feed.getBody().getString(feed.getIdField());
 
                 LOGGER.log(Level.FINE, "User {0} wants to remove comment {1} of the {2} {3} from {4} city",
-                           new Object[]{md5KeyCurrent, editField.getString("commId"), feed.getType(), id, feed.getCity()});
+                           new Object[]{uidCurrent, editField.getString("commId"), feed.getType(), id, feed.getCity()});
 
                 if (!userFeed.has(id)) {
                     return false;
@@ -124,14 +124,14 @@ public class Comment implements ICommentAction {
                 }
 
                 JSONObject comment = comments.getJSONObject(commentIndex);
-                if (!comment.getString("md5KeyCommAuthor").equals(md5KeyCurrent)) {
+                if (!comment.getString("uidCommAuthor").equals(uidCurrent)) {
                     return false;
                 }
 
                 comments.remove(commentIndex);
                 item.put("comments", comments);
                 userFeed.put(id, item);
-                feeds.getJSONObject(feed.getType()).put(md5KeyFeedAuthor, userFeed);
+                feeds.getJSONObject(feed.getType()).put(uidFeedAuthor, userFeed);
 
                 return feed.saveFeed(feed.getPath(), feed.getCity(), feeds);
             }
@@ -151,13 +151,13 @@ public class Comment implements ICommentAction {
         try {
             synchronized (DatabaseManager.class) {
                 JSONObject feeds = Feed.fetch(feed.getPath(), feed.getCity());
-                String md5KeyCurrent = feed.getBody().getString("md5KeyCurrent");
-                String md5KeyFeedAuthor = feed.getBody().getString("md5KeyAuthor");
-                JSONObject userFeed = feed.fetchUserFeed(feeds.getJSONObject(feed.getType()), md5KeyFeedAuthor);
+                String uidCurrent = feed.getBody().getString("uidCurrent");
+                String uidFeedAuthor = feed.getBody().getString("uidAuthor");
+                JSONObject userFeed = feed.fetchUserFeed(feeds.getJSONObject(feed.getType()), uidFeedAuthor);
                 String id = feed.getBody().getString(feed.getIdField());
 
                 LOGGER.log(Level.FINE, "User {0} wants to edit comment {1} of the {2} {3} from {4} city to \"{5}\"",
-                           new Object[]{md5KeyCurrent, editField.getString("commId"), feed.getType(),
+                           new Object[]{uidCurrent, editField.getString("commId"), feed.getType(),
                                         id, feed.getCity(), editField.getString("comment")});
 
                 if (!userFeed.has(id)) {
@@ -172,7 +172,7 @@ public class Comment implements ICommentAction {
                 }
 
                 JSONObject comment = comments.getJSONObject(commentIndex);
-                if (!comment.getString("md5KeyCommAuthor").equals(md5KeyCurrent)) {
+                if (!comment.getString("uidCommAuthor").equals(uidCurrent)) {
                     return false;
                 }
 
@@ -180,7 +180,7 @@ public class Comment implements ICommentAction {
                 comments.put(commentIndex, comment);
                 item.put("comments", comments);
                 userFeed.put(id, item);
-                feeds.getJSONObject(feed.getType()).put(md5KeyFeedAuthor, userFeed);
+                feeds.getJSONObject(feed.getType()).put(uidFeedAuthor, userFeed);
 
                 return feed.saveFeed(feed.getPath(), feed.getCity(), feeds);
             }

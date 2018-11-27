@@ -70,21 +70,21 @@ public abstract class Feed {
     /* getFeed - Get feed (questions or posts)
      *
      *  @return             : an array of object with feeds
-     *  @md5Key             : the current user id
+     *  @uid                : the current user id
      *  @path               : the database path
      *  @city               : the city the user wants to see feed items
      *  @type               : question or post
      *  @LOGGER             : logger instance to print useful information
      */
-    private static JSONArray getFeed(String md5Key,
+    private static JSONArray getFeed(String uid,
                                      String path,
                                      String city,
                                      String type,
                                      Logger LOGGER) {
         LOGGER.log(Level.FINE, "New request from user {0} to get {1}s from {2} city",
-                   new Object[]{md5Key, type, city});
+                   new Object[]{uid, type, city});
         try {
-            if (!DatabaseManager.containsUser(md5Key)) {
+            if (!DatabaseManager.containsUser(uid)) {
                 return new JSONArray();
             }
 
@@ -123,18 +123,18 @@ public abstract class Feed {
      *                Each question has only the last comment
      *
      *  @return             : a list of questions (json string format)
-     *  @md5Key             : current user id
+     *  @uid                : current user id
      *  @path               : the database path
      *  @city               : the requested city
      *  @type               : question or post
      *  @LOGGER             : logger to print useful information
      */
-    public static JSONArray getQuestions(String md5Key,
+    public static JSONArray getQuestions(String uid,
                                          String path,
                                          String city,
                                          String type,
                                          Logger LOGGER) {
-        return getFeed(md5Key, path, city, type, LOGGER);
+        return getFeed(uid, path, city, type, LOGGER);
     }
 
     /* getAvailableCities - Get a list of available cities for the application
@@ -149,32 +149,32 @@ public abstract class Feed {
      *            Each post has only the last comment
      *
      *  @return             : a list of posts (json string format)
-     *  @md5Key             : current user id
+     *  @uid                : current user id
      *  @path               : the database path
      *  @type               : question or post
      *  @LOGGER             : logger to print useful information
      */
-    public static JSONArray getPosts(String md5Key,
+    public static JSONArray getPosts(String uid,
                                       String path,
                                       String type,
                                       Logger LOGGER) {
         JSONArray cities = getAvailableCities();
         JSONArray result = new JSONArray();
-        JSONArray people = DatabaseManager.fetchPeople(md5Key);
+        JSONArray people = DatabaseManager.fetchPeople(uid);
         Set<String> followingIds = new HashSet<>();
         for (int i = 0; i < people.length(); i++) {
             followingIds.add(people.getString(i));
         }
         // current user should also see his own posts
-        followingIds.add(md5Key);
+        followingIds.add(uid);
 
         // merge cities
         for (int i = 0; i < cities.length(); i++) {
-            JSONArray cityFeed = getFeed(md5Key, path, cities.getString(i), type, LOGGER);
+            JSONArray cityFeed = getFeed(uid, path, cities.getString(i), type, LOGGER);
             for (int j = 0; j < cityFeed.length(); j++) {
                 JSONObject item = cityFeed.getJSONObject(j);
                 // only posts from people the user is following
-                if (followingIds.contains(item.getString("md5KeyAuthor"))) {
+                if (followingIds.contains(item.getString("uidAuthor"))) {
                     result.put(item);
                 }
             }
@@ -189,30 +189,30 @@ public abstract class Feed {
      *  @id                 : the id of the feed item
      *  @type               : question or post
      *  @path               : the database path
-     *  @md5KeyCurrent      : the id of the current user
-     *  @md5KeyAuthor       : the id of the author of the feed item
+     *  @uidCurrent         : the id of the current user
+     *  @uidAuthor          : the id of the author of the feed item
      *  @LOGGER             : the logger used to print useful information
      */
     public static String getDetails(String city,
                                     String id,
                                     String type,
                                     String path,
-                                    String md5KeyCurrent,
-                                    String md5KeyAuthor,
+                                    String uidCurrent,
+                                    String uidAuthor,
                                     Logger LOGGER) {
         LOGGER.log(Level.FINE, "New request from user {0} to get {1} {2} details from {3} city",
-                   new Object[]{md5KeyCurrent, type, id, city});
+                   new Object[]{uidCurrent, type, id, city});
         try {
-            if (!DatabaseManager.containsUser(md5KeyCurrent)) {
+            if (!DatabaseManager.containsUser(uidCurrent)) {
                 return new JSONArray().toString(2);
             }
 
             JSONObject feed = fetch(path, city).getJSONObject(type);
-            if (!feed.has(md5KeyAuthor)) {
+            if (!feed.has(uidAuthor)) {
                 return new JSONArray().toString(2);
             }
 
-            JSONObject userFeed = feed.getJSONObject(md5KeyAuthor);
+            JSONObject userFeed = feed.getJSONObject(uidAuthor);
             if (!userFeed.has(id)) {
                 return new JSONArray().toString(2);
             }
@@ -249,13 +249,13 @@ public abstract class Feed {
      *
      *  @return             : feeds (json format)
      *  @feed               : the whole json from memory
-     *  @md5KeyAuthor       : the user id
+     *  @uidAuthor          : the user id
      */
-    JSONObject fetchUserFeed(JSONObject feed, String md5KeyAuthor) {
+    JSONObject fetchUserFeed(JSONObject feed, String uidAuthor) {
         JSONObject userFeed = null;
         try {
-            if (feed.has(md5KeyAuthor)) {
-                userFeed = feed.getJSONObject(md5KeyAuthor);
+            if (feed.has(uidAuthor)) {
+                userFeed = feed.getJSONObject(uidAuthor);
             } else {
                 userFeed = new JSONObject();
             }
@@ -281,7 +281,7 @@ public abstract class Feed {
         // set an id
         body.put(idField, DatabaseManager.generateMD5(body.toString()));
         // add user information for display
-        body.put("authorInformation", DatabaseManager.getUserProfile(body.getString("md5KeyAuthor")));
+        body.put("authorInformation", DatabaseManager.getUserProfile(body.getString("uidAuthor")));
 
         // the body here is modified because the method param is passed by value
         return body;
@@ -340,8 +340,8 @@ public abstract class Feed {
      *  @return             : success or not
      */
     boolean add() {
-        String md5KeyAuthor = getBody().getString("md5KeyAuthor");
-        if (!containsUser(md5KeyAuthor)) {
+        String uidAuthor = getBody().getString("uidAuthor");
+        if (!containsUser(uidAuthor)) {
             return false;
         }
 
@@ -349,16 +349,16 @@ public abstract class Feed {
         JSONObject entity = createDatabaseEntity(getBody(), getIdField());
 
         LOGGER.log(Level.FINE, "User {0} wants to add a {1} in {2} city",
-                   new Object[]{md5KeyAuthor, getType(), getCity()});
+                   new Object[]{uidAuthor, getType(), getCity()});
 
         try {
             synchronized (DatabaseManager.class) {
                 JSONObject feed = fetch(getPath(), getCity());
                 int count = feed.getInt(getType() + "Count");
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), md5KeyAuthor);
+                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
                 userFeed.put(entity.getString(getIdField()), entity);
                 feed.put(getType() + "Count", ++count);
-                feed.getJSONObject(getType()).put(md5KeyAuthor, userFeed);
+                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
                 return saveFeed(getPath(), getCity(), feed);
             }
         } catch (Exception e) {
@@ -382,25 +382,25 @@ public abstract class Feed {
             synchronized (DatabaseManager.class) {
                 JSONObject feed = fetch(getPath(), getCity());
                 int count = feed.getInt(getType() + "Count");
-                String md5KeyCurrent = getBody().getString("md5KeyCurrent");
-                String md5KeyAuthor = getBody().getString("md5KeyAuthor");
+                String uidCurrent = getBody().getString("uidCurrent");
+                String uidAuthor = getBody().getString("uidAuthor");
                 String id = getBody().getString(getIdField());
 
                 LOGGER.log(Level.FINE, "User {0} wants to remove {1} with id {2} from {3} city",
-                           new Object[]{md5KeyCurrent, getType(), id, getCity()});
+                           new Object[]{uidCurrent, getType(), id, getCity()});
 
-                if (!md5KeyCurrent.equals(md5KeyAuthor)) {
+                if (!uidCurrent.equals(uidAuthor)) {
                     return false;
                 }
 
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), md5KeyAuthor);
+                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
                 if (!userFeed.has(id)) {
                     return true;
                 }
 
                 userFeed.remove(id);
                 feed.put(getType() + "Count", --count);
-                feed.getJSONObject(getType()).put(md5KeyAuthor, userFeed);
+                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
 
                 return saveFeed(getPath(), getCity(), feed);
             }
@@ -455,18 +455,18 @@ public abstract class Feed {
         try {
             synchronized (DatabaseManager.class) {
                 JSONObject feed = fetch(getPath(), getCity());
-                String md5KeyCurrent = getBody().getString("md5KeyCurrent");
-                String md5KeyAuthor = getBody().getString("md5KeyAuthor");
+                String uidCurrent = getBody().getString("uidCurrent");
+                String uidAuthor = getBody().getString("uidAuthor");
                 String id = getBody().getString(getIdField());
 
                 LOGGER.log(Level.FINE, "User {0} wants to edit title of the {1} {2} from {3} city to \"{4}\"",
-                           new Object[]{md5KeyCurrent, getType(), id, getCity(), title});
+                           new Object[]{uidCurrent, getType(), id, getCity(), title});
 
-                if (!md5KeyCurrent.equals(md5KeyAuthor)) {
+                if (!uidCurrent.equals(uidAuthor)) {
                     return false;
                 }
 
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), md5KeyAuthor);
+                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
                 if (!userFeed.has(id)) {
                     return false;
                 }
@@ -474,7 +474,7 @@ public abstract class Feed {
                 JSONObject item = userFeed.getJSONObject(id);
                 item.put("title", title);
                 userFeed.put(id, item);
-                feed.getJSONObject(getType()).put(md5KeyAuthor, userFeed);
+                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
 
                 return saveFeed(getPath(), getCity(), feed);
             }
@@ -534,9 +534,9 @@ public abstract class Feed {
         try {
             synchronized (DatabaseManager.class) {
                 JSONObject feed = fetch(getPath(), getCity());
-                String md5KeyCurrent = getBody().getString("md5KeyCurrent");
-                String md5KeyAuthor = getBody().getString("md5KeyAuthor");
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), md5KeyAuthor);
+                String uidCurrent = getBody().getString("uidCurrent");
+                String uidAuthor = getBody().getString("uidAuthor");
+                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
                 String id = getBody().getString(getIdField());
 
                 if (!userFeed.has(id)) {
@@ -548,20 +548,20 @@ public abstract class Feed {
                 JSONObject reactJson = likes.getJSONObject(react);
 
                 LOGGER.log(Level.FINE, "User {0} wants to {1} {2} the {3} {4} from {5} city",
-                           new Object[]{md5KeyCurrent, operation, react, getType(), id, getCity()});
+                           new Object[]{uidCurrent, operation, react, getType(), id, getCity()});
 
                 switch (operation) {
                     case "add":
-                        if (reactJson.has(md5KeyCurrent)) {
+                        if (reactJson.has(uidCurrent)) {
                             return true;
                         }
-                        reactJson.put(md5KeyCurrent, true);
+                        reactJson.put(uidCurrent, true);
                         break;
                     case "remove":
-                        if (!reactJson.has(md5KeyCurrent)) {
+                        if (!reactJson.has(uidCurrent)) {
                             return true;
                         }
-                        reactJson.remove(md5KeyCurrent);
+                        reactJson.remove(uidCurrent);
                         break;
                     default:
                         return false;
@@ -570,7 +570,7 @@ public abstract class Feed {
                 likes.put(react, reactJson);
                 item.put("likes", likes);
                 userFeed.put(id, item);
-                feed.getJSONObject(getType()).put(md5KeyAuthor, userFeed);
+                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
 
                 return saveFeed(getPath(), getCity(), feed);
             }

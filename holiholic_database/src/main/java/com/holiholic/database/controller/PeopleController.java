@@ -11,8 +11,8 @@ public class PeopleController {
 
     @RequestMapping(value = "/getPeople", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getPeople(@RequestParam String md5Key)  {
-        return new ResponseEntity<>(DatabaseManager.getPeople(md5Key), HttpStatus.OK);
+    public ResponseEntity<String> getPeople(@RequestParam String uid)  {
+        return new ResponseEntity<>(DatabaseManager.getPeople(uid), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/updatePeople", headers="Content-Type=application/json", method = RequestMethod.POST)

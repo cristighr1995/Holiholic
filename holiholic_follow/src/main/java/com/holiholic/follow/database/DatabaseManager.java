@@ -44,11 +44,11 @@ public class DatabaseManager {
     /* getPeople - Get a list with people to follow for the current user
      *
      *  @return                 : a json string format with the people the user should follow
-     *  @md5Key                 : the md5Key for the current user
+     *  @uid                    : the uid for the current user
      */
-    public static String getPeople(String md5Key) {
+    public static String getPeople(String uid) {
         try {
-            return getContentFromURL(Constants.GET_PEOPLE_URL + md5Key);
+            return getContentFromURL(Constants.GET_PEOPLE_URL + uid);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -58,15 +58,15 @@ public class DatabaseManager {
     /* updatePeople - Save new followed people for the current user in the database using HTTP POST Request
      *
      *  @return                 : true/false (success or not)
-     *  @md5KeyFrom             : the md5Key for the current user
-     *  @md5KeyTo               : the md5Key for the followed user
+     *  @uidFrom                : the uid for the current user
+     *  @uidTo                  : the uid for the followed user
      *  @operation              : follow/unfollow
      */
-    public static boolean updatePeople(String md5KeyFrom, String md5KeyTo, String operation) {
+    public static boolean updatePeople(String uidFrom, String uidTo, String operation) {
         try {
             JSONObject followGraphEdge = new JSONObject();
-            followGraphEdge.put("md5KeyFrom", md5KeyFrom);
-            followGraphEdge.put("md5KeyTo", md5KeyTo);
+            followGraphEdge.put("uidFrom", uidFrom);
+            followGraphEdge.put("uidTo", uidTo);
             followGraphEdge.put("operation", operation);
 
             StringEntity entity = new StringEntity(followGraphEdge.toString(2),
@@ -88,11 +88,11 @@ public class DatabaseManager {
     /* getPeople - Get a list with topics to follow for the current user
      *
      *  @return                 : a json string format with the topics the user should follow
-     *  @md5Key                 : the md5Key for the current user
+     *  @uid                    : the uid for the current user
      */
-    public static String getTopics(String md5Key) {
+    public static String getTopics(String uid) {
         try {
-            return getContentFromURL(Constants.GET_TOPICS_URL + md5Key);
+            return getContentFromURL(Constants.GET_TOPICS_URL + uid);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -102,13 +102,13 @@ public class DatabaseManager {
     /* updateTopics - Save new followed topics for the current user in the database using HTTP POST Request
      *
      *  @return                 : true/false (success or not)
-     *  @md5Key                 : the md5Key for the current user
+     *  @uid                    : the uid for the current user
      *  @followedTopics         : a list with topics that user wants to follow
      */
-    public static boolean updateTopics(String md5Key, JSONArray followedTopics) {
+    public static boolean updateTopics(String uid, JSONArray followedTopics) {
         try {
             JSONObject topicEntry = new JSONObject();
-            topicEntry.put("md5Key", md5Key);
+            topicEntry.put("uid", uid);
             topicEntry.put("followedTopics", followedTopics);
 
             StringEntity entity = new StringEntity(topicEntry.toString(2),
