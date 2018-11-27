@@ -558,20 +558,22 @@ public class DatabaseManager {
                 return false;
             }
 
-            JSONObject history = fetchObjectFromDatabase(Constants.HISTORY_PLANNER_DB_PATH);
-            JSONArray userHistory;
-            if (history.has(uid)) {
-                userHistory = history.getJSONArray(uid);
-            } else {
-                userHistory = new JSONArray();
+            synchronized (DatabaseManager.class) {
+                JSONObject history = fetchObjectFromDatabase(Constants.HISTORY_PLANNER_DB_PATH);
+                JSONArray userHistory;
+                if (history.has(uid)) {
+                    userHistory = history.getJSONArray(uid);
+                } else {
+                    userHistory = new JSONArray();
+                }
+
+                // remove the uid from the body
+                body.remove("uid");
+                userHistory.put(body);
+                history.put(uid, userHistory);
+
+                return saveHistory(Constants.HISTORY_PLANNER_DB_PATH, history);
             }
-
-            // remove the uid from the body
-            body.remove("uid");
-            userHistory.put(body);
-            history.put(uid, userHistory);
-
-            return saveHistory(Constants.HISTORY_PLANNER_DB_PATH, history);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
