@@ -1,6 +1,6 @@
-package com.holiholic.follow.database;
+package com.holiholic.guide.database;
 
-import com.holiholic.follow.constant.Constants;
+import com.holiholic.guide.constant.Constants;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -41,9 +41,9 @@ public class DatabaseManager {
         LOGGER.setLevel(Level.ALL);
     }
 
-    /* getPeople - Get a list with people to follow for the current user
+    /* getPeople - Get a list with people to guide for the current user
      *
-     *  @return                 : a json string format with the people the user should follow
+     *  @return                 : a json string format with the people the user should guide
      *  @md5Key                 : the md5Key for the current user
      */
     public static String getPeople(String md5Key) {
@@ -60,7 +60,7 @@ public class DatabaseManager {
      *  @return                 : true/false (success or not)
      *  @md5KeyFrom             : the md5Key for the current user
      *  @md5KeyTo               : the md5Key for the followed user
-     *  @operation              : follow/unfollow
+     *  @operation              : guide/unfollow
      */
     public static boolean updatePeople(String md5KeyFrom, String md5KeyTo, String operation) {
         try {
@@ -85,9 +85,9 @@ public class DatabaseManager {
         }
     }
 
-    /* getPeople - Get a list with topics to follow for the current user
+    /* getPeople - Get a list with topics to guide for the current user
      *
-     *  @return                 : a json string format with the topics the user should follow
+     *  @return                 : a json string format with the topics the user should guide
      *  @md5Key                 : the md5Key for the current user
      */
     public static String getTopics(String md5Key) {
@@ -103,7 +103,7 @@ public class DatabaseManager {
      *
      *  @return                 : true/false (success or not)
      *  @md5Key                 : the md5Key for the current user
-     *  @followedTopics         : a list with topics that user wants to follow
+     *  @followedTopics         : a list with topics that user wants to guide
      */
     public static boolean updateTopics(String md5Key, JSONArray followedTopics) {
         try {

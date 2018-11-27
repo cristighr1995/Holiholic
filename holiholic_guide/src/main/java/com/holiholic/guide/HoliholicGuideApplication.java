@@ -1,16 +1,16 @@
-package com.holiholic.follow;
+package com.holiholic.guide;
 
-import com.holiholic.follow.database.DatabaseManager;
-import com.holiholic.follow.follow.PeopleManager;
-import com.holiholic.follow.follow.TopicsManager;
+import com.holiholic.guide.database.DatabaseManager;
+import com.holiholic.guide.guide.PeopleManager;
+import com.holiholic.guide.guide.TopicsManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HoliholicFollowApplication {
+public class HoliholicGuideApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(HoliholicFollowApplication.class, args);
+        SpringApplication.run(HoliholicGuideApplication.class, args);
         DatabaseManager.setLogger();
         PeopleManager.setLogger();
         TopicsManager.setLogger();

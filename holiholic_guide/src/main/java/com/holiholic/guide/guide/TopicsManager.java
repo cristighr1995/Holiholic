@@ -1,6 +1,6 @@
-package com.holiholic.follow.follow;
+package com.holiholic.guide.guide;
 
-import com.holiholic.follow.database.DatabaseManager;
+import com.holiholic.guide.database.DatabaseManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,7 +36,7 @@ public class TopicsManager {
         try {
             String md5Key = jsonObject.getString("md5Key");
             JSONArray followedTopics = jsonObject.getJSONArray("followedTopics");
-            LOGGER.log(Level.FINE, "New request from {0} to follow {1} topics", new Object[]{md5Key,
+            LOGGER.log(Level.FINE, "New request from {0} to guide {1} topics", new Object[]{md5Key,
                                                                                 followedTopics.toString()});
             return DatabaseManager.updateTopics(md5Key, followedTopics);
         } catch (Exception e) {

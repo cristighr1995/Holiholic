@@ -1,4 +1,4 @@
-package com.holiholic.follow.constant;
+package com.holiholic.guide.constant;
 
 /* Constants - All constants will be declared here
  *

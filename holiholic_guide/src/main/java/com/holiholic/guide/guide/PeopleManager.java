@@ -1,6 +1,6 @@
-package com.holiholic.follow.follow;
+package com.holiholic.guide.guide;
 
-import com.holiholic.follow.database.DatabaseManager;
+import com.holiholic.guide.database.DatabaseManager;
 import org.json.JSONObject;
 
 import java.util.logging.ConsoleHandler;
@@ -31,13 +31,13 @@ public class PeopleManager {
      *
      * @return              : true and false only when encountered an error
      * @request             : the body for the request
-     * @follow              : add or remove link between the two users
+     * @guide              : add or remove link between the two users
      */
     public static boolean updatePeople(JSONObject request, boolean follow) {
         try {
             String md5KeyFrom = request.getString("md5KeyFrom");
             String md5KeyTo = request.getString("md5KeyTo");
-            String operation = follow ? "follow" : "unfollow";
+            String operation = follow ? "guide" : "unfollow";
 
             LOGGER.log(Level.FINE, "New request from {0} to {1} {2}", new Object[]{md5KeyFrom, operation, md5KeyTo});
 

@@ -1,6 +1,6 @@
-package com.holiholic.follow.controllers;
+package com.holiholic.guide.controllers;
 
-import com.holiholic.follow.follow.PeopleManager;
+import com.holiholic.guide.guide.PeopleManager;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
