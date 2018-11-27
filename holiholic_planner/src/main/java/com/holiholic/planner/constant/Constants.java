@@ -7,6 +7,7 @@ import com.holiholic.planner.utils.Interval;
  */
 public class Constants {
     public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser";
+    public final static String UPDATE_HISTORY_URL = "http://localhost:8092/updateHistory";
     public final static String DATABASE_PATH = System.getProperty("user.dir") + "/db/";
 
     // Eating defaults
