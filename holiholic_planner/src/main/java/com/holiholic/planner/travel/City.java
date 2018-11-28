@@ -51,7 +51,7 @@ public class City {
         return instance;
     }
 
-    /* getInstance - Set the city with the places and restaurants nearby
+    /* constructInstance - Set the city with the places and restaurants nearby
      *
      *  @return       : void
      *  @places       : a list of places from this city
@@ -67,7 +67,7 @@ public class City {
         }
     }
 
-    /* getInstance - Get the best restaurant nearby the desired place
+    /* getBestRestaurant - Get the best restaurant nearby the desired place
      *
      *  @return       : the best restaurant
      *  @placeId      : the id of the place where we want to find the restaurant
@@ -88,5 +88,14 @@ public class City {
         }
 
         return bestRestaurant;
+    }
+
+    /* setRestaurants - Update restaurants
+     *
+     *  @return             : void
+     *  @restaurants        : the updated restaurants
+     */
+    public void setRestaurants(Map<Integer, List<Place>> restaurants) {
+        this.restaurants = restaurants;
     }
 }
