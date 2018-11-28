@@ -117,6 +117,9 @@ public class ParserManager {
             }
 
             synchronized (DatabaseManager.class) {
+                LOGGER.log(Level.FINE, "Save {0} distances from {0} city in database",
+                           new Object[]{modeOfTravel, cityName});
+                
                 if (!saveDistanceMatrix(distancesPath, distanceMatrix)) {
                     return false;
                 }
@@ -243,8 +246,9 @@ public class ParserManager {
     private static boolean saveRestaurants(String cityName, JSONArray restaurants) {
         String path = Constants.DATABASE_PATH + cityName + "_restaurants.json";
         try {
+            LOGGER.log(Level.FINE, "Save restaurants from {0} city in database", cityName);
             synchronized (DatabaseManager.class) {
-                if (DatabaseManager.syncDatabase(path, restaurants)) {
+                if (!DatabaseManager.syncDatabase(path, restaurants)) {
                     return false;
                 }
 
@@ -284,6 +288,8 @@ public class ParserManager {
                                                             String.valueOf(place.getDouble("longitude")),
                                                             Constants.RESTAURANTS_SEARCH_RADIUS);
                 String urlContent = URLManager.getContentFromURL(url);
+                LOGGER.log(Level.FINE, "Download restaurant from url: {0} for place \"{1}\" from {2} city",
+                           new Object[]{url, place.getString("name"), cityName});
                 JSONArray restaurants = getRestaurants(urlContent);
                 if (restaurants == null) {
                     continue;
