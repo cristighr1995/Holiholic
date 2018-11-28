@@ -7,8 +7,15 @@ import com.holiholic.planner.travel.City;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -583,5 +590,48 @@ public class DatabaseManager {
             urlConnection.disconnect();
         }
         return data;
+    }
+
+    /* updateHistory - Save a plan into a specific user history
+     *
+     *  @return             : success or not
+     *  @body               : the network json body request
+     */
+    public static boolean updateHistory(JSONObject body) {
+        try {
+            String cityName = body.getString("city");
+            String uid = body.getString("uid");
+
+            LOGGER.log(Level.FINE, "New request from user {0} to save itinerary from {1} city",
+                       new Object[]{uid, cityName});
+            return postContentToURL(body, Constants.UPDATE_HISTORY_URL);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* postContentToURL - Create a post request given the body and the url
+     *
+     *  @return             : success or not
+     *  @body               : the body of the HTTP POST request
+     *  @strUrl             : the url for the HTTP POST request
+     */
+    private static boolean postContentToURL(JSONObject body, String strUrl) {
+        try {
+            StringEntity entity = new StringEntity(body.toString(2),
+                                                   ContentType.APPLICATION_JSON);
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpPost request = new HttpPost(strUrl);
+            request.setEntity(entity);
+
+            HttpResponse response = httpClient.execute(request);
+            int responseCode = response.getStatusLine().getStatusCode();
+            return responseCode == HttpStatus.OK.value();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
