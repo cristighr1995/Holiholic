@@ -68,12 +68,15 @@ public class ParserManager {
      */
     private static boolean saveDistanceMatrix(String path, double[][] distanceMatrix) {
         try {
-            FileWriter fw = new FileWriter(path, true);
+            FileWriter fw = new FileWriter(path, false);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw);
 
             for (int i = 0; i < distanceMatrix.length; i++) {
                 for (int j = 0; j < distanceMatrix[0].length; j++) {
+                    if (i == j) {
+                        continue;
+                    }
                     out.println(i + " " + j + " " + distanceMatrix[i][j]);
                 }
             }
@@ -119,7 +122,7 @@ public class ParserManager {
             synchronized (DatabaseManager.class) {
                 LOGGER.log(Level.FINE, "Save {0} distances from {0} city in database",
                            new Object[]{modeOfTravel, cityName});
-                
+
                 if (!saveDistanceMatrix(distancesPath, distanceMatrix)) {
                     return false;
                 }
