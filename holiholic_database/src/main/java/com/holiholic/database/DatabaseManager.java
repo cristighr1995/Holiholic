@@ -530,4 +530,53 @@ public class DatabaseManager {
             return null;
         }
     }
+
+    /* saveHistory - Save a plan into a specific user history in the database
+     *
+     *  @return             : success or not
+     *  @path               : the history database path
+     *  @history            : the updated history
+     */
+    private static boolean saveHistory(String path, JSONObject history) {
+        return syncDatabase(path, history);
+    }
+
+    /* updateHistory - Save a plan into a specific user history
+     *
+     *  @return             : success or not
+     *  @body               : the network json body request
+     */
+    public static boolean updateHistory(JSONObject body) {
+        try {
+            String cityName = body.getString("city");
+            String uid = body.getString("uid");
+
+            LOGGER.log(Level.FINE, "New request from user {0} to save itinerary from {1} city",
+                       new Object[]{uid, cityName});
+
+            if (!containsUser(uid)) {
+                return false;
+            }
+
+            synchronized (DatabaseManager.class) {
+                JSONObject history = fetchObjectFromDatabase(Constants.HISTORY_PLANNER_DB_PATH);
+                JSONArray userHistory;
+                if (history.has(uid)) {
+                    userHistory = history.getJSONArray(uid);
+                } else {
+                    userHistory = new JSONArray();
+                }
+
+                // remove the uid from the body
+                body.remove("uid");
+                userHistory.put(body);
+                history.put(uid, userHistory);
+
+                return saveHistory(Constants.HISTORY_PLANNER_DB_PATH, history);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
