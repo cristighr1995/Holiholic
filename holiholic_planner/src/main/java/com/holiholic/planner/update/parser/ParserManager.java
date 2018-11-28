@@ -60,49 +60,72 @@ public class ParserManager {
         return DatabaseManager.fetchArrayFromDatabase(path);
     }
 
-    /* cacheDistances - Download, parse and cache the distance matrix between places
+    /* saveDistanceMatrix - Save distance matrix to database
      *
-     *  @return             : void
-     *  @cityName           : the city to update distances
-     *  @modeOfTravel       : what to update (driving / walking)
-     *  @destinationFileName: where to save the results
+     *  @return             : success or not
+     *  @path               : the distance matrix database path
+     *  @distanceMatrix     : the updated distance matrix
      */
-    public static void cacheDistances(String cityName,
-                               String modeOfTravel,
-                               String destinationFileName) {
-        String fileName = Constants.DATABASE_PATH + cityName + ".json";
-        JSONArray places = fetchPlacesFromDatabase(fileName);
-
+    private static boolean saveDistanceMatrix(String path, double[][] distanceMatrix) {
         try {
-            FileWriter fw = new FileWriter(destinationFileName, true);
+            FileWriter fw = new FileWriter(path, true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw);
+
+            for (int i = 0; i < distanceMatrix.length; i++) {
+                for (int j = 0; j < distanceMatrix[0].length; j++) {
+                    out.println(i + " " + j + " " + distanceMatrix[i][j]);
+                }
+            }
+
+            bw.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* updateDistances - Download, parse and cache the distance matrix between places
+     *
+     *  @return                 : void
+     *  @body                   : the network json body request
+     */
+    public static boolean updateDistances(JSONObject body) {
+        try {
+            String cityName = body.getString("city");
+            String modeOfTravel = body.getString("modeOfTravel");
+            LOGGER.log(Level.FINE, "Update {0} distances from {0} city", new Object[]{modeOfTravel, cityName});
+            String placesPath = Constants.DATABASE_PATH + cityName + ".json";
+            String distancesPath = Constants.DATABASE_PATH + cityName + "_" + modeOfTravel + ".txt";
+            JSONArray places = fetchPlacesFromDatabase(placesPath);
+            double[][] distanceMatrix = new double[places.length()][places.length()];
 
             for (int i = 0; i < places.length(); i++) {
                 JSONObject place = places.getJSONObject(i);
                 for (int j = 0; j < places.length(); j++) {
                     if (i == j)
                         continue;
+
                     JSONObject next = places.getJSONObject(j);
                     String origin = "" + place.getDouble("latitude") + "," + place.getDouble("longitude");
                     String destination = "" + next.getDouble("latitude") + "," + next.getDouble("longitude");
                     String url = URLManager.buildDistanceMatrixURL(origin, destination, modeOfTravel);
-
-                    try {
-                        String data = URLManager.getContentFromURL(url);
-                        int timeDistance = getGoogleDistance(data);
-                        // save timeDistance
-                        String line = place.getInt("id") + " " + next.getInt("id") + " " + ((double) timeDistance);
-                        // write to file
-                        out.println(line);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    String urlContent = URLManager.getContentFromURL(url);
+                    distanceMatrix[place.getInt("id")][next.getInt("id")] = getGoogleDistance(urlContent);
                 }
             }
-            bw.close();
+
+            synchronized (DatabaseManager.class) {
+                if (!saveDistanceMatrix(distancesPath, distanceMatrix)) {
+                    return false;
+                }
+
+                return DatabaseManager.updateCacheDistance(cityName, modeOfTravel, distanceMatrix);
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 

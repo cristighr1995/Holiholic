@@ -19,6 +19,6 @@ public class UpdateDistanceAction implements Action {
      *  @return             : void
      */
     public boolean execute() {
-        return ParserManager.cacheDistances(body);
+        return ParserManager.updateDistances(body);
     }
 }

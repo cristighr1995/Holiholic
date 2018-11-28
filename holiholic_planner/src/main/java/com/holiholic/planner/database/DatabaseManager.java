@@ -727,4 +727,33 @@ public class DatabaseManager {
             return false;
         }
     }
+
+    /* updateCacheDistance - Update the cache for distance matrix
+     *
+     *  @return             : success or not
+     *  @cityName           : the current city name
+     *  @modeOfTravel       : driving or walking
+     *  @distanceMatrix     : the updated distance matrix
+     */
+    public static boolean updateCacheDistance(String cityName, String modeOfTravel, double[][] distanceMatrix) {
+        if (!isCityCached(cityName)) {
+            return true;
+        }
+
+        try {
+            switch (modeOfTravel) {
+                case "driving":
+                    cacheDistanceMatrixDriving.put(cityName, distanceMatrix);
+                    return true;
+                case "walking":
+                    cacheDistanceMatrixWalking.put(cityName, distanceMatrix);
+                    return true;
+                default:
+                    return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
