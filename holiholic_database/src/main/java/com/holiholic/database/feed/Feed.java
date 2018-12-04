@@ -368,6 +368,30 @@ public abstract class Feed {
         return pathPrefix + city + ".json";
     }
 
+    /* createDatabaseEmptyFile - Creates an object which is used for the database to initialize an empty database
+     *
+     *  @return             : the json object
+     */
+    JSONObject createDatabaseEmptyFile() {
+        JSONObject content = new JSONObject();
+        content.put(getType() + "Count", 0);
+        content.put(getType(), new JSONObject());
+        return content;
+    }
+
+    /* initDatabaseFile - Checks if the database file already exists and if not creates an empty file
+     *                    For example creates and empty "posts_bucharest.json" file
+     *
+     *  @return             : void
+     */
+    void initDatabaseFile() {
+        try {
+            DatabaseManager.initDatabaseFileObject(getDatabaseFullPath(getPath(), getCity()), createDatabaseEmptyFile());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /* saveFeed - Saves in the database the updates for the feeds
      *
      *  @return             : success or not

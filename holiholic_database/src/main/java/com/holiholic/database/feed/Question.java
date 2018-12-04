@@ -22,6 +22,7 @@ public class Question extends Feed implements IFeedEditable {
         idField = "qid";
         type = "question";
         setLogger(LOGGER);
+        initDatabaseFile();
     }
 
     @Override

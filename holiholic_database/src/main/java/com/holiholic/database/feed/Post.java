@@ -22,6 +22,7 @@ public class Post extends Feed implements IFeedEditable {
         idField = "pid";
         type = "post";
         setLogger(LOGGER);
+        initDatabaseFile();
     }
 
     @Override
