@@ -6,10 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.logging.ConsoleHandler;
@@ -500,6 +497,24 @@ public class DatabaseManager {
         }
     }
 
+    /* syncDatabase - Save in the database the updated json array
+     *
+     *  @return             : success or not
+     *  @path               : the path for the database
+     *  @jsonObject         : the array we want to save in the database
+     */
+    public static boolean syncDatabase(String path, JSONArray jsonArray) {
+        try {
+            BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
+            out.write(jsonArray.toString(2));
+            out.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     /* fetchObjectFromDatabase - Retrieve from database a json object
      *
      *  @return             : the json object from the database or null
@@ -507,6 +522,10 @@ public class DatabaseManager {
      */
     public static JSONObject fetchObjectFromDatabase(String path) {
         try {
+            if (!initDatabaseFileObject(path)) {
+                return null;
+            }
+
             InputStream is = new FileInputStream(path);
             String text = IOUtils.toString(is, "UTF-8");
             return new JSONObject(text);
@@ -523,6 +542,10 @@ public class DatabaseManager {
      */
     private static JSONArray fetchArrayFromDatabase(String path) {
         try {
+            if (!initDatabaseFileArray(path)) {
+                return null;
+            }
+
             InputStream is = new FileInputStream(path);
             String text = IOUtils.toString(is, "UTF-8");
             return new JSONArray(text);
@@ -615,5 +638,73 @@ public class DatabaseManager {
                                                     String uidAuthor,
                                                     String uidGuide) {
         return Feed.getDetails(city, gpid, "guideProfile", getGuideProfilePath(uidGuide), uidCurrent, uidAuthor, LOGGER);
+    }
+
+    /* initDatabaseFileObject - Check if the file exists at the specified path and if not, creates an empty object
+     *                          and save it in the database
+     *
+     *  @return                 : success or not
+     *  @path                   : the full database path where to put the empty json object
+     */
+    public static boolean initDatabaseFileObject(String path) {
+        return initDatabaseFileObject(path, new JSONObject());
+    }
+
+    /* initDatabaseFileObject - Check if the file exists at the specified path and if not, creates an empty object
+     *                          and save it in the database
+     *
+     *  @return                 : success or not
+     *  @path                   : the full database path where to put the empty json object
+     *  @jsonObject             : the object to initialize the file with
+     */
+    public static boolean initDatabaseFileObject(String path, JSONObject jsonObject) {
+        try {
+            synchronized (DatabaseManager.class) {
+                File f = new File(path);
+                if (f.exists() && !f.isDirectory()) {
+                    return true;
+                }
+                f.getParentFile().mkdirs();
+                f.createNewFile();
+                return DatabaseManager.syncDatabase(path, jsonObject);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* initDatabaseFileArray - Check if the file exists at the specified path and if not, creates an empty array
+     *                         and save it in the database
+     *
+     *  @return                 : success or not
+     *  @path                   : the full database path where to put the empty json object
+     */
+    public static boolean initDatabaseFileArray(String path) {
+        return initDatabaseFileArray(path, new JSONArray());
+    }
+
+    /* initDatabaseFileArray - Check if the file exists at the specified path and if not, creates an empty array
+     *                         and save it in the database
+     *
+     *  @return                 : success or not
+     *  @path                   : the full database path where to put the empty json object
+     *  @jsonArray              : the array to initialize the file with
+     */
+    public static boolean initDatabaseFileArray(String path, JSONArray jsonArray) {
+        try {
+            synchronized (DatabaseManager.class) {
+                File f = new File(path);
+                if (f.exists() && !f.isDirectory()) {
+                    return true;
+                }
+                f.getParentFile().mkdirs();
+                f.createNewFile();
+                return DatabaseManager.syncDatabase(path, jsonArray);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

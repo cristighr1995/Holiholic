@@ -23,6 +23,7 @@ public class Guide extends Feed implements IFeedEditable {
         idField = "gid";
         type = "guide";
         setLogger(LOGGER);
+        initDatabaseFile();
     }
 
     @Override
