@@ -35,6 +35,8 @@ public abstract class Feed {
                     return new Question(city, body);
                 case "guide":
                     return new Guide(city, body);
+                case "guideProfile":
+                    return new GuideProfile(city, body);
                 default:
                     return null;
             }
