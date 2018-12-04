@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Holiholic</string>
+    <string name="title_feed">Feed</string>
+    <string name="title_question">Question</string>
+    <string name="title_main">Holiholic</string>
+    <string name="title_guide">Guide</string>
+    <string name="title_profile">Profile</string>
 </resources>
