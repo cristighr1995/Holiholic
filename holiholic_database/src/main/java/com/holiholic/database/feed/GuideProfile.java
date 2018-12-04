@@ -1,7 +1,6 @@
 package com.holiholic.database.feed;
 
 import com.holiholic.database.DatabaseManager;
-import com.holiholic.database.constant.Constants;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -30,7 +29,7 @@ public class GuideProfile extends Feed implements IFeedEditable {
 
     private void initPath() {
         try {
-            path = Constants.GUIDE_PROFILE_DB_PATH + body.getString("uidGuide") + "_";
+            path = DatabaseManager.getGuideProfilePath(body.getString("uidGuide"));
             initFile();
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,7 +38,7 @@ public class GuideProfile extends Feed implements IFeedEditable {
 
     private void initFile() {
         synchronized (DatabaseManager.class) {
-            String fullPath = path + city.toLowerCase() + ".json";
+            String fullPath = getDatabaseFullPath(path, city);
             File f = new File(fullPath);
             if (f.exists() && !f.isDirectory()) {
                 return;

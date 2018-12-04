@@ -10,5 +10,7 @@ public class Constants {
     public final static String GET_QUESTION_DETAILS_URL = "http://localhost:8092/getQuestionDetails";
     public final static String GET_GUIDES_URL = "http://localhost:8092/getGuides";
     public final static String GET_GUIDE_DETAILS_URL = "http://localhost:8092/getGuideDetails";
+    public final static String GET_GUIDE_PROFILE_URL = "http://localhost:8092/getGuideProfile";
+    public final static String GET_GUIDE_PROFILE_POST_DETAILS_URL = "http://localhost:8092/getGuideProfilePostDetails";
     public final static String UPDATE_FEED_URL = "http://localhost:8092/updateFeed";
 }

@@ -67,24 +67,23 @@ public abstract class Feed {
      *  @city               : the city the user wants to see feed items
      */
     static JSONObject fetch(String path, String city) {
-        String filename = path + city.toLowerCase() + ".json";
-        return DatabaseManager.fetchObjectFromDatabase(filename);
+        return DatabaseManager.fetchObjectFromDatabase(getDatabaseFullPath(path, city));
     }
 
     /* getFeed - Get feed (questions, guides or posts)
      *
      *  @return             : an array of object with feeds
      *  @uid                : the current user id
-     *  @path               : the database path
      *  @city               : the city the user wants to see feed items
      *  @type               : question, guide or post
      *  @LOGGER             : logger instance to print useful information
+     *  @feeds              : cached in memory feeds
      */
     private static JSONArray getFeed(String uid,
-                                     String path,
                                      String city,
                                      String type,
-                                     Logger LOGGER) {
+                                     Logger LOGGER,
+                                     JSONObject feeds) {
         LOGGER.log(Level.FINE, "New request from user {0} to get {1}s from {2} city",
                    new Object[]{uid, type, city});
         try {
@@ -92,7 +91,6 @@ public abstract class Feed {
                 return new JSONArray();
             }
 
-            JSONObject feeds = fetch(path, city).getJSONObject(type);
             JSONArray result = new JSONArray();
             // for each author
             for (String author : feeds.keySet()) {
@@ -123,6 +121,28 @@ public abstract class Feed {
         }
     }
 
+    /* getFeed - Get feed (questions, guides or posts)
+     *
+     *  @return             : an array of object with feeds
+     *  @uid                : the current user id
+     *  @path               : the database path
+     *  @city               : the city the user wants to see feed items
+     *  @type               : question, guide or post
+     *  @LOGGER             : logger instance to print useful information
+     */
+    private static JSONArray getFeed(String uid,
+                                     String path,
+                                     String city,
+                                     String type,
+                                     Logger LOGGER) {
+        try {
+            return getFeed(uid, city, type, LOGGER, fetch(path, city).getJSONObject(type));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray();
+        }
+    }
+
     /* getQuestions - Get a list of questions for a specific city
      *                Each question has only the last comment
      *
@@ -130,7 +150,7 @@ public abstract class Feed {
      *  @uid                : current user id
      *  @path               : the database path
      *  @city               : the requested city
-     *  @type               : question or post
+     *  @type               : question
      *  @LOGGER             : logger to print useful information
      */
     public static JSONArray getQuestions(String uid,
@@ -141,13 +161,43 @@ public abstract class Feed {
         return getFeed(uid, path, city, type, LOGGER);
     }
 
+    /* getGuideProfile - Get a list of posts for a guide and also the reactions for his profile
+     *                   Each post has only the last comment
+     *
+     *  @return             : a list of posts from the guide profile and his reactions (json object format)
+     *  @uid                : current user id
+     *  @path               : the database path
+     *  @city               : the requested city
+     *  @type               : guideProfile
+     *  @LOGGER             : logger to print useful information
+     */
+    public static JSONObject getGuideProfile(String uid,
+                                             String path,
+                                             String city,
+                                             String type,
+                                             Logger LOGGER) {
+        try {
+            JSONObject guideProfile = fetch(path, city);
+            JSONArray guidePosts = getFeed(uid, city, type, LOGGER, guideProfile.getJSONObject(type));
+
+            JSONObject result = new JSONObject();
+            result.put("guidePosts", guidePosts);
+            result.put("likes", guideProfile.getJSONObject("likes"));
+
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONObject();
+        }
+    }
+
     /* getGuides - Get a list of guides for a specific city
      *
      *  @return             : a list of guides (json string format)
      *  @uid                : current user id
      *  @path               : the database path
      *  @city               : the requested city
-     *  @type               : question, guide or post
+     *  @type               : guide
      *  @LOGGER             : logger to print useful information
      */
     public static JSONArray getGuides(String uid,
@@ -164,7 +214,7 @@ public abstract class Feed {
      *  @return             : a list of posts (json string format)
      *  @uid                : current user id
      *  @path               : the database path
-     *  @type               : question or post
+     *  @type               : post
      *  @LOGGER             : logger to print useful information
      */
     public static JSONArray getPosts(String uid,
@@ -308,6 +358,16 @@ public abstract class Feed {
         return body;
     }
 
+    /* getDatabaseFullPath - Construct the database merging the early constructed path prefix and the city extension
+     *
+     *  @return             : success or not
+     *  @pathPrefix         : the prefix path for the database
+     *  @city               : the city for the current action
+     */
+    public static String getDatabaseFullPath(String pathPrefix, String city) {
+        return pathPrefix + city + ".json";
+    }
+
     /* saveFeed - Saves in the database the updates for the feeds
      *
      *  @return             : success or not
@@ -316,8 +376,7 @@ public abstract class Feed {
      *  @feed               : the updated feed
      */
     boolean saveFeed(String path, String city, JSONObject feed) {
-        String filename = path + city + ".json";
-        return DatabaseManager.syncDatabase(filename, feed);
+        return DatabaseManager.syncDatabase(getDatabaseFullPath(path, city), feed);
     }
 
     /* getCity - Get the city for the current feed
