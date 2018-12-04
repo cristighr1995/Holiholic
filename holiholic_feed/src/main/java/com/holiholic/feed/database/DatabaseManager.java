@@ -73,7 +73,8 @@ public class DatabaseManager {
      *  @return             : the details for the specific question
      *  @city               : the city where the user wants to see questions
      *  @qid                : the question id
-     *  @uid                : unique identifier for the current user
+     *  @uidCurrent         : unique identifier for the current user
+     *  @uidAuthor          : unique identifier for the author of the question
      */
     public static String getQuestionDetails(String city,
                                             String qid,
@@ -84,6 +85,54 @@ public class DatabaseManager {
                      + "&qid=" + qid
                      + "&uidCurrent=" + uidCurrent
                      + "&uidAuthor=" + uidAuthor;
+        try {
+            return getContentFromURL(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
+    }
+
+    /* getGuideProfile - Returns the profile for a guide
+     *
+     *  @return             : the profile for a guide
+     *  @city               : the city where the user wants to see the guide
+     *  @uid                : unique identifier for the current user
+     *  @uidGuide           : unique identifier for the guide
+     */
+    public static String getGuideProfile(String city, String uid, String uidGuide) {
+        String url = Constants.GET_GUIDE_PROFILE_URL
+                     + "?city=" + city
+                     + "&uid=" + uid
+                     + "&uidGuide=" + uidGuide;
+        try {
+            return getContentFromURL(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new JSONArray().toString(2);
+        }
+    }
+
+    /* getGuideProfilePostDetails - Returns the details for a specific post from guide profile
+     *
+     *  @return             : the details for the specific post from guide profile
+     *  @city               : the city where the user wants to see guide
+     *  @gpid               : the guide post id
+     *  @uidCurrent         : unique identifier for the current user
+     *  @uidAuthor          : unique identifier for the author of the post
+     *  @uidGuide           : unique identifier for the guide
+     */
+    public static String getGuideProfilePostDetails(String city,
+                                                    String gpid,
+                                                    String uidCurrent,
+                                                    String uidAuthor,
+                                                    String uidGuide) {
+        String url = Constants.GET_GUIDE_PROFILE_POST_DETAILS_URL
+                     + "?city=" + city
+                     + "&gpid=" + gpid
+                     + "&uidCurrent=" + uidCurrent
+                     + "&uidAuthor=" + uidAuthor
+                     + "&uidGuide=" + uidGuide;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -114,17 +163,17 @@ public class DatabaseManager {
      *  @city               : the city where the post was posted
      *  @pid                : the post id
      *  @uidCurrent         : unique identifier for the current user
-     *  @uidPostAuthor      : unique identifier for the author of the post
+     *  @uidAuthor          : unique identifier for the author of the post
      */
     public static String getPostDetails(String city,
                                         String pid,
                                         String uidCurrent,
-                                        String uidPostAuthor) {
+                                        String uidAuthor) {
         String url = Constants.GET_POST_DETAILS_URL
                      + "?city=" + city
                      + "&pid=" + pid
                      + "&uidCurrent=" + uidCurrent
-                     + "&uidAuthor=" + uidPostAuthor;
+                     + "&uidAuthor=" + uidAuthor;
         try {
             return getContentFromURL(url);
         } catch (Exception e) {
@@ -155,7 +204,8 @@ public class DatabaseManager {
      *  @return             : the details for the specific guide
      *  @city               : the city where the user wants to see guides
      *  @gid                : the guide id
-     *  @uid                : unique identifier for the current user
+     *  @uidCurrent         : unique identifier for the current user
+     *  @uidAuthor          : unique identifier for the author of the post
      */
     public static String getGuideDetails(String city,
                                          String gid,

@@ -202,6 +202,7 @@ public class DatabaseManager {
     public static String getGuides(String city, String uid) {
         return Feed.getGuides(uid, Constants.GUIDES_DB_PATH, city, "guide", LOGGER).toString(2);
     }
+
     /* getPosts - Get a list of posts
      *            Each post has only the last comment
      *
@@ -578,5 +579,41 @@ public class DatabaseManager {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /* getGuideProfilePath - Get the guide profile path from the database given the uid of the guide
+     *
+     *  @return             : the half path for the guide profile database, the rest is constructed with the city later
+     */
+    public static String getGuideProfilePath(String uidGuide) {
+        return Constants.GUIDE_PROFILE_DB_PATH + uidGuide + "_";
+    }
+
+    /* getGuideProfile - Get the guide profile
+     *
+     *  @return             : a list of guides (json string format)
+     *  @city               : the requested city
+     *  @uid                : unique identifier for the current user
+     *  @uidGuide           : unique identifier for the guide
+     */
+    public static String getGuideProfile(String city, String uid, String uidGuide) {
+        return Feed.getGuideProfile(uid, getGuideProfilePath(uidGuide), city, "guideProfile", LOGGER).toString(2);
+    }
+
+    /* getGuideProfilePostDetails - Get details for a specific post from the guide profile
+     *
+     *  @return                 : the details for a question (json string format)
+     *  @city                   : the requested city
+     *  @gpid                   : guide post id
+     *  @uidCurrent             : unique identifier for the current user
+     *  @uidAuthor              : the id for the user who wrote the post
+     *  @uidGuide               : the id of the guide we request information
+     */
+    public static String getGuideProfilePostDetails(String city,
+                                                    String gpid,
+                                                    String uidCurrent,
+                                                    String uidAuthor,
+                                                    String uidGuide) {
+        return Feed.getDetails(city, gpid, "guideProfile", getGuideProfilePath(uidGuide), uidCurrent, uidAuthor, LOGGER);
     }
 }
