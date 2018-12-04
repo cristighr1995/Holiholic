@@ -21,37 +21,22 @@ public class GuideProfile extends Feed implements IFeedEditable {
     GuideProfile(String city, JSONObject body) {
         this.city = city;
         this.body = body;
+        if (body.has("uidGuide")) {
+            path = DatabaseManager.getGuideProfilePath(body.getString("uidGuide"));
+        }
         idField = "gpid";
         type = "guideProfile";
         setLogger(LOGGER);
-        initPath();
+        initDatabaseFile();
     }
 
-    private void initPath() {
-        try {
-            path = DatabaseManager.getGuideProfilePath(body.getString("uidGuide"));
-            initFile();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void initFile() {
-        synchronized (DatabaseManager.class) {
-            String fullPath = getDatabaseFullPath(path, city);
-            File f = new File(fullPath);
-            if (f.exists() && !f.isDirectory()) {
-                return;
-            }
-
-            // populate empty file
-            JSONObject content = new JSONObject();
-            content.put(type + "Count", 0);
-            content.put(type, new JSONObject());
-            content.put("likes", createEmptyLikesObject());
-
-            DatabaseManager.syncDatabase(fullPath, content);
-        }
+    @Override
+    JSONObject createDatabaseEmptyFile() {
+        JSONObject content = new JSONObject();
+        content.put(getType() + "Count", 0);
+        content.put(getType(), new JSONObject());
+        content.put("likes", createEmptyLikesObject());
+        return content;
     }
 
     @Override
