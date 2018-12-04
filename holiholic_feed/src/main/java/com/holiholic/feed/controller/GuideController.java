@@ -10,8 +10,8 @@ public class GuideController {
 
     @RequestMapping(value = "/getGuides", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getGuides(@RequestParam String uid)  {
-        return new ResponseEntity<>(DatabaseManager.getPosts(uid), HttpStatus.OK);
+    public ResponseEntity<String> getGuides(@RequestParam String city, @RequestParam String uid)  {
+        return new ResponseEntity<>(DatabaseManager.getGuides(city, uid), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/getGuideDetails", method = RequestMethod.GET)
