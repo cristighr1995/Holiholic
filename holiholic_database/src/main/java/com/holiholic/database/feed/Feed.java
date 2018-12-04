@@ -250,7 +250,7 @@ public abstract class Feed {
      *
      *  @return             : the react json
      */
-    private JSONObject createEmptyLikesObject() {
+    JSONObject createEmptyLikesObject() {
         JSONObject likes = new JSONObject();
         likes.put("like", new JSONObject());
         likes.put("dislike", new JSONObject());
@@ -568,7 +568,7 @@ public abstract class Feed {
                 JSONObject likes = item.getJSONObject("likes");
                 JSONObject reactJson = likes.getJSONObject(react);
 
-                LOGGER.log(Level.FINE, "User {0} wants to {1} {2} the {3} {4} from {5} city",
+                LOGGER.log(Level.FINE, "User {0} wants to {1} {2} to the {3} {4} from {5} city",
                            new Object[]{uidCurrent, operation, react, getType(), id, getCity()});
 
                 switch (operation) {
