@@ -193,6 +193,15 @@ public class DatabaseManager {
         return Feed.getQuestions(uid, Constants.QUESTIONS_DB_PATH, city, "question", LOGGER).toString(2);
     }
 
+    /* getGuides - Get a list of guides for a specific city
+     *
+     *  @return             : a list of guides (json string format)
+     *  @city               : the requested city
+     *  @uid                : unique identifier for the current user
+     */
+    public static String getGuides(String city, String uid) {
+        return Feed.getGuides(uid, Constants.GUIDES_DB_PATH, city, "guide", LOGGER).toString(2);
+    }
     /* getPosts - Get a list of posts
      *            Each post has only the last comment
      *
@@ -224,6 +233,21 @@ public class DatabaseManager {
                                             String uidCurrent,
                                             String uidAuthor) {
         return Feed.getDetails(city, qid, "question", Constants.QUESTIONS_DB_PATH, uidCurrent, uidAuthor, LOGGER);
+    }
+
+    /* getGuideDetails - Get details for a specific guide
+     *
+     *  @return                 : the details for a guide (json string format)
+     *  @city                   : the requested city
+     *  @gid                    : unique identifier for the guide
+     *  @uidCurrent             : unique identifier for the current user
+     *  @uidAuthor              : the id for the user who added the guide ad
+     */
+    public static String getGuideDetails(String city,
+                                         String gid,
+                                         String uidCurrent,
+                                         String uidAuthor) {
+        return Feed.getDetails(city, gid, "guide", Constants.GUIDES_DB_PATH, uidCurrent, uidAuthor, LOGGER);
     }
 
     /* getPostDetails - Get details for a specific post
@@ -504,6 +528,55 @@ public class DatabaseManager {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    /* saveHistory - Save a plan into a specific user history in the database
+     *
+     *  @return             : success or not
+     *  @path               : the history database path
+     *  @history            : the updated history
+     */
+    private static boolean saveHistory(String path, JSONObject history) {
+        return syncDatabase(path, history);
+    }
+
+    /* updateHistory - Save a plan into a specific user history
+     *
+     *  @return             : success or not
+     *  @body               : the network json body request
+     */
+    public static boolean updateHistory(JSONObject body) {
+        try {
+            String cityName = body.getString("city");
+            String uid = body.getString("uid");
+
+            LOGGER.log(Level.FINE, "New request from user {0} to save itinerary from {1} city",
+                       new Object[]{uid, cityName});
+
+            if (!containsUser(uid)) {
+                return false;
+            }
+
+            synchronized (DatabaseManager.class) {
+                JSONObject history = fetchObjectFromDatabase(Constants.HISTORY_PLANNER_DB_PATH);
+                JSONArray userHistory;
+                if (history.has(uid)) {
+                    userHistory = history.getJSONArray(uid);
+                } else {
+                    userHistory = new JSONArray();
+                }
+
+                // remove the uid from the body
+                body.remove("uid");
+                userHistory.put(body);
+                history.put(uid, userHistory);
+
+                return saveHistory(Constants.HISTORY_PLANNER_DB_PATH, history);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

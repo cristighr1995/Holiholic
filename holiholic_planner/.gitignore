@@ -1,7 +1,7 @@
 /apis/
 /src/test/
 /target/
-/places_db/
+/db/
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###

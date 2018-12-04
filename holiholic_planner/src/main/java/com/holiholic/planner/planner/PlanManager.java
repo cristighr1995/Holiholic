@@ -144,76 +144,76 @@ public class PlanManager {
                 null);
     }
 
-    /* generatePlan - Generate the plan given a json request, this method is not exposed!
+    /* getPlan - Generate the plan given a json request, this method is not exposed!
      *
      *  @return             : the serialized plan
-     *  @jsonRequest        : the body of the HTTP POST request
+     *  @body               : the body of the HTTP POST request
      */
-    private static String generatePlan(JSONObject jsonRequest) {
-        // get the city from the database
-        City city = DatabaseManager.getCity(jsonRequest.getString("city"));
-        LOGGER.log(Level.FINE, "New request to generate a plan in city ({0})", city.name);
+    public static String getPlan(JSONObject body) {
+        try {
+            // get the city from the database
+            City city = DatabaseManager.getCity(body.getString("city"));
+            String uid = body.getString("uid");
 
-        // store pointer to preferences
-        JSONObject jsonPreferences = jsonRequest.getJSONObject("preferences");
+            LOGGER.log(Level.FINE, "New request from user {0} to generate a plan in {1} city",
+                       new Object[]{uid, city.name});
 
-        // get the visiting interval
-        OpeningPeriod openingPeriod = DatabaseManager
-                                      .deserializeOpeningPeriod(jsonPreferences.getJSONArray("visitingInterval"));
+            if (!DatabaseManager.containsUser(uid)) {
+                return "[]";
+            }
 
-        // get the mode of travel
-        String modeOfTravel = jsonPreferences.getString("modeOfTravel");
+            // store pointer to preferences
+            JSONObject jsonPreferences = body.getJSONObject("preferences");
 
-        // create the planner
-        Planner planner = new Planner(city, openingPeriod, Enums.TravelMode.deserialize(modeOfTravel));
-        // set preference heuristic
-        planner.setPreferenceHeuristic(jsonRequest.getJSONObject("preferences").getDouble("preferenceHeuristic"));
+            // get the visiting interval
+            OpeningPeriod openingPeriod = DatabaseManager
+                                          .deserializeOpeningPeriod(jsonPreferences.getJSONArray("visitingInterval"));
 
-        // set dinner and lunch
-        if (jsonPreferences.getBoolean("dinner")) {
-            planner.setDinner();
+            // get the mode of travel
+            String modeOfTravel = jsonPreferences.getString("modeOfTravel");
+
+            // create the planner
+            Planner planner = new Planner(city, openingPeriod, Enums.TravelMode.deserialize(modeOfTravel));
+            // set preference heuristic
+            planner.setPreferenceHeuristic(body.getJSONObject("preferences").getDouble("preferenceHeuristic"));
+
+            // set dinner and lunch
+            if (jsonPreferences.getBoolean("dinner")) {
+                planner.setDinner();
+            }
+            if (jsonPreferences.getBoolean("lunch")) {
+                planner.setLunch();
+            }
+
+            // construct the start place from the json request
+            planner.setStartPlace(decodeStartPlace(body.getJSONObject("startPlace")));
+
+            // get information about what places to visit
+            JSONArray jsonPlacesToPlan = body.getJSONArray("placesToPlan");
+            // decode json into internal representation
+            List<Place> placesToPlan = getPlacesListForPlanner(city, planner, jsonPlacesToPlan);
+
+            // update the want-to-go number before the actual plan
+            // these are the places that the user is interested in planning
+            updateWantToGoNumber(city, placesToPlan);
+
+            LOGGER.log(Level.FINE, "Started generating a plan for {0} city", city.name);
+            // generate the actual plan that will be returned to user after serialization
+            List<List<Place>> plan = planner.getPlan(placesToPlan);
+
+            // update the number of check-ins for each place in the final plan
+            for (List<Place> plannedPlaces : plan) {
+                updateCheckIns(city, plannedPlaces);
+            }
+
+            // after we are done, update the database
+            // this will write to file the updates
+            DatabaseManager.updateCity(city);
+            // serialize the response
+            return DatabaseManager.serializePlan(plan);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "[]";
         }
-        if (jsonPreferences.getBoolean("lunch")) {
-            planner.setLunch();
-        }
-
-        // construct the start place from the json request
-        planner.setStartPlace(decodeStartPlace(jsonRequest.getJSONObject("startPlace")));
-
-        // get information about what places to visit
-        JSONArray jsonPlacesToPlan = jsonRequest.getJSONArray("placesToPlan");
-        // decode json into internal representation
-        List<Place> placesToPlan = getPlacesListForPlanner(city, planner, jsonPlacesToPlan);
-
-        // update the want-to-go number before the actual plan
-        // these are the places that the user is interested in planning
-        updateWantToGoNumber(city, placesToPlan);
-
-        LOGGER.log(Level.FINE, "Started generating a plan for city - {0} -", city.name);
-        // generate the actual plan that will be returned to user after serialization
-        List<List<Place>> plan = planner.getPlan(placesToPlan);
-
-        // update the number of check-ins for each place in the final plan
-        for (List<Place> plannedPlaces : plan) {
-            updateCheckIns(city, plannedPlaces);
-        }
-
-        // after we are done, update the database
-        // this will write to file the updates
-        DatabaseManager.updateCity(city);
-
-        LOGGER.log(Level.FINE, "Successfully generated plan for city ({0})", city.name);
-        LOGGER.log(Level.FINE, "Started serialization of the plan for city ({0})", city.name);
-        // serialize the response
-        return DatabaseManager.serializePlan(plan);
-    }
-
-    /* getPlanFromUserRequest - Given the user request, generate a plan (multiple itineraries) for user
-     *
-     *  @return             : the serialized plan
-     *  @request            : the body of the HTTP POST request
-     */
-    public static String getPlanFromUserRequest(String request) {
-        return generatePlan(new JSONObject(request));
     }
 }
