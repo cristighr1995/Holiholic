@@ -33,7 +33,7 @@ proguard/
 captures/
 
 # Intellij
-.idea/workspace.xml
+.idea/
 
 # Keystore files
 *.jks
