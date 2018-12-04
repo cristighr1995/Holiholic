@@ -9,6 +9,8 @@ public class Constants {
     public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser";
     public final static String UPDATE_HISTORY_URL = "http://localhost:8092/updateHistory";
     public final static String DATABASE_PATH = System.getProperty("user.dir") + "/db/";
+    public final static String GOOGLE_API_PATH = System.getProperty("user.dir") + "/apis/Google_API.txt";
+    public final static String UPDATE_ACCESS_KEY_PATH = System.getProperty("user.dir") + "/apis/admin_key.txt";
 
     // Eating defaults
     public final static Interval defaultLunchInterval = new Interval(Interval.getHour(12, 0, 0),
@@ -35,5 +37,7 @@ public class Constants {
     // Calculated in km / h
     public final static double drivingMedVelocity = 20;
     public final static double walkingMedVelocity = 6;
-    
+
+    // the value is in meters
+    public final static int RESTAURANTS_SEARCH_RADIUS = 500;
 }

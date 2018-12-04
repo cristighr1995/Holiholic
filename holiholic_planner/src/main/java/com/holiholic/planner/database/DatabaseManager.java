@@ -4,6 +4,8 @@ import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
+import com.holiholic.planner.update.action.Action;
+import com.holiholic.planner.update.action.ActionFactory;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
 import org.apache.commons.io.IOUtils;
@@ -164,7 +166,7 @@ public class DatabaseManager {
      *  @return             : the json array from the database or null
      *  @path               : the path for the database
      */
-    private static JSONArray fetchArrayFromDatabase(String path) {
+    public static JSONArray fetchArrayFromDatabase(String path) {
         try {
             InputStream is = new FileInputStream(path);
             String text = IOUtils.toString(is, "UTF-8");
@@ -175,17 +177,14 @@ public class DatabaseManager {
         }
     }
 
-    /* fetchRestaurantsFromDatabase - Loads nearby restaurants for a specific city
+    /* decodeRestaurants - Decode restaurants from json format to internal representation
      *
      *  @return         : a map where for each place we store the nearby restaurants
-     *  @path           : the corresponding file name where we already cache in binary format the map
+     *  @dbRestaurants  : the format from the database
      */
-    private static Map<Integer, List<Place>> fetchRestaurantsFromDatabase(String path) {
+    public static Map<Integer, List<Place>> decodeRestaurants(JSONArray dbRestaurants) {
         try {
-            LOGGER.log(Level.FINE, "Load restaurants from database path: {0}", path);
-
             Map<Integer, List<Place>> restaurants = new HashMap<>();
-            JSONArray dbRestaurants = fetchArrayFromDatabase(path);
 
             for (int i = 0; i < dbRestaurants.length(); i++) {
                 JSONObject placeInformation = dbRestaurants.getJSONObject(i);
@@ -201,6 +200,21 @@ public class DatabaseManager {
                 restaurants.put(placeInformation.getInt("id"), placeRestaurants);
             }
             return restaurants;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /* fetchRestaurantsFromDatabase - Loads nearby restaurants for a specific city
+     *
+     *  @return         : a map where for each place we store the nearby restaurants
+     *  @path           : the corresponding file name where we already cache in binary format the map
+     */
+    private static Map<Integer, List<Place>> fetchRestaurantsFromDatabase(String path) {
+        try {
+            LOGGER.log(Level.FINE, "Load restaurants from database path: {0}", path);
+            return decodeRestaurants(fetchArrayFromDatabase(path));
         } catch(Exception e) {
             e.printStackTrace();
             return null;
@@ -303,6 +317,15 @@ public class DatabaseManager {
         }
 
         return city;
+    }
+
+    /* isCityCached - Checks if the city instance is cached
+     *
+     *  @return       : true or false
+     *  @cityName     : the city where the user wants to go/to visit
+     */
+    public static boolean isCityCached(String cityName) {
+        return cacheCity.containsKey(cityName);
     }
 
     /* getWeatherForecastInformation - Returns the instance of the weather forecast
@@ -629,6 +652,105 @@ public class DatabaseManager {
             HttpResponse response = httpClient.execute(request);
             int responseCode = response.getStatusLine().getStatusCode();
             return responseCode == HttpStatus.OK.value();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* isKeyAuthorized - Checks if the current access key is authorized to update the planner database
+     *
+     *  @return             : success or not
+     *  @accessKey          : the current access key
+     */
+    private static boolean isKeyAuthorized(String accessKey) {
+        try {
+            Reader.init(new FileInputStream(Constants.UPDATE_ACCESS_KEY_PATH));
+            return Reader.readLine().equals(accessKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* updatePlanner - Updates the planner database like distances, weather, restaurants etc
+     *
+     *  @return             : success or not
+     *  @body               : the body of the HTTP POST request
+     */
+    public static boolean updatePlanner(JSONObject body) {
+        try {
+            if (!isKeyAuthorized(body.getString("accessKey"))) {
+                return false;
+            }
+
+            Action action = ActionFactory.getAction(body);
+            return action.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* syncDatabase - Save in the database the updated json object
+     *
+     *  @return             : success or not
+     *  @path               : the path for the database
+     *  @jsonObject         : the object we want to save in the database
+     */
+    public static boolean syncDatabase(String path, JSONObject jsonObject) {
+        try {
+            BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
+            out.write(jsonObject.toString(2));
+            out.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* syncDatabase - Save in the database the updated json array
+     *
+     *  @return             : success or not
+     *  @path               : the path for the database
+     *  @jsonArray          : the array we want to save in the database
+     */
+    public static boolean syncDatabase(String path, JSONArray jsonArray) {
+        try {
+            BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
+            out.write(jsonArray.toString(2));
+            out.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* updateCacheDistance - Update the cache for distance matrix
+     *
+     *  @return             : success or not
+     *  @cityName           : the current city name
+     *  @modeOfTravel       : driving or walking
+     *  @distanceMatrix     : the updated distance matrix
+     */
+    public static boolean updateCacheDistance(String cityName, String modeOfTravel, double[][] distanceMatrix) {
+        if (!isCityCached(cityName)) {
+            return true;
+        }
+
+        try {
+            switch (modeOfTravel) {
+                case "driving":
+                    cacheDistanceMatrixDriving.put(cityName, distanceMatrix);
+                    return true;
+                case "walking":
+                    cacheDistanceMatrixWalking.put(cityName, distanceMatrix);
+                    return true;
+                default:
+                    return false;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return false;
