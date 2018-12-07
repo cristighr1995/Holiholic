@@ -101,14 +101,14 @@ public class DatabaseManager {
         return filteredPlaces;
     }
 
-    /* filterPlaceByVisitingHours - Scan places and select only those that can be visited in the period the user selected
+    /* filterPlacseByVisitingHours - Scan places and select only those that can be visited in the period the user selected
      *                              For example, an user can select multiple days
      *
      *  @return             : the filtered places
      *  @places             : the list of places from the city
      *  @visitingInterval   : the interval selected by user (multiple days with different intervals per day)
      */
-    private static List<Place> filterPlaceByVisitingHours(List<Place> places, OpeningPeriod visitingInterval) {
+    private static List<Place> filterPlacesByVisitingHours(List<Place> places, OpeningPeriod visitingInterval) {
         List<Place> filteredPlaces = new ArrayList<>();
         for (Place place : places) {
             if (place.canVisit(visitingInterval)) {
@@ -156,7 +156,7 @@ public class DatabaseManager {
 
             List<Place> placesFilteredByTags = filterPlacesByTags(city.places, body.getJSONArray("tags"));
             OpeningPeriod visitingInterval = deserializeOpeningPeriod(body.getJSONArray("visitingInterval"));
-            List<Place> openPlaces = filterPlaceByVisitingHours(placesFilteredByTags, visitingInterval);
+            List<Place> openPlaces = filterPlacesByVisitingHours(placesFilteredByTags, visitingInterval);
 
             return serializeToNetwork(openPlaces);
         } catch (Exception e) {
@@ -548,6 +548,10 @@ public class DatabaseManager {
             Calendar end = deserializeHour(close.getString("time"));
             int dayOpen = open.getInt("day");
             int dayClose = close.getInt("day");
+            // set the correct day
+            start.set(Calendar.DAY_OF_WEEK, dayOpen + 1);
+            end.set(Calendar.DAY_OF_WEEK, dayClose + 1);
+            
             // this means the bar is closing after midnight
             if (dayClose != dayOpen) {
                 end.add(Calendar.DAY_OF_WEEK, 1);
