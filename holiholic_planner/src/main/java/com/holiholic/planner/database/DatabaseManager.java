@@ -64,53 +64,58 @@ public class DatabaseManager {
      *  @return             : void
      *  @places             : a list of places in JSONObject format
      */
-    private static void sortPlacesBasedOnPopularity(List<JSONObject> places) {
+    private static void sortPlacesBasedOnPopularity(List<Place> places) {
         places.sort((o1, o2) -> {
-            int checkIns1 = o1.getInt("checkIns");
-            int checkIns2 = o2.getInt("checkIns");
-
-            if (checkIns1 != checkIns2) {
+            if (o1.checkIns != o2.checkIns) {
                 // descending
-                return checkIns2 - checkIns1;
+                return Integer.compare(o2.checkIns, o1.checkIns);
             }
-
-            double rating1 = o1.getDouble("rating");
-            double rating2 = o2.getDouble("rating");
-            return Double.compare(rating2, rating1);
+            return Double.compare(o2.rating, o1.rating);
         });
     }
 
-    /* getPlacesBasedOnTags - Scan places from the corresponding city and get the places with the desired tags
+    /* filterPlacesByTags - Scan places from the corresponding city and get the places with the desired tags
      *
-     *  @return             : a json array string with places
+     *  @return             : the filtered places
      *  @jsonPlacesArray    : the list of places from the city
      *  @tags               : the tags for the places the user wants to visit
      */
-    private static String getPlacesBasedOnTags(JSONArray places, Set<String> tags) {
-        JSONArray response = new JSONArray();
-        List<JSONObject> placesList = new ArrayList<>();
+    private static List<Place> filterPlacesByTags(List<Place> places, JSONArray tags) {
+        List<Place> filteredPlaces = new ArrayList<>();
+        Set<String> tagSet = new HashSet<>();
 
-        try {
-            for (int i = 0; i < places.length(); i++) {
-                JSONObject place = places.getJSONObject(i);
-                JSONArray placeTags = place.getJSONArray("tags");
-                for (int j = 0; j < placeTags.length(); j++) {
-                    String tag = placeTags.getString(j);
-                    if (tags.contains(tag)) {
-                        placesList.add(place);
-                        break;
-                    }
-                }
-            }
-            // sort the places based on their rating or popularity
-            sortPlacesBasedOnPopularity(placesList);
-            // put the sorted places in the response
-            response.put(placesList);
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (int i = 0; i < tags.length(); i++) {
+            tagSet.add(tags.getString(i));
         }
 
-        return response.toString(2);
+        for (Place place : places) {
+            for (String tag : place.tags) {
+                if (tagSet.contains(tag)) {
+                    filteredPlaces.add(place);
+                    break;
+                }
+            }
+        }
+
+        sortPlacesBasedOnPopularity(filteredPlaces);
+        return filteredPlaces;
+    }
+
+    /* filterPlaceByVisitingHours - Scan places and select only those that can be visited in the period the user selected
+     *                              For example, an user can select multiple days
+     *
+     *  @return             : the filtered places
+     *  @places             : the list of places from the city
+     *  @visitingInterval   : the interval selected by user (multiple days with different intervals per day)
+     */
+    private static List<Place> filterPlaceByVisitingHours(List<Place> places, OpeningPeriod visitingInterval) {
+        List<Place> filteredPlaces = new ArrayList<>();
+        for (Place place : places) {
+            if (place.canVisit(visitingInterval)) {
+                filteredPlaces.add(place);
+            }
+        }
+        return filteredPlaces;
     }
 
     /* containsUser - Check if the current user is in the system
@@ -148,17 +153,29 @@ public class DatabaseManager {
 
             // decode the city and cache it, to avoid duplicate work
             City city = getCity(cityName);
-            assert (city.jsonPlacesArray != null);
-            Set<String> tags = new HashSet<>();
-            JSONArray jsonTags = body.getJSONArray("tags");
-            for (int i = 0; i < jsonTags.length(); i++) {
-                tags.add(jsonTags.getString(i));
-            }
-            return getPlacesBasedOnTags(city.jsonPlacesArray, tags);
+
+            List<Place> placesFilteredByTags = filterPlacesByTags(city.places, body.getJSONArray("tags"));
+            OpeningPeriod visitingInterval = deserializeOpeningPeriod(body.getJSONArray("visitingInterval"));
+            List<Place> openPlaces = filterPlaceByVisitingHours(placesFilteredByTags, visitingInterval);
+
+            return serializeToNetwork(openPlaces);
         } catch (Exception e) {
             e.printStackTrace();
-            return "[}";
+            return "[]";
         }
+    }
+
+    /* serializeToNetwork - Serialize the places to be sent over network
+     *
+     *  @return             : the json array string with the places information
+     *  @places             : the list of places
+     */
+    private static String serializeToNetwork(List<Place> places) {
+        JSONArray result = new JSONArray();
+        for (Place place : places) {
+            result.put(place.serializeToNetwork());
+        }
+        return result.toString(2);
     }
 
     /* fetchArrayFromDatabase - Retrieve from database a json array
@@ -271,8 +288,6 @@ public class DatabaseManager {
             LOGGER.log(Level.FINE, "Load {0} city from database path: {1}", new Object[]{city.name, path});
 
             JSONArray dbPlaces = fetchArrayFromDatabase(path);
-            // save also this array for future manipulation
-            city.jsonPlacesArray = dbPlaces;
             List<Place> places = new ArrayList<>();
 
             for (int i = 0; i < dbPlaces.length(); i++) {
@@ -470,7 +485,7 @@ public class DatabaseManager {
             LOGGER.log( Level.FINE, "Update {0} city database", city.name);
             String path = Constants.DATABASE_PATH + city.name + ".json";
             BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
-            out.write(city.jsonPlacesArray.toString(2));
+            out.write(serializeToNetwork(city.places));
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -488,7 +503,7 @@ public class DatabaseManager {
             JSONArray jsonItinerary = new JSONArray();
 
             for (Place place : itinerary) {
-                jsonItinerary.put(place.serialize());
+                jsonItinerary.put(place.serializeToPlan());
             }
 
             response.put(jsonItinerary);

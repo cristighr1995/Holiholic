@@ -1,5 +1,7 @@
 package com.holiholic.planner.utils;
 
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -42,7 +44,7 @@ public class Interval implements Comparator<Interval>, Serializable {
      *
      *  @return             : the end calendar (hour)
      */
-    public Calendar getEnd() {
+    Calendar getEnd() {
         return end;
     }
 
@@ -50,7 +52,7 @@ public class Interval implements Comparator<Interval>, Serializable {
      *
      *  @return             : true / false
      */
-    public boolean isNonStop() {
+    private boolean isNonStop() {
         return nonStop;
     }
 
@@ -58,7 +60,7 @@ public class Interval implements Comparator<Interval>, Serializable {
      *
      *  @return             : true / false
      */
-    public boolean isClosed() {
+    boolean isClosed() {
         return closed;
     }
 
@@ -253,7 +255,20 @@ public class Interval implements Comparator<Interval>, Serializable {
      *  @hour               : the hour we want to format
      */
     public static String serializeHour(Calendar hour) {
-        return String.format("%02d:%02d", hour.get(Calendar.HOUR_OF_DAY), hour.get(Calendar.MINUTE));
+        return String.format("%02d%02d", hour.get(Calendar.HOUR_OF_DAY), hour.get(Calendar.MINUTE));
+    }
+
+    /* serialize - Returns a json object representation of the given hour and day of the week
+     *
+     *  @return             : the json object representation
+     *  @hour               : the hour
+     *  @day                : the day for the interval
+     */
+    private static JSONObject serialize(Calendar hour, int day) {
+        JSONObject result = new JSONObject();
+        result.put("time", serializeHour(hour));
+        result.put("day", day);
+        return result;
     }
 
     /* clone - Deep copy of the current object
@@ -275,5 +290,17 @@ public class Interval implements Comparator<Interval>, Serializable {
         intervalClone.nonStop = this.nonStop;
         intervalClone.closed = this.closed;
         return intervalClone;
+    }
+
+    /* serialize - Returns a json format representation of the current interval given the day
+     *
+     *  @return             : serialization
+     *  @day                : the day of the week for the current interval
+     */
+    JSONObject serialize(int day) {
+        JSONObject result = new JSONObject();
+        result.put("open", serialize(getStart(), day));
+        result.put("close", serialize(getEnd(), day));
+        return result;
     }
 }
