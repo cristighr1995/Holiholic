@@ -4,6 +4,7 @@ import com.holiholic.planner.utils.Enums;
 import com.holiholic.planner.utils.GeoPosition;
 import com.holiholic.planner.utils.Interval;
 import com.holiholic.planner.utils.OpeningPeriod;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -76,14 +77,14 @@ public class Place implements Serializable, Comparable<Place> {
      */
     @Override
     public String toString() {
-        return serialize().toString();
+        return serializeToPlan().toString();
     }
 
-    /* serialize - Serialize the place into a json format
+    /* serializeToPlan - Serialize the place into a json format which is used for plan representation
      *
      *  @return       : the serialized place
      */
-    public JSONObject serialize() {
+    public JSONObject serializeToPlan() {
         JSONObject response = new JSONObject();
         response.put("id", id);
         response.put("name", name);
@@ -99,7 +100,43 @@ public class Place implements Serializable, Comparable<Place> {
         response.put("carPlaceName", carPlaceName);
         response.put("parkTime", parkTime);
         response.put("mealType", Enums.MealType.serialize(mealType));
+        response.put("latitude", location.latitude);
+        response.put("longitude", location.longitude);
         return response;
+    }
+
+    /* serializeToNetwork - Serialize the place into a json format for network
+     *
+     *  @return       : the serialized place
+     */
+    public JSONObject serializeToNetwork() {
+        JSONObject response = new JSONObject();
+        response.put("id", id);
+        response.put("name", name);
+        response.put("rating", rating);
+        response.put("duration", durationVisit);
+        response.put("type", type);
+        response.put("parkTime", parkTime);
+        response.put("latitude", location.latitude);
+        response.put("longitude", location.longitude);
+        response.put("checkIns", checkIns);
+        response.put("wantToGo", wantToGoNumber);
+        response.put("imageUrl", imageUrl);
+        response.put("openingHours", openingPeriod.serialize());
+        response.put("tags", serializeTags());
+        return response;
+    }
+
+    /* serializeTags - Serialize the tags into a json format for network
+     *
+     *  @return       : the serialized tags
+     */
+    private JSONArray serializeTags() {
+        JSONArray result = new JSONArray();
+        for (String tag : tags) {
+            result.put(tag);
+        }
+        return result;
     }
 
     /* canVisit - Checks if the place can be visited an the specified hour
@@ -109,6 +146,15 @@ public class Place implements Serializable, Comparable<Place> {
      */
     public boolean canVisit(Calendar hour) {
         return openingPeriod.canVisit(hour);
+    }
+
+    /* canVisit - Checks if the place can be visited given multiple days interval with each day other constraints
+     *
+     *  @return       : true/false
+     *  @hour         : user interval
+     */
+    public boolean canVisit(OpeningPeriod userInterval) {
+        return openingPeriod.canVisit(userInterval);
     }
 
     /* canVisit - Checks if the place is non stop

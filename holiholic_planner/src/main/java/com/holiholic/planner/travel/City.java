@@ -1,7 +1,6 @@
 package com.holiholic.planner.travel;
 
 import com.holiholic.planner.models.Place;
-import org.json.JSONArray;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +19,6 @@ public class City {
     // fast retrieval knowing the id for the desired place instance
     public Map<Integer, Place> placeMappings;
     private Map<Integer, List<Place>> restaurants;
-
-    // The json used to retrieve the places
-    public JSONArray jsonPlacesArray;
 
     public long totalCheckIns = 1;
     public long totalWantToGo = 1;
