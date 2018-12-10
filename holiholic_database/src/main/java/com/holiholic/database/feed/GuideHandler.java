@@ -2,25 +2,26 @@ package com.holiholic.database.feed;
 
 import com.holiholic.database.constant.Constants;
 import org.json.JSONObject;
+
 import java.util.logging.Logger;
 
-/* Post - Handle operations for a post item
+/* GuideHandler - Handle operations for a guide item
  *
  */
-public class Post extends Feed implements IFeedEditable {
-    private static final Logger LOGGER = Logger.getLogger(Post.class.getName());
+public class GuideHandler extends Feed implements IFeedEditable {
+    private static final Logger LOGGER = Logger.getLogger(GuideHandler.class.getName());
     private final String path;
     private final String city;
     private final String idField;
     private final String type;
     private final JSONObject body;
 
-    Post(String city, JSONObject body) {
+    GuideHandler(String city, JSONObject body) {
         this.city = city;
         this.body = body;
-        path = Constants.POSTS_DB_PATH;
-        idField = "pid";
-        type = "post";
+        path = Constants.GUIDES_DB_PATH;
+        idField = "gid";
+        type = "guide";
         setLogger(LOGGER);
         initDatabaseFile();
     }

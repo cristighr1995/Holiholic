@@ -149,7 +149,7 @@ public class DatabaseManager {
 
             switch (operation) {
                 case "add":
-                    return feed.add(body);
+                    return feed.add();
                 case "remove":
                     return feed.remove(body);
                 case "edit":
@@ -620,7 +620,7 @@ public class DatabaseManager {
      *  @uidGuide           : unique identifier for the guide
      */
     public static String getGuideProfile(String city, String uid, String uidGuide) {
-        return Feed.getGuideProfile(uid, getGuideProfilePath(uidGuide), city, "guideProfile", LOGGER).toString(2);
+        return Feed.getGuideProfile(uid, getGuideProfilePath(uidGuide), city, "review", LOGGER).toString(2);
     }
 
     /* getGuideProfilePostDetails - Get details for a specific post from the guide profile
@@ -637,7 +637,7 @@ public class DatabaseManager {
                                                     String uidCurrent,
                                                     String uidAuthor,
                                                     String uidGuide) {
-        return Feed.getDetails(city, gpid, "guideProfile", getGuideProfilePath(uidGuide), uidCurrent, uidAuthor, LOGGER);
+        return Feed.getDetails(city, gpid, "review", getGuideProfilePath(uidGuide), uidCurrent, uidAuthor, LOGGER);
     }
 
     /* initDatabaseFileObject - Check if the file exists at the specified path and if not, creates an empty object

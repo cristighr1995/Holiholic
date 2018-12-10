@@ -4,18 +4,18 @@ import com.holiholic.database.constant.Constants;
 import org.json.JSONObject;
 import java.util.logging.Logger;
 
-/* Question - Handle operations for a question item
+/* QuestionHandler - Handle operations for a question item
  *
  */
-public class Question extends Feed implements IFeedEditable {
-    private static final Logger LOGGER = Logger.getLogger(Question.class.getName());
+public class QuestionHandler extends Feed implements IFeedEditable {
+    private static final Logger LOGGER = Logger.getLogger(QuestionHandler.class.getName());
     private final String path;
     private final String city;
     private final String idField;
     private final String type;
     private final JSONObject body;
 
-    Question(String city, JSONObject body) {
+    QuestionHandler(String city, JSONObject body) {
         this.city = city;
         this.body = body;
         path = Constants.QUESTIONS_DB_PATH;

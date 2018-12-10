@@ -1,29 +1,47 @@
 package com.holiholic.database.feed;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.holiholic.database.constant.Constants;
+import com.holiholic.database.dataStructures.Post;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
-/* Guide - Handle operations for a guide item
+/* PostHandler - Handle operations for a post item
  *
  */
-public class Guide extends Feed implements IFeedEditable {
-    private static final Logger LOGGER = Logger.getLogger(Guide.class.getName());
+public class PostHandler extends Feed implements IFeedEditable {
+    private static final Logger LOGGER = Logger.getLogger(PostHandler.class.getName());
     private final String path;
     private final String city;
     private final String idField;
     private final String type;
     private final JSONObject body;
+    private final Post post;
 
-    Guide(String city, JSONObject body) {
+    PostHandler(String city, JSONObject body) {
         this.city = city;
         this.body = body;
-        path = Constants.GUIDES_DB_PATH;
-        idField = "gid";
-        type = "guide";
+        path = Constants.POSTS_DB_PATH;
+        idField = "pid";
+        type = "post";
         setLogger(LOGGER);
+        this.post = unmarshal(body);
         initDatabaseFile();
+    }
+
+    private Post unmarshal(JSONObject body) {
+        Post post = null;
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            post = mapper.readValue(body.toString(), Post.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return post;
     }
 
     @Override

@@ -16,11 +16,11 @@ import java.util.logging.Logger;
 public abstract class Feed {
     private Logger LOGGER;
 
-    /* Factory - Creates object for Post or Question
+    /* Factory - Creates object for PostHandler or QuestionHandler
      *
      */
     public static class Factory {
-        /* getInstance - Returns a new instance of a Post or Question
+        /* getInstance - Returns a new instance of a PostHandler or QuestionHandler
          *
          *  @return             : a new Feed instance
          *  @city               : where
@@ -30,13 +30,13 @@ public abstract class Feed {
         public static Feed getInstance(String city, String type, JSONObject body) {
             switch (type) {
                 case "post":
-                    return new Post(city, body);
+                    return new PostHandler(city, body);
                 case "question":
-                    return new Question(city, body);
+                    return new QuestionHandler(city, body);
                 case "guide":
-                    return new Guide(city, body);
-                case "guideProfile":
-                    return new GuideProfile(city, body);
+                    return new GuideHandler(city, body);
+                case "review":
+                    return new GuideProfileHandler(city, body);
                 default:
                     return null;
             }
@@ -168,7 +168,7 @@ public abstract class Feed {
      *  @uid                : current user id
      *  @path               : the database path
      *  @city               : the requested city
-     *  @type               : guideProfile
+     *  @type               : review
      *  @LOGGER             : logger to print useful information
      */
     public static JSONObject getGuideProfile(String uid,
@@ -177,12 +177,12 @@ public abstract class Feed {
                                              String type,
                                              Logger LOGGER) {
         try {
-            JSONObject guideProfile = fetch(path, city);
-            JSONArray guidePosts = getFeed(uid, city, type, LOGGER, guideProfile.getJSONObject(type));
+            JSONObject review = fetch(path, city);
+            JSONArray guidePosts = getFeed(uid, city, type, LOGGER, review.getJSONObject(type));
 
             JSONObject result = new JSONObject();
             result.put("guidePosts", guidePosts);
-            result.put("likes", guideProfile.getJSONObject("likes"));
+            result.put("likes", review.getJSONObject("likes"));
 
             return result;
         } catch (Exception e) {
@@ -443,7 +443,7 @@ public abstract class Feed {
      *
      *  @return             : success or not
      */
-    boolean add() {
+    public boolean add() {
         String uidAuthor = getBody().getString("uidAuthor");
         if (!containsUser(uidAuthor)) {
             return false;
@@ -602,7 +602,7 @@ public abstract class Feed {
      *  @editField          : contains information about the operation parameters
      */
     boolean editComment(JSONObject editField) {
-        Comment comment = new Comment(this);
+        CommentHandler comment = new CommentHandler(this);
         try {
             switch (editField.getString("operation")) {
                 case "add":
