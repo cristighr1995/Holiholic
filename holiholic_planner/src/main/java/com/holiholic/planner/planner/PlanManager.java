@@ -188,7 +188,7 @@ public class PlanManager {
 
             // after we are done, update the database
             // this will write to file the updates
-            DatabaseManager.updateCity(city);
+            DatabaseManager.updatePlacesInDatabase(city);
             // serialize the response
             return DatabaseManager.serializePlan(plan);
         } catch (Exception e) {

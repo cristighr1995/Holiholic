@@ -1,5 +1,8 @@
 package com.holiholic.planner.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /* Enums - All enumerations will be declared here
  *
  */
@@ -67,6 +70,32 @@ public class Enums {
                 return DINNER;
             }
             return UNKNOWN;
+        }
+    }
+
+    public enum FileType {
+        PLACES,
+        RESTAURANTS,
+        TRAFFIC_COEFFICIENTS,
+        WEATHER_INFO,
+        DISTANCE_DRIVING,
+        DISTANCE_WALKING,
+        DURATION_DRIVING,
+        DURATION_WALKING;
+
+        public static FileType[] getFileTypes(String travelMode) {
+            return getFileTypes(TravelMode.deserialize(travelMode));
+        }
+
+        public static FileType[] getFileTypes(TravelMode travelMode) {
+            switch (travelMode) {
+                case DRIVING:
+                    return new FileType[]{DURATION_DRIVING, DISTANCE_DRIVING};
+                case WALKING:
+                    return new FileType[]{DURATION_WALKING, DISTANCE_WALKING};
+                default:
+                        return null;
+            }
         }
     }
 }

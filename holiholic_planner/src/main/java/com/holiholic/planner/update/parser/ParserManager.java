@@ -4,6 +4,7 @@ import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.database.DatabaseManager;
 import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.travel.City;
+import com.holiholic.planner.utils.Enums;
 import org.json.*;
 import java.io.*;
 import java.util.logging.ConsoleHandler;
@@ -32,23 +33,24 @@ public class ParserManager {
         PlanManager.setLogger();
     }
 
-    /* getGoogleDistance - Parse the json data between two places and return the duration between 2 places
+    /* getGoogleValue - Parse the json data between two places and return the distance/duration between 2 places
      *
-     *  @return             : duration in seconds between two places
+     *  @return             : duration or distance between two places
+     *  @type               : duration or distance
      */
-    private static int getGoogleDistance(String jsonData) {
-        int durationInSeconds = Integer.MAX_VALUE;
+    private static int getGoogleValue(String jsonData, String type) {
+        int value = Integer.MAX_VALUE;
         try {
             JSONObject jsonObject = new JSONObject(jsonData);
-            durationInSeconds = jsonObject.getJSONArray("rows")
+            value = jsonObject.getJSONArray("rows")
                     .getJSONObject(0)
                     .getJSONArray("elements")
                     .getJSONObject(0)
-                    .getJSONObject("duration").getInt("value");
+                    .getJSONObject(type).getInt("value");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return durationInSeconds;
+        return value;
     }
 
     /* fetchPlacesFromDatabase - Reads the json database with places from file
@@ -89,6 +91,8 @@ public class ParserManager {
         }
     }
 
+
+
     /* updateDistances - Download, parse and cache the distance matrix between places
      *
      *  @return                 : void
@@ -99,9 +103,8 @@ public class ParserManager {
             String cityName = body.getString("city");
             String modeOfTravel = body.getString("modeOfTravel");
             LOGGER.log(Level.FINE, "Update {0} distances from {0} city", new Object[]{modeOfTravel, cityName});
-            String placesPath = Constants.DATABASE_PATH + cityName + ".json";
-            String distancesPath = Constants.DATABASE_PATH + cityName + "_" + modeOfTravel + ".txt";
-            JSONArray places = fetchPlacesFromDatabase(placesPath);
+            JSONArray places = fetchPlacesFromDatabase(DatabaseManager.getDatabasePath(Enums.FileType.PLACES, cityName));
+            double[][] durationMatrix = new double[places.length()][places.length()];
             double[][] distanceMatrix = new double[places.length()][places.length()];
 
             for (int i = 0; i < places.length(); i++) {
@@ -115,7 +118,8 @@ public class ParserManager {
                     String destination = "" + next.getDouble("latitude") + "," + next.getDouble("longitude");
                     String url = URLManager.buildDistanceMatrixURL(origin, destination, modeOfTravel);
                     String urlContent = URLManager.getContentFromURL(url);
-                    distanceMatrix[place.getInt("id")][next.getInt("id")] = getGoogleDistance(urlContent);
+                    durationMatrix[place.getInt("id")][next.getInt("id")] = getGoogleValue(urlContent, "duration");
+                    distanceMatrix[place.getInt("id")][next.getInt("id")] = getGoogleValue(urlContent, "distance");
                 }
             }
 
@@ -123,11 +127,15 @@ public class ParserManager {
                 LOGGER.log(Level.FINE, "Save {0} distances from {0} city in database",
                            new Object[]{modeOfTravel, cityName});
 
-                if (!saveDistanceMatrix(distancesPath, distanceMatrix)) {
+                Enums.FileType[] fileTypes = Enums.FileType.getFileTypes(modeOfTravel);
+                if (!saveDistanceMatrix(DatabaseManager.getDatabasePath(fileTypes[0], cityName), durationMatrix)) {
+                    return false;
+                }
+                if (!saveDistanceMatrix(DatabaseManager.getDatabasePath(fileTypes[1], cityName), distanceMatrix)) {
                     return false;
                 }
 
-                return DatabaseManager.updateCacheDistance(cityName, modeOfTravel, distanceMatrix);
+                return DatabaseManager.updateCacheDistance(cityName, modeOfTravel, durationMatrix);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -247,11 +255,11 @@ public class ParserManager {
      *  @restaurants        : the updated restaurants for the current city
      */
     private static boolean saveRestaurants(String cityName, JSONArray restaurants) {
-        String path = Constants.DATABASE_PATH + cityName + "_restaurants.json";
         try {
             LOGGER.log(Level.FINE, "Save restaurants from {0} city in database", cityName);
             synchronized (DatabaseManager.class) {
-                if (!DatabaseManager.syncDatabase(path, restaurants)) {
+                if (!DatabaseManager.syncDatabase(DatabaseManager.getDatabasePath(Enums.FileType.RESTAURANTS, cityName),
+                                                  restaurants)) {
                     return false;
                 }
 
@@ -281,8 +289,7 @@ public class ParserManager {
         try {
             String cityName = body.getString("city");
             LOGGER.log(Level.FINE, "Update restaurants from {0} city", cityName);
-            String path = Constants.DATABASE_PATH + cityName + ".json";
-            JSONArray places = fetchPlacesFromDatabase(path);
+            JSONArray places = fetchPlacesFromDatabase(DatabaseManager.getDatabasePath(Enums.FileType.RESTAURANTS, cityName));
             JSONArray updatedRestaurants = new JSONArray();
 
             for (int i = 0; i < places.length(); i++) {
