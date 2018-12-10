@@ -58,15 +58,9 @@ public class PlanManager {
             p.durationVisit = place.getInt("duration");
             // update the time in the city place
             int oldTime = city.placeMappings.get(id).durationVisit;
-            city.placeMappings.get(id).durationVisit = (oldTime + p.durationVisit) / 2;
 
-            try {
-                synchronized (PlanManager.class) {
-                    // put the duration directly in the stored json
-                    city.jsonPlacesArray.getJSONObject(p.id).put("duration", city.placeMappings.get(id).durationVisit);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            synchronized (PlanManager.class) {
+                city.placeMappings.get(id).durationVisit = (oldTime + p.durationVisit) / 2;
             }
 
             places.add(p);
@@ -92,13 +86,6 @@ public class PlanManager {
 
             // update also the total number of check-ins
             city.totalCheckIns++;
-
-            try {
-                // Put the number of check-ins directly in the stored json
-                city.jsonPlacesArray.getJSONObject(p.id).put("checkIns", cityPlace.checkIns);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -119,13 +106,6 @@ public class PlanManager {
 
             // update also the total number of want to go
             city.totalWantToGo++;
-
-            try {
-                // Put the number of want-to-go directly in the stored json
-                city.jsonPlacesArray.getJSONObject(p.id).put("wantToGo", cityPlace.wantToGoNumber);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
