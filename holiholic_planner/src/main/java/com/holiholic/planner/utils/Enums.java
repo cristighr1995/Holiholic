@@ -81,21 +81,11 @@ public class Enums {
         DURATION_DRIVING,
         DURATION_WALKING;
 
-        public static FileType[] getFileTypes(String travelMode) {
-            return getFileTypes(TravelMode.deserialize(travelMode));
-        }
-
-        public static FileType[] getFileTypes(TravelMode travelMode) {
-            switch (travelMode) {
-                case DRIVING:
-                    return new FileType[]{DURATION_DRIVING, DISTANCE_DRIVING};
-                case WALKING:
-                    return new FileType[]{DURATION_WALKING, DISTANCE_WALKING};
-                default:
-                    return null;
-            }
-        }
-
+        /* getDuration - Given the mode of travel we need to get the correct value of the enum
+         *
+         *  @return         : the corresponding file type
+         *  @travelMode     : the travel mode
+         */
         public static FileType getDuration(TravelMode travelMode) {
             switch (travelMode) {
                 case DRIVING:
@@ -107,6 +97,11 @@ public class Enums {
             }
         }
 
+        /* getDistance - Given the mode of travel we need to get the correct value of the enum
+         *
+         *  @return         : the corresponding file type
+         *  @travelMode     : the travel mode
+         */
         public static FileType getDistance(TravelMode travelMode) {
             switch (travelMode) {
                 case DRIVING:
@@ -118,6 +113,11 @@ public class Enums {
             }
         }
 
+        /* serialize - Serialize the file type in a string format
+         *
+         *  @return         : the serialized file type
+         *  @fileType       : the file type
+         */
         public static String serialize(FileType fileType) {
             switch (fileType) {
                 case PLACES:

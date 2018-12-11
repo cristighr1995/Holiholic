@@ -299,9 +299,8 @@ public class DatabaseManager {
                 }
             }
 
-            Map<Integer, List<Place>> restaurants = fetchRestaurantsFromDatabase(
-                                                    DatabaseManager.getDatabasePath(Enums.FileType.RESTAURANTS,
-                                                                                    city.name));
+            String restaurantsPath = DatabaseManager.getDatabasePath(Enums.FileType.RESTAURANTS, city.name);
+            Map<Integer, List<Place>> restaurants = fetchRestaurantsFromDatabase(restaurantsPath);
 
             city.constructInstance(places, restaurants);
         } catch (Exception e) {
