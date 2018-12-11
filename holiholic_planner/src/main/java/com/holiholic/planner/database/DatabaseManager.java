@@ -36,7 +36,7 @@ public class DatabaseManager {
     // the cache that contains the in-memory cities
     private final static Map<String, City> cities = new HashMap<>();
     // the cache that contains the in-memory weather information about cities
-    private final static Map<String, WeatherForecastInformation> citiesWeather = new HashMap<>();
+    private final static Map<String, WeatherForecastInformation> weatherInfo = new HashMap<>();
 
     // for each city keep the distance matrix and traffic coefficients
     private final static Map<String, double[][]> durationDriving = new HashMap<>();
@@ -349,8 +349,8 @@ public class DatabaseManager {
      *  @cityName     : the city where the user wants to go/to visit
      */
     public static WeatherForecastInformation getWeatherForecastInformation(String cityName) {
-        if (citiesWeather.containsKey(cityName)) {
-            return citiesWeather.get(cityName);
+        if (weatherInfo.containsKey(cityName)) {
+            return weatherInfo.get(cityName);
         }
 
         try {
@@ -363,7 +363,7 @@ public class DatabaseManager {
             WeatherForecastInformation weatherResult = new WeatherForecastInformation(temperature,
                                                                                       rainProbability,
                                                                                       snowProbability);
-            citiesWeather.put(cityName, weatherResult);
+            weatherInfo.put(cityName, weatherResult);
             return weatherResult;
         } catch (Exception e) {
             e.printStackTrace();
