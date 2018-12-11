@@ -71,6 +71,9 @@ public class Enums {
         }
     }
 
+    /* FileType - The file type we need to update in the database
+     *
+     */
     public enum FileType {
         PLACES,
         RESTAURANTS,
