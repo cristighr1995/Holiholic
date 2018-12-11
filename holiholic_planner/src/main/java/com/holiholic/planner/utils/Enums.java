@@ -1,8 +1,5 @@
 package com.holiholic.planner.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /* Enums - All enumerations will be declared here
  *
  */
@@ -15,12 +12,13 @@ public class Enums {
 
         /* serialize - Serialize the mode of travel in a string format
          *
-         *  @return       : the serialized mode of travel
+         *  @return         : the serialized mode of travel
+         *  @travelMode     : the travel mode
          */
-        public static String serialize(TravelMode modeOfTravel) {
-            if (modeOfTravel == DRIVING) {
+        public static String serialize(TravelMode travelMode) {
+            if (travelMode == DRIVING) {
                 return "driving";
-            } else if (modeOfTravel == WALKING) {
+            } else if (travelMode == WALKING) {
                 return "walking";
             }
             return "unknown";
@@ -30,10 +28,10 @@ public class Enums {
          *
          *  @return       : the corresponding instance
          */
-        public static TravelMode deserialize(String modeOfTravel) {
-            if (modeOfTravel.equals("driving")) {
+        public static TravelMode deserialize(String travelMode) {
+            if (travelMode.equals("driving")) {
                 return DRIVING;
-            } else if (modeOfTravel.equals("walking")) {
+            } else if (travelMode.equals("walking")) {
                 return WALKING;
             }
             return UNKNOWN;
@@ -94,7 +92,52 @@ public class Enums {
                 case WALKING:
                     return new FileType[]{DURATION_WALKING, DISTANCE_WALKING};
                 default:
-                        return null;
+                    return null;
+            }
+        }
+
+        public static FileType getDuration(TravelMode travelMode) {
+            switch (travelMode) {
+                case DRIVING:
+                    return DURATION_DRIVING;
+                case WALKING:
+                    return DURATION_WALKING;
+                default:
+                    return null;
+            }
+        }
+
+        public static FileType getDistance(TravelMode travelMode) {
+            switch (travelMode) {
+                case DRIVING:
+                    return DISTANCE_DRIVING;
+                case WALKING:
+                    return DISTANCE_WALKING;
+                default:
+                    return null;
+            }
+        }
+
+        public static String serialize(FileType fileType) {
+            switch (fileType) {
+                case PLACES:
+                    return "places";
+                case RESTAURANTS:
+                    return "restaurants";
+                case WEATHER_INFO:
+                    return "weather information";
+                case TRAFFIC_COEFFICIENTS:
+                    return "traffic coefficients";
+                case DURATION_DRIVING:
+                    return "duration driving";
+                case DURATION_WALKING:
+                    return "duration_walking";
+                case DISTANCE_DRIVING:
+                    return "distance driving";
+                case DISTANCE_WALKING:
+                    return "distance walking";
+                default:
+                    return null;
             }
         }
     }

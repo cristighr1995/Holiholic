@@ -319,22 +319,19 @@ public class DatabaseManager {
             return cities.get(cityName);
         }
 
-        String fileName = getDatabasePath(Enums.FileType.PLACES, cityName);
-        City city = null;
         try {
-            File f = new File(fileName);
-            city = City.getInstance(cityName);
-
-            if (f.getAbsoluteFile().exists()) {
-                fetchCityFromDatabase(city, fileName);
+            String path = getDatabasePath(Enums.FileType.PLACES, cityName);
+            City city = City.getInstance(cityName);
+            if (new File(path).getAbsoluteFile().exists()) {
+                fetchCityFromDatabase(city, path);
                 // store the city in the cache
                 cities.put(cityName, city);
             }
+            return city;
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-
-        return city;
     }
 
     /* isCityCached - Checks if the city instance is cached
@@ -356,23 +353,22 @@ public class DatabaseManager {
             return citiesWeather.get(cityName);
         }
 
-        WeatherForecastInformation weatherResult = null;
-
         try {
-            String fileName = Constants.DATABASE_PATH + cityName + "_weather.txt";
-            Reader.init(new FileInputStream(fileName));
+            Reader.init(new FileInputStream(getDatabasePath(Enums.FileType.WEATHER_INFO, cityName)));
 
             double temperature = Reader.nextDouble();
             double rainProbability = Reader.nextDouble();
             double snowProbability = Reader.nextDouble();
 
-            weatherResult = new WeatherForecastInformation(temperature, rainProbability, snowProbability);
+            WeatherForecastInformation weatherResult = new WeatherForecastInformation(temperature,
+                                                                                      rainProbability,
+                                                                                      snowProbability);
             citiesWeather.put(cityName, weatherResult);
+            return weatherResult;
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-
-        return weatherResult;
     }
 
     /* readMatrix - Returns a distance/duration matrix just read from file
@@ -405,24 +401,18 @@ public class DatabaseManager {
 
     /* initDurationMatrix - Reads the duration matrix from file and cache it
      *
-     *  @return       : void
-     *  @cityName     : the city where the user wants to go/to visit
-     *  @modeOfTravel : how the user want to go (driving / walking)
+     *  @return         : void
+     *  @cityName       : the city where the user wants to go/to visit
+     *  @travelMode     : how the user want to go (driving / walking)
      */
-    private static void initDurationMatrix(String cityName, Enums.TravelMode modeOfTravel) {
+    private static void initDurationMatrix(String cityName, Enums.TravelMode travelMode) {
         try {
-            // example -> bucharest_driving.txt
-            String path = Constants.DATABASE_PATH
-                              + cityName + "_"
-                              + Enums.TravelMode.serialize(modeOfTravel) + ".txt";
-
             int N = getCity(cityName).places.size();
-            double[][] distanceMatrix = readMatrix(path, N);
-
-            if (modeOfTravel == Enums.TravelMode.DRIVING) {
-                durationDriving.put(cityName, distanceMatrix);
+            double[][] durationMatrix = readMatrix(getDatabasePath(Enums.FileType.getDuration(travelMode), cityName), N);
+            if (travelMode == Enums.TravelMode.DRIVING) {
+                durationDriving.put(cityName, durationMatrix);
             } else {
-                durationWalking.put(cityName, distanceMatrix);
+                durationWalking.put(cityName, durationMatrix);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -431,24 +421,18 @@ public class DatabaseManager {
 
     /* initDistanceMatrix - Reads the distance matrix from file and cache it
      *
-     *  @return       : void
-     *  @cityName     : the city where the user wants to go/to visit
-     *  @modeOfTravel : how the user want to go (driving / walking)
+     *  @return         : void
+     *  @cityName       : the city where the user wants to go/to visit
+     *  @travelMode     : how the user want to go (driving / walking)
      */
-    private static void initDistanceMatrix(String cityName, Enums.TravelMode modeOfTravel) {
+    private static void initDistanceMatrix(String cityName, Enums.TravelMode travelMode) {
         try {
-            // example -> bucharest_driving.txt
-            String path = Constants.DATABASE_PATH
-                    + cityName + "_"
-                    + Enums.TravelMode.serialize(modeOfTravel) + ".txt";
-
             int N = getCity(cityName).places.size();
-            double[][] distanceMatrix = readMatrix(path, N);
-
-            if (modeOfTravel == Enums.TravelMode.DRIVING) {
-                durationDriving.put(cityName, distanceMatrix);
+            double[][] distanceMatrix = readMatrix(getDatabasePath(Enums.FileType.getDuration(travelMode), cityName), N);
+            if (travelMode == Enums.TravelMode.DRIVING) {
+                distanceDriving.put(cityName, distanceMatrix);
             } else {
-                durationWalking.put(cityName, distanceMatrix);
+                distanceWalking.put(cityName, distanceMatrix);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -457,22 +441,22 @@ public class DatabaseManager {
 
     /* getDurationMatrix - Returns the duration matrix from the city given the mode of travel
      *
-     *  @return       : duration matrix
-     *  @cityName     : the city where the user wants to go/to visit
-     *  @modeOfTravel : how the user want to go (driving / walking)
+     *  @return         : duration matrix
+     *  @cityName       : the city where the user wants to go/to visit
+     *  @travelMode     : how the user want to go (driving / walking)
      */
-    public static double[][] getDurationMatrix(String cityName, Enums.TravelMode modeOfTravel) {
+    public static double[][] getDurationMatrix(String cityName, Enums.TravelMode travelMode) {
         double[][] durationMatrix = null;
 
         try {
-            if (modeOfTravel == Enums.TravelMode.DRIVING) {
+            if (travelMode == Enums.TravelMode.DRIVING) {
                 if (!durationDriving.containsKey(cityName)) {
-                    initDurationMatrix(cityName, modeOfTravel);
+                    initDurationMatrix(cityName, travelMode);
                 }
                 durationMatrix = durationDriving.get(cityName);
             } else {
                 if (!durationWalking.containsKey(cityName)) {
-                    initDurationMatrix(cityName, modeOfTravel);
+                    initDurationMatrix(cityName, travelMode);
                 }
                 durationMatrix = durationWalking.get(cityName);
             }
@@ -485,22 +469,22 @@ public class DatabaseManager {
 
     /* getDistanceMatrix - Returns the distance matrix from the city given the mode of travel
      *
-     *  @return       : distance matrix
-     *  @cityName     : the city where the user wants to go/to visit
-     *  @modeOfTravel : how the user want to go (driving / walking)
+     *  @return         : distance matrix
+     *  @cityName       : the city where the user wants to go/to visit
+     *  @travelMode     : how the user want to go (driving / walking)
      */
-    public static double[][] getDistanceMatrix(String cityName, Enums.TravelMode modeOfTravel) {
+    public static double[][] getDistanceMatrix(String cityName, Enums.TravelMode travelMode) {
         double[][] distanceMatrix = null;
 
         try {
-            if (modeOfTravel == Enums.TravelMode.DRIVING) {
+            if (travelMode == Enums.TravelMode.DRIVING) {
                 if (!distanceDriving.containsKey(cityName)) {
-                    initDistanceMatrix(cityName, modeOfTravel);
+                    initDistanceMatrix(cityName, travelMode);
                 }
                 distanceMatrix = distanceDriving.get(cityName);
             } else {
                 if (!distanceWalking.containsKey(cityName)) {
-                    initDistanceMatrix(cityName, modeOfTravel);
+                    initDistanceMatrix(cityName, travelMode);
                 }
                 distanceMatrix = distanceWalking.get(cityName);
             }
@@ -517,20 +501,18 @@ public class DatabaseManager {
      *  @cityName     : the city where the user wants to go/to visit
      */
     private static void initTrafficCoefficients(String cityName) {
-        Map<Integer, Double> trafficCoefficientsMappings = new HashMap<>();
-
         try {
-            String fileName = Constants.DATABASE_PATH + cityName + "_traffic.txt";
-            Reader.init(new FileInputStream(fileName));
+            Reader.init(new FileInputStream(getDatabasePath(Enums.FileType.TRAFFIC_COEFFICIENTS, cityName)));
+            Map<Integer, Double> trafficInfo = new HashMap<>();
 
             for (int i = 0; i < 24; i++) {
                 int hour = Reader.nextInt();
                 double coefficient = Reader.nextDouble();
-                trafficCoefficientsMappings.put(hour, coefficient);
+                trafficInfo.put(hour, coefficient);
             }
 
             // cache the coefficients after successfully read them
-            trafficCoefficients.put(cityName, trafficCoefficientsMappings);
+            trafficCoefficients.put(cityName, trafficInfo);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -555,8 +537,8 @@ public class DatabaseManager {
      */
     public static synchronized void updatePlacesInDatabase(City city) {
         try {
-            LOGGER.log( Level.FINE, "Update {0} city database", city.name);
-            String path = Constants.DATABASE_PATH + city.name + ".json";
+            LOGGER.log(Level.FINE, "Save places in database for {0} city", city.name);
+            String path = getDatabasePath(Enums.FileType.PLACES, city.name);
             BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
             out.write(serializeToNetwork(city.places));
             out.close();
@@ -896,26 +878,34 @@ public class DatabaseManager {
         }
     }
 
-    /* updateCacheDistance - Update the cache for distance matrix
+    /* updateCacheMatrix - Update the cache for distance or duration matrix
      *
      *  @return             : success or not
      *  @cityName           : the current city name
-     *  @modeOfTravel       : driving or walking
-     *  @distanceMatrix     : the updated distance matrix
+     *  @fileType           : the type of the operation
+     *  @distanceMatrix     : the updated matrix
      */
-    public static boolean updateCacheDistance(String cityName, String modeOfTravel, double[][] distanceMatrix) {
+    public static boolean updateCacheMatrix(String cityName, Enums.FileType fileType, double[][] matrix) {
         if (!isCityCached(cityName)) {
             return true;
         }
 
+        LOGGER.log(Level.FINE, "Update {0} matrix for {1} city",
+                   new Object[]{Enums.FileType.serialize(fileType), cityName});
+
         try {
-            switch (modeOfTravel) {
-                case "driving":
-                    durationDriving.put(cityName, distanceMatrix);
+            switch (fileType) {
+                case DURATION_DRIVING:
+                    durationDriving.put(cityName, matrix);
                     return true;
-                case "walking":
-                    durationWalking.put(cityName, distanceMatrix);
+                case DURATION_WALKING:
+                    durationWalking.put(cityName, matrix);
                     return true;
+                case DISTANCE_DRIVING:
+                    distanceDriving.put(cityName, matrix);
+                    return true;
+                case DISTANCE_WALKING:
+                    distanceWalking.put(cityName, matrix);
                 default:
                     return false;
             }
@@ -925,6 +915,12 @@ public class DatabaseManager {
         }
     }
 
+    /* getDatabasePath - Get the database path which locates the type of file for a given city
+     *
+     *  @return             : the database path
+     *  @fileType           : the type of the operation
+     *  @cityName           : the current city name
+     */
     public static String getDatabasePath(Enums.FileType fileType, String cityName) {
         String prefix = Constants.DATABASE_PATH + cityName + "/";
         switch (fileType) {
@@ -945,7 +941,7 @@ public class DatabaseManager {
             case TRAFFIC_COEFFICIENTS:
                 return prefix + "traffic_coefficients.txt";
             default:
-                    return null;
+                return "";
         }
     }
 }

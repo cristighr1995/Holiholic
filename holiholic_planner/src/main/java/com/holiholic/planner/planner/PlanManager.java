@@ -150,10 +150,10 @@ public class PlanManager {
                                           .deserializeOpeningPeriod(jsonPreferences.getJSONArray("visitingInterval"));
 
             // get the mode of travel
-            String modeOfTravel = jsonPreferences.getString("modeOfTravel");
+            String travelMode = jsonPreferences.getString("travelMode");
 
             // create the planner
-            Planner planner = new Planner(city, openingPeriod, Enums.TravelMode.deserialize(modeOfTravel));
+            Planner planner = new Planner(city, openingPeriod, Enums.TravelMode.deserialize(travelMode));
             // set preference heuristic
             planner.setPreferenceHeuristic(body.getJSONObject("preferences").getDouble("preferenceHeuristic"));
 

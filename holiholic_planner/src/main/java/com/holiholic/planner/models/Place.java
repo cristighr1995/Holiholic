@@ -23,8 +23,8 @@ public class Place implements Serializable, Comparable<Place> {
     public double rating = 0;               // The google rating
     public OpeningPeriod openingPeriod;
     public Calendar plannedHour;            // The time in the final plan when it's better to visit this place
-    public Integer durationToNext;          // The time needed to reach next place
-    public Enums.TravelMode modeOfTravel;  // The mode to go to next place (walking, driving etc.)
+    public int durationToNext = 0;          // The time needed to reach next place
+    public Enums.TravelMode travelMode;     // The mode to go to next place (walking, driving etc.)
     public boolean getCarBack;              // For each place we need to know if we need to go back after the car
     public int carPlaceId = -1;             // For each place we need to know where we left the car, to return back
     public String carPlaceName = "";        // For each place we need to know the actual name of the place where we
@@ -92,8 +92,8 @@ public class Place implements Serializable, Comparable<Place> {
         response.put("rating", rating);
         response.put("duration", durationVisit);
         response.put("type", type);
-        response.put("modeOfTravel", Enums.TravelMode.serialize(modeOfTravel));
-        response.put("timeToNext", durationToNext);
+        response.put("travelMode", Enums.TravelMode.serialize(travelMode));
+        response.put("durationToNext", durationToNext);
         response.put("distanceToNext", distanceToNext);
         response.put("plannedHour", Interval.serializeHour(plannedHour));
         response.put("getCarBack", getCarBack);
@@ -188,7 +188,7 @@ public class Place implements Serializable, Comparable<Place> {
         copy.vicinity = vicinity;
         copy.phoneNumber = phoneNumber;
         copy.wantToGoNumber = wantToGoNumber;
-        copy.modeOfTravel = modeOfTravel;
+        copy.travelMode = travelMode;
         copy.durationToNext = durationToNext;
         copy.distanceToNext = distanceToNext;
         copy.getCarBack = getCarBack;

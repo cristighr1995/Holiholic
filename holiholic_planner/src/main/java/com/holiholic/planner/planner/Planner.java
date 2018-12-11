@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  *           For each request (user) we need to create a new instance of the planner
  *
  */
-public class Planner {
+class Planner {
     private static final Logger LOGGER = Logger.getLogger(Planner.class.getName());
 
     // Key = Place id, Value = The place reference
@@ -41,7 +41,7 @@ public class Planner {
     // The way the user wants to travel between places
     // It can be driving | walking | bicycling | transit (we can not use transit which is public transportation because
     // it is paid)
-    private Enums.TravelMode modeOfTravel;
+    private Enums.TravelMode travelMode;
 
     private double maxScore;
     // Preference heuristic
@@ -96,11 +96,11 @@ public class Planner {
     }
 
     // constructor
-    Planner(City city, OpeningPeriod openingPeriod, Enums.TravelMode modeOfTravel) {
+    Planner(City city, OpeningPeriod openingPeriod, Enums.TravelMode travelMode) {
         this.city = city; // we need to clone the city!!!
         this.openingPeriod = openingPeriod;
         this.pH = 1;
-        this.modeOfTravel = modeOfTravel;
+        this.travelMode = travelMode;
         // map ids to places
         buildPlaceMappings();
         // used for logging
@@ -244,7 +244,7 @@ public class Planner {
                 // consider the traffic congestion at the current hour
                 trafficCoefficient = trafficCoefficients.get(copyHour.get(Calendar.HOUR_OF_DAY));
 
-                if (modeOfTravel == Enums.TravelMode.DRIVING) {
+                if (travelMode == Enums.TravelMode.DRIVING) {
                     timeToNextPlace = (int) Math.min(durationWalking[last.id][p.id],
                                                      durationDriving[last.id][p.id] * trafficCoefficient
                                                      + p.parkTime);
@@ -292,14 +292,14 @@ public class Planner {
             durationToNeighbor = getDurationFromStart(neighbor);
             distanceToNeighbor = getDistanceFromStart(neighbor);
             currentPlace.parkHere = false;
-            if (modeOfTravel == Enums.TravelMode.DRIVING) {
+            if (travelMode == Enums.TravelMode.DRIVING) {
                 nextCarPlaceId = neighbor.id;
             }
-            currentPlace.modeOfTravel = modeOfTravel;
+            currentPlace.travelMode = travelMode;
         } else {
             // If the user selected driving, we need to take in consideration if it's closer to walk instead
             // of drive and find parking slot
-            if (modeOfTravel == Enums.TravelMode.DRIVING) {
+            if (travelMode == Enums.TravelMode.DRIVING) {
                 if (carPlaceId == currentPlace.id) {
                     currentPlace.parkHere = true;
                 }
@@ -340,19 +340,19 @@ public class Planner {
                     nextCarPlaceId = neighbor.id;
                     durationToNeighbor = (int) durationDrivingValue;
                     distanceToNeighbor = (int) distanceDrivingValue;
-                    currentPlace.modeOfTravel = Enums.TravelMode.DRIVING;
+                    currentPlace.travelMode = Enums.TravelMode.DRIVING;
                 } else {
                     // The actual duration is without taking into consideration the returning time for the car
                     // We will count that time later
                     durationToNeighbor = (int) durationWalking[currentPlace.id][neighbor.id];
                     distanceToNeighbor = (int) distanceWalking[currentPlace.id][neighbor.id];
-                    currentPlace.modeOfTravel = Enums.TravelMode.WALKING;
+                    currentPlace.travelMode = Enums.TravelMode.WALKING;
                     returningTimeWalking = (int) durationWalking[neighbor.id][carPlaceId];
                 }
             } else {
                 durationToNeighbor = (int) durationWalking[currentPlace.id][neighbor.id];
                 distanceToNeighbor = (int) distanceWalking[currentPlace.id][neighbor.id];
-                currentPlace.modeOfTravel = Enums.TravelMode.WALKING;
+                currentPlace.travelMode = Enums.TravelMode.WALKING;
             }
         }
 
@@ -534,9 +534,6 @@ public class Planner {
                     maxScore = cScore;
 
                     List<Place> currentPlan = new ArrayList<>(currentSolution);
-
-                    // trigger to finish at last place
-                    currentPlan.get(currentPlan.size() - 1).durationToNext = null;
                     planMappings.put(firstPlannedPlace.id, currentPlan);
                     numberOfSolutions++;
 
@@ -631,13 +628,15 @@ public class Planner {
                 currentSolutionCopy.add(currentPlace);
 
                 if (fixedPlacesCopy.isEmpty()) {
-                    if (modeOfTravel == Enums.TravelMode.DRIVING) {
+                    if (travelMode == Enums.TravelMode.DRIVING) {
                         if (carPlaceId == currentPlace.id) {
                             currentPlace.parkHere = true;
                         } else {
                             currentPlace.getCarBack = true;
                             currentPlace.carPlaceId = carPlaceId;
                             currentPlace.carPlaceName = placeMappings.get(carPlaceId).name;
+                            currentPlace.durationToNext = (int) durationWalking[currentPlace.id][carPlaceId] / 60;
+                            currentPlace.distanceToNext = (int) distanceWalking[currentPlace.id][carPlaceId];
                         }
                     }
                 }
@@ -701,7 +700,7 @@ public class Planner {
 
                 startPlaceCopy.durationToNext = timeInSecondsToNextPlace / 60;
                 startPlaceCopy.distanceToNext = getDistanceFromStart(nextPlace);
-                startPlaceCopy.modeOfTravel = modeOfTravel;
+                startPlaceCopy.travelMode = travelMode;
                 startPlaceCopy.type = "starting_point";
 
                 // if can plan the place at the start of the interval
@@ -906,7 +905,7 @@ public class Planner {
         int placesToPlanSize = placesToPlanMappings.size();
         int placePosition = position;
 
-        if (modeOfTravel == Enums.TravelMode.DRIVING) {
+        if (travelMode == Enums.TravelMode.DRIVING) {
             distance = Math.min(durationWalking[currentPlace.id][nextPlace.id],
                                 // traffic and parking time contribution to distance
                                 durationDriving[currentPlace.id][nextPlace.id] * trafficCoefficient
@@ -1159,7 +1158,7 @@ public class Planner {
         double coefficient = Constants.drivingCoefficient;
         double medVelocity = Constants.drivingMedVelocity;
 
-        if (modeOfTravel == Enums.TravelMode.WALKING) {
+        if (travelMode == Enums.TravelMode.WALKING) {
             coefficient = Constants.walkingCoefficient;
             medVelocity = Constants.walkingMedVelocity;
         }
