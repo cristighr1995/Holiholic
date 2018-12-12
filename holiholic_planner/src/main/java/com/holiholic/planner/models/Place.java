@@ -23,17 +23,17 @@ public class Place implements Serializable, Comparable<Place> {
     public double rating = 0;               // The google rating
     public OpeningPeriod openingPeriod;
     public Calendar plannedHour;            // The time in the final plan when it's better to visit this place
-    public Integer timeTravelToNextPlace;   // The time needed to reach next place
-    public Enums.TravelMode modeOfTravelToNextPlace;  // The mode to go to next place (walking, driving etc.)
-    public boolean needToGetTheCarBack;     // For each place we need to know if we need to go back after the car
+    public int durationToNext = 0;          // The time needed to reach next place
+    public Enums.TravelMode travelMode;     // The mode to go to next place (walking, driving etc.)
+    public boolean getCarBack;              // For each place we need to know if we need to go back after the car
     public int carPlaceId = -1;             // For each place we need to know where we left the car, to return back
     public String carPlaceName = "";        // For each place we need to know the actual name of the place where we
                                             // left the car (will be used to create the response to user
 
     // this field is used only if we use the Vehicle mode of travel
-    public boolean needToParkHere = false;
-    public boolean needToEatLunch = false;
-    public boolean needToEatDinner = false;
+    public boolean parkHere = false;
+    public boolean eatLunch = false;
+    public boolean eatDinner = false;
     public Enums.MealType mealType = Enums.MealType.UNKNOWN;
     public int parkTime;                    // The time needed for parking the vehicle (calculated in seconds)
     public int checkIns = 0;                // The actual number of times this place was chosen for the plan
@@ -51,6 +51,7 @@ public class Place implements Serializable, Comparable<Place> {
 
     public Set<String> tags;                // types of attractions (local, art, architecture, fun etc)
     public String type = "attraction";      // the current place type (starting_point, attraction, restaurant)
+    public int distanceToNext = 0;          // the distance (in meters) until the next place
 
     // default constructor
     public Place() {}
@@ -91,11 +92,12 @@ public class Place implements Serializable, Comparable<Place> {
         response.put("rating", rating);
         response.put("duration", durationVisit);
         response.put("type", type);
-        response.put("modeOfTravel", Enums.TravelMode.serialize(modeOfTravelToNextPlace));
-        response.put("timeToNext", timeTravelToNextPlace);
+        response.put("travelMode", Enums.TravelMode.serialize(travelMode));
+        response.put("durationToNext", durationToNext);
+        response.put("distanceToNext", distanceToNext);
         response.put("plannedHour", Interval.serializeHour(plannedHour));
-        response.put("needToGetTheCarBack", needToGetTheCarBack);
-        response.put("needToParkHere", needToParkHere);
+        response.put("getCarBack", getCarBack);
+        response.put("parkHere", parkHere);
         response.put("carPlaceId", carPlaceId);
         response.put("carPlaceName", carPlaceName);
         response.put("parkTime", parkTime);
@@ -186,14 +188,15 @@ public class Place implements Serializable, Comparable<Place> {
         copy.vicinity = vicinity;
         copy.phoneNumber = phoneNumber;
         copy.wantToGoNumber = wantToGoNumber;
-        copy.modeOfTravelToNextPlace = modeOfTravelToNextPlace;
-        copy.timeTravelToNextPlace = timeTravelToNextPlace;
-        copy.needToGetTheCarBack = needToGetTheCarBack;
+        copy.travelMode = travelMode;
+        copy.durationToNext = durationToNext;
+        copy.distanceToNext = distanceToNext;
+        copy.getCarBack = getCarBack;
         copy.parkTime = parkTime;
         copy.carPlaceId = carPlaceId;
-        copy.needToParkHere = needToParkHere;
-        copy.needToEatLunch = needToEatLunch;
-        copy.needToEatDinner = needToEatDinner;
+        copy.parkHere = parkHere;
+        copy.eatLunch = eatLunch;
+        copy.eatDinner = eatDinner;
         copy.fixedTime = fixedTime;
         copy.needToWait = needToWait;
         copy.type = type;

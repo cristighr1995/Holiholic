@@ -150,10 +150,10 @@ public class PlanManager {
                                           .deserializeOpeningPeriod(jsonPreferences.getJSONArray("visitingInterval"));
 
             // get the mode of travel
-            String modeOfTravel = jsonPreferences.getString("modeOfTravel");
+            String travelMode = jsonPreferences.getString("travelMode");
 
             // create the planner
-            Planner planner = new Planner(city, openingPeriod, Enums.TravelMode.deserialize(modeOfTravel));
+            Planner planner = new Planner(city, openingPeriod, Enums.TravelMode.deserialize(travelMode));
             // set preference heuristic
             planner.setPreferenceHeuristic(body.getJSONObject("preferences").getDouble("preferenceHeuristic"));
 
@@ -188,7 +188,7 @@ public class PlanManager {
 
             // after we are done, update the database
             // this will write to file the updates
-            DatabaseManager.updateCity(city);
+            DatabaseManager.updatePlacesInDatabase(city);
             // serialize the response
             return DatabaseManager.serializePlan(plan);
         } catch (Exception e) {
