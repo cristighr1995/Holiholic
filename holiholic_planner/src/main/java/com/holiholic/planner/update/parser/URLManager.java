@@ -68,15 +68,15 @@ class URLManager {
      *  @return             : the Google url
      *  @origin             : the origin parameter for the url with (latitude,longitude) format
      *  @destination        : the destination parameter for the url
-     *  @modeOfTravel       : the mode of travel between places
+     *  @travelMode         : the mode of travel between places
      */
     static String buildDistanceMatrixURL(String origin,
                                          String destination,
-                                         String modeOfTravel) {
+                                         String travelMode) {
         return "https://maps.googleapis.com/maps/api/distancematrix/json?"
                 + "origins=" + origin
                 + "&destinations=" + destination
-                + "&mode=" + modeOfTravel
+                + "&mode=" + travelMode
                 + "&language=en-EN"
                 + "&key=" + getGoogleApiKey();
     }
