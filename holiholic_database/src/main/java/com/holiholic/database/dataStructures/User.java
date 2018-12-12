@@ -5,6 +5,14 @@ public class User {
     private String imageUrl;
     private String name;
     private String email;
+    private int uid;
+
+    public User(String imageUrl, String name, String email, int uid) {
+        this.imageUrl = imageUrl;
+        this.name = name;
+        this.email = email;
+        this.uid = uid;
+    }
 
     public String getImageUrl() {
         return imageUrl;
@@ -30,9 +38,11 @@ public class User {
         this.email = email;
     }
 
-    public User(String imageUrl, String name, String email) {
-        this.imageUrl = imageUrl;
-        this.name = name;
-        this.email = email;
+    public int getUid() {
+        return uid;
+    }
+
+    public void setUid(int uid) {
+        this.uid = uid;
     }
 }

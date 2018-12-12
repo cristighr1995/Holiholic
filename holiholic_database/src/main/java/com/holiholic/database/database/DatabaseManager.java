@@ -1,4 +1,4 @@
-package com.holiholic.database;
+package com.holiholic.database.database;
 
 import com.holiholic.database.constant.Constants;
 import com.holiholic.database.feed.Feed;

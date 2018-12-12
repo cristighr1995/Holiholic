@@ -2,7 +2,7 @@ package com.holiholic.database.feed;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.holiholic.database.DatabaseManager;
+import com.holiholic.database.database.DatabaseManager;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -437,39 +437,39 @@ public abstract class Feed {
      *
      *  @return             : success or not
      */
-    public abstract boolean add(JSONObject body);
+    public abstract boolean add();
 
     /* add - Adds a new feed item (this is the actual implementation)
      *
      *  @return             : success or not
      */
-    public boolean add() {
-        String uidAuthor = getBody().getString("uidAuthor");
-        if (!containsUser(uidAuthor)) {
-            return false;
-        }
-
-        // create the body which is saved in the database
-        JSONObject entity = createDatabaseEntity(getBody(), getIdField());
-
-        LOGGER.log(Level.FINE, "User {0} wants to add a {1} in {2} city",
-                   new Object[]{uidAuthor, getType(), getCity()});
-
-        try {
-            synchronized (DatabaseManager.class) {
-                JSONObject feed = fetch(getPath(), getCity());
-                int count = feed.getInt(getType() + "Count");
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
-                userFeed.put(entity.getString(getIdField()), entity);
-                feed.put(getType() + "Count", ++count);
-                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
-                return saveFeed(getPath(), getCity(), feed);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    public boolean add() {
+//        String uidAuthor = getBody().getString("uidAuthor");
+//        if (!containsUser(uidAuthor)) {
+//            return false;
+//        }
+//
+//        // create the body which is saved in the database
+//        JSONObject entity = createDatabaseEntity(getBody(), getIdField());
+//
+//        LOGGER.log(Level.FINE, "User {0} wants to add a {1} in {2} city",
+//                   new Object[]{uidAuthor, getType(), getCity()});
+//
+//        try {
+//            synchronized (DatabaseManager.class) {
+//                JSONObject feed = fetch(getPath(), getCity());
+//                int count = feed.getInt(getType() + "Count");
+//                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
+//                userFeed.put(entity.getString(getIdField()), entity);
+//                feed.put(getType() + "Count", ++count);
+//                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
+//                return saveFeed(getPath(), getCity(), feed);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
     /* remove - Remove a feed item (is abstract)
      *

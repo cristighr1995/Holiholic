@@ -1,6 +1,6 @@
 package com.holiholic.database.feed;
 
-import com.holiholic.database.DatabaseManager;
+import com.holiholic.database.database.DatabaseManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

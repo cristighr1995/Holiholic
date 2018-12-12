@@ -1,17 +1,8 @@
 package com.holiholic.database;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.holiholic.database.dataStructures.Comment;
-import com.holiholic.database.dataStructures.Post;
-import com.holiholic.database.dataStructures.Reactions;
-import com.holiholic.database.dataStructures.User;
+import com.holiholic.database.database.DatabaseManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.io.IOException;
-import java.sql.Date;
-import java.util.List;
 
 @SpringBootApplication
 public class HoliholicDatabaseApplication {

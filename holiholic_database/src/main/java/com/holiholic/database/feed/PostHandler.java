@@ -1,7 +1,7 @@
 package com.holiholic.database.feed;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.holiholic.database.database.DatabaseOperations;
 import com.holiholic.database.constant.Constants;
 import com.holiholic.database.dataStructures.Post;
 import org.json.JSONObject;
@@ -12,14 +12,14 @@ import java.util.logging.Logger;
 /* PostHandler - Handle operations for a post item
  *
  */
-public class PostHandler extends Feed implements IFeedEditable {
+public class PostHandler extends Feed implements IFeedEditable, IDatabaseQueries {
     private static final Logger LOGGER = Logger.getLogger(PostHandler.class.getName());
     private final String path;
     private final String city;
     private final String idField;
     private final String type;
     private final JSONObject body;
-    private final Post post;
+    private Post post;
 
     PostHandler(String city, JSONObject body) {
         this.city = city;
@@ -28,25 +28,43 @@ public class PostHandler extends Feed implements IFeedEditable {
         idField = "pid";
         type = "post";
         setLogger(LOGGER);
-        this.post = unmarshal(body);
         initDatabaseFile();
     }
 
-    private Post unmarshal(JSONObject body) {
-        Post post = null;
+    private void unmarshal() {
         ObjectMapper mapper = new ObjectMapper();
         try {
             post = mapper.readValue(body.toString(), Post.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return post;
     }
 
     @Override
-    public boolean add(JSONObject body) {
-        return add();
+    public boolean add() {
+        unmarshal();
+        // cache
+
+        // db task
+        String sql = generateInsertQuery();
+        try {
+            DatabaseOperations.insert(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return  false;
+        }
+
+        return true;
+    }
+
+    private String generateInsertQuery() {
+
+        StringBuilder sb = new StringBuilder();
+        String sql;
+        sql = "INSERT into holiholicdb.Employees values (105, 1555, \"cristi\", \"ghr\");";
+        sb.append("INSERT into holiholicdb.Posts values (");
+        sb.append()
+
     }
 
     @Override

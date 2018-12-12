@@ -1,6 +1,6 @@
 package com.holiholic.database.controller;
 
-import com.holiholic.database.DatabaseManager;
+import com.holiholic.database.database.DatabaseManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
