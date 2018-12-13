@@ -16,12 +16,14 @@ public class Enums {
          *  @travelMode     : the travel mode
          */
         public static String serialize(TravelMode travelMode) {
-            if (travelMode == DRIVING) {
-                return "driving";
-            } else if (travelMode == WALKING) {
-                return "walking";
+            switch (travelMode) {
+                case DRIVING:
+                    return "driving";
+                case WALKING:
+                    return "walking";
+                default:
+                    return "unknown";
             }
-            return "unknown";
         }
 
         /* deserialize - Deserialize a string into a mode of travel
@@ -29,12 +31,14 @@ public class Enums {
          *  @return       : the corresponding instance
          */
         public static TravelMode deserialize(String travelMode) {
-            if (travelMode.equals("driving")) {
-                return DRIVING;
-            } else if (travelMode.equals("walking")) {
-                return WALKING;
+            switch (travelMode) {
+                case "driving":
+                    return DRIVING;
+                case "walking":
+                    return WALKING;
+                default:
+                    return UNKNOWN;
             }
-            return UNKNOWN;
         }
     }
 
@@ -49,12 +53,14 @@ public class Enums {
          *  @return       : the serialized meal type
          */
         public static String serialize(MealType mealType) {
-            if (mealType == LUNCH) {
-                return "lunch";
-            } else if (mealType == DINNER) {
-                return "dinner";
+            switch (mealType) {
+                case LUNCH:
+                    return "lunch";
+                case DINNER:
+                    return "dinner";
+                default:
+                    return "unknown";
             }
-            return "unknown";
         }
 
         /* deserialize - Deserialize a string into a meal type
@@ -62,85 +68,48 @@ public class Enums {
          *  @return       : the corresponding instance
          */
         public static MealType deserialize(String meal) {
-            if (meal.equals("lunch")) {
-                return LUNCH;
-            } else if (meal.equals("dinner")) {
-                return DINNER;
+            switch (meal) {
+                case "lunch":
+                    return LUNCH;
+                case "dinner":
+                    return DINNER;
+                default:
+                    return UNKNOWN;
             }
-            return UNKNOWN;
         }
     }
 
-    /* FileType - The file type we need to update in the database
-     *
-     */
-    public enum FileType {
-        PLACES,
-        RESTAURANTS,
-        TRAFFIC_COEFFICIENTS,
-        WEATHER_INFO,
-        DISTANCE_DRIVING,
-        DISTANCE_WALKING,
-        DURATION_DRIVING,
-        DURATION_WALKING;
+    public enum TravelInfo {
+        DURATION, DISTANCE, UNKNOWN;
 
-        /* getDuration - Given the mode of travel we need to get the correct value of the enum
+        /* serialize - Serialize the travel info in a string format
          *
-         *  @return         : the corresponding file type
-         *  @travelMode     : the travel mode
+         *  @return         : the serialized travel info
+         *  @travelInfo     : the travel info
          */
-        public static FileType getDuration(TravelMode travelMode) {
-            switch (travelMode) {
-                case DRIVING:
-                    return DURATION_DRIVING;
-                case WALKING:
-                    return DURATION_WALKING;
+        public static String serialize(TravelInfo travelInfo) {
+            switch (travelInfo) {
+                case DURATION:
+                    return "duration";
+                case DISTANCE:
+                    return "distance";
                 default:
-                    return null;
+                    return "unknown";
             }
         }
 
-        /* getDistance - Given the mode of travel we need to get the correct value of the enum
+        /* deserialize - Deserialize a string into a travel info
          *
-         *  @return         : the corresponding file type
-         *  @travelMode     : the travel mode
+         *  @return       : the corresponding instance
          */
-        public static FileType getDistance(TravelMode travelMode) {
-            switch (travelMode) {
-                case DRIVING:
-                    return DISTANCE_DRIVING;
-                case WALKING:
-                    return DISTANCE_WALKING;
+        public static TravelInfo deserialize(String travelInfo) {
+            switch (travelInfo) {
+                case "duration":
+                    return DURATION;
+                case "distance":
+                    return DISTANCE;
                 default:
-                    return null;
-            }
-        }
-
-        /* serialize - Serialize the file type in a string format
-         *
-         *  @return         : the serialized file type
-         *  @fileType       : the file type
-         */
-        public static String serialize(FileType fileType) {
-            switch (fileType) {
-                case PLACES:
-                    return "places";
-                case RESTAURANTS:
-                    return "restaurants";
-                case WEATHER_INFO:
-                    return "weather information";
-                case TRAFFIC_COEFFICIENTS:
-                    return "traffic coefficients";
-                case DURATION_DRIVING:
-                    return "duration driving";
-                case DURATION_WALKING:
-                    return "duration_walking";
-                case DISTANCE_DRIVING:
-                    return "distance driving";
-                case DISTANCE_WALKING:
-                    return "distance walking";
-                default:
-                    return null;
+                    return UNKNOWN;
             }
         }
     }

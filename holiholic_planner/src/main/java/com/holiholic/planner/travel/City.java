@@ -1,6 +1,7 @@
 package com.holiholic.planner.travel;
 
 import com.holiholic.planner.models.Place;
+import com.holiholic.planner.utils.Enums;
 import com.holiholic.planner.utils.OpeningPeriod;
 
 import java.util.HashMap;
@@ -19,9 +20,14 @@ public class City {
     private Map<String, Place> places;
     private Map<String, Place> restaurants;
 
+    private Map<Enums.TravelMode, double[][]> distance;
+    private Map<Enums.TravelMode, double[][]> duration;
+
     // private constructor !!!
     private City(String name) {
         this.name = name;
+        this.distance = new HashMap<>();
+        this.duration = new HashMap<>();
     }
 
     /* getInstance - Get the instance for the city
@@ -77,5 +83,29 @@ public class City {
 
     public List<Place> getSortedPlaces(Map<String, Place> places) {
         return null;
+    }
+
+    public double[][] getDistances(Enums.TravelMode travelMode) {
+        return distance.get(travelMode);
+    }
+
+    public double[][] getDurations(Enums.TravelMode travelMode) {
+        return duration.get(travelMode);
+    }
+
+    public boolean hasDistances(Enums.TravelMode travelMode) {
+        return distance.containsKey(travelMode);
+    }
+
+    public boolean hasDurations(Enums.TravelMode travelMode) {
+        return duration.containsKey(travelMode);
+    }
+
+    public void setDistance(Enums.TravelMode travelMode, double[][] distanceMatrix) {
+        distance.put(travelMode, distanceMatrix);
+    }
+
+    public void setDuration(Enums.TravelMode travelMode, double[][] durationMatrix) {
+        duration.put(travelMode, durationMatrix);
     }
 }
