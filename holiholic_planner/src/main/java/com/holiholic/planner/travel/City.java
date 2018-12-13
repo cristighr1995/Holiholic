@@ -1,13 +1,11 @@
 package com.holiholic.planner.travel;
 
+import com.holiholic.planner.database.DatabaseManager;
 import com.holiholic.planner.models.Place;
 import com.holiholic.planner.utils.Enums;
-import com.holiholic.planner.utils.OpeningPeriod;
+import com.holiholic.planner.utils.TimeFrame;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /* City - Singleton class to provide fast access to places from that city
  *        It will be used also to cache the most frequent cities
@@ -17,8 +15,8 @@ public class City {
     // because we have a singleton we will need this instance which will be created only once
     private static City instance;
     private String name;
-    private Map<String, Place> places;
-    private Map<String, Place> restaurants;
+    private Map<Integer, Place> places;
+    private Map<Integer, Place> restaurants;
 
     private Map<Enums.TravelMode, double[][]> distance;
     private Map<Enums.TravelMode, double[][]> duration;
@@ -53,36 +51,71 @@ public class City {
         return name;
     }
 
-    public Map<String, Place> getPlaces() {
+    public Map<Integer, Place> getPlaces() {
         return places;
     }
 
-    public void setPlaces(Map<String, Place> places) {
+    public List<Place> getPlacesAsList() {
+        return getPlacesAsList(getPlaces());
+    }
+
+    public List<Place> getPlacesAsList(Map<Integer, Place> places) {
+        List<Place> placesList = new ArrayList<>();
+
+        for (Map.Entry<Integer, Place> placeEntry : places.entrySet()) {
+            placesList.add(placeEntry.getValue());
+        }
+
+        return placesList;
+    }
+
+    public void setPlaces(Map<Integer, Place> places) {
         this.places = places;
     }
 
-    public Map<String, Place> getRestaurants() {
+    public Map<Integer, Place> getRestaurants() {
         return restaurants;
     }
 
-    public void setRestaurants(Map<String, Place> restaurants) {
+    public void setRestaurants(Map<Integer, Place> restaurants) {
         this.restaurants = restaurants;
     }
 
-    public Map<String, Place> getFilteredPlaces(Set<String> tags) {
-        return null;
+    public Map<Integer, Place> getFilteredPlaces(Set<String> tags) {
+        Map<Integer, Place> filteredPlaces = new HashMap<>();
+
+        for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
+            for (String tag : tags) {
+                if (placeEntry.getValue().tags.contains(tag)) {
+                    filteredPlaces.put(placeEntry.getKey(), placeEntry.getValue());
+                    break;
+                }
+            }
+        }
+
+        return filteredPlaces;
     }
 
-    public Map<String, Place> getOpenPlaces(OpeningPeriod period) {
-        return getOpenPlaces(this.places, period);
+    public Map<Integer, Place> getOpenPlaces(TimeFrame timeFrame) {
+        return getOpenPlaces(this.places, timeFrame);
     }
 
-    public Map<String, Place> getOpenPlaces(Map<String, Place> places, OpeningPeriod period) {
-        return null;
+    public Map<Integer, Place> getOpenPlaces(Map<Integer, Place> places, TimeFrame timeFrame) {
+        Map<Integer, Place> openPlaces = new HashMap<>();
+
+        for (Map.Entry<Integer, Place> placeEntry : places.entrySet()) {
+            if (placeEntry.getValue().canVisit(timeFrame)) {
+                openPlaces.put(placeEntry.getKey(), placeEntry.getValue());
+            }
+        }
+
+        return openPlaces;
     }
 
-    public List<Place> getSortedPlaces(Map<String, Place> places) {
-        return null;
+    public List<Place> getSortedPlaces(Map<Integer, Place> places) {
+        List<Place> placesList = getPlacesAsList(places);
+        placesList.sort((p1, p2) -> Double.compare(p2.rating, p1.rating));
+        return placesList;
     }
 
     public double[][] getDistances(Enums.TravelMode travelMode) {
@@ -93,19 +126,49 @@ public class City {
         return duration.get(travelMode);
     }
 
-    public boolean hasDistances(Enums.TravelMode travelMode) {
+    private boolean hasDistance(Enums.TravelMode travelMode) {
         return distance.containsKey(travelMode);
     }
 
-    public boolean hasDurations(Enums.TravelMode travelMode) {
+    private boolean hasDuration(Enums.TravelMode travelMode) {
         return duration.containsKey(travelMode);
     }
 
-    public void setDistance(Enums.TravelMode travelMode, double[][] distanceMatrix) {
+    public boolean hasDistances() {
+        return hasDistance(Enums.TravelMode.DRIVING) && hasDistance(Enums.TravelMode.WALKING);
+    }
+
+    public boolean hasDurations() {
+        return hasDuration(Enums.TravelMode.DRIVING) && hasDuration(Enums.TravelMode.WALKING);
+    }
+
+    private void setDistance(Enums.TravelMode travelMode, double[][] distanceMatrix) {
         distance.put(travelMode, distanceMatrix);
     }
 
-    public void setDuration(Enums.TravelMode travelMode, double[][] durationMatrix) {
+    private void setDuration(Enums.TravelMode travelMode, double[][] durationMatrix) {
         duration.put(travelMode, durationMatrix);
+    }
+
+    public void setDurations() {
+        if (!hasDuration(Enums.TravelMode.DRIVING)) {
+            setDuration(Enums.TravelMode.DRIVING,
+                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.DRIVING, Enums.TravelInfo.DURATION));
+        }
+        if (!hasDuration(Enums.TravelMode.WALKING)) {
+            setDuration(Enums.TravelMode.WALKING,
+                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.WALKING, Enums.TravelInfo.DURATION));
+        }
+    }
+
+    public void setDistances() {
+        if (!hasDistance(Enums.TravelMode.DRIVING)) {
+            setDistance(Enums.TravelMode.DRIVING,
+                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.DRIVING, Enums.TravelInfo.DISTANCE));
+        }
+        if (!hasDistance(Enums.TravelMode.WALKING)) {
+            setDistance(Enums.TravelMode.WALKING,
+                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.WALKING, Enums.TravelInfo.DISTANCE));
+        }
     }
 }

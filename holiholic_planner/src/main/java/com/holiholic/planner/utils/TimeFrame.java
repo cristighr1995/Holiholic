@@ -5,21 +5,21 @@ import org.json.JSONObject;
 
 import java.util.*;
 
-/* OpeningPeriod - Holds information about the place opening hours
+/* TimeFrame - Holds information about the place opening hours
  *
  */
-public class OpeningPeriod {
+public class TimeFrame {
     private Map<Integer, Interval> intervals;
     private Map<Integer, Integer> dayMappings;
     private boolean nonStop = false;
 
     // default constructor creates a non stop place
-    public OpeningPeriod() {
+    public TimeFrame() {
         this.nonStop = true;
     }
 
     // constructor
-    public OpeningPeriod(Map<Integer, Interval> intervals) {
+    public TimeFrame(Map<Integer, Interval> intervals) {
         this.intervals = intervals;
         setDayMappings();
     }
@@ -98,19 +98,19 @@ public class OpeningPeriod {
      *  @return             : true or false
      *  @period             : the period we want to check if it is between the current opening period
      */
-    public boolean canVisit(OpeningPeriod period) {
+    public boolean canVisit(TimeFrame timeFrame) {
         if (isNonStop()) {
             return true;
         }
 
-        List<Integer> openDays = period.getOpenDays();
+        List<Integer> openDays = timeFrame.getOpenDays();
 
         for (int dayOfWeek : openDays) {
             if (isClosed(dayOfWeek)) {
                 continue;
             }
             Interval placeInterval = getInterval(dayOfWeek);
-            Interval periodInterval = period.getInterval(dayOfWeek);
+            Interval periodInterval = timeFrame.getInterval(dayOfWeek);
 
             if (placeInterval.getStart().before(periodInterval.getStart())
                 && periodInterval.getStart().before(placeInterval.getEnd())) {
@@ -158,15 +158,15 @@ public class OpeningPeriod {
      *  @return             : clone of the current object
      */
     @Override
-    public OpeningPeriod clone() {
+    public TimeFrame clone() {
         if (isNonStop()) {
-            return new OpeningPeriod();
+            return new TimeFrame();
         }
         Map<Integer, Interval> intervalsClone = new HashMap<>();
         for (Map.Entry<Integer, Interval> interval : intervals.entrySet()) {
             intervalsClone.put(interval.getKey(), (Interval) interval.getValue().clone());
         }
-        return new OpeningPeriod(intervalsClone);
+        return new TimeFrame(intervalsClone);
     }
 
     /* serializeNonStopPeriod - Returns a json format representation for a non stop place
@@ -220,10 +220,10 @@ public class OpeningPeriod {
      *  @return             : the OpeningPeriod instance of the given json
      *  @period             : the json from file which contains information about the opening hours for a place
      */
-    public static OpeningPeriod deserialize(JSONArray period) {
+    public static TimeFrame deserialize(JSONArray period) {
         // check if the place is non stop
         if (period.getJSONObject(0).getJSONObject("open").getString("time").equals("0000")) {
-            return new OpeningPeriod();
+            return new TimeFrame();
         }
 
         Set<Integer> closed = new HashSet<>();
@@ -258,6 +258,6 @@ public class OpeningPeriod {
             intervals.put(closeDay, closeInterval);
         }
 
-        return new OpeningPeriod(intervals);
+        return new TimeFrame(intervals);
     }
 }

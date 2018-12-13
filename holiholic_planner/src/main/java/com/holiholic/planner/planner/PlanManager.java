@@ -5,7 +5,7 @@ import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
 import com.holiholic.planner.utils.CloneFactory;
 import com.holiholic.planner.utils.Enums;
-import com.holiholic.planner.utils.OpeningPeriod;
+import com.holiholic.planner.utils.TimeFrame;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -44,12 +44,12 @@ public class PlanManager {
 
         for (int i = 0; i < placesFromRequest.length(); i++) {
             JSONObject placeInfo = placesFromRequest.getJSONObject(i);
-            String id = placeInfo.getString("id");
+            int id = placeInfo.getInt("id");
             // need this clone to avoid concurrent modifications
             Place place = CloneFactory.clone(city.getPlaces().get(id));
 
             if (placeInfo.getBoolean("isFixed")) {
-                place.fixedTime = placeInfo.getString("fixedAt");
+                place.fixedAt = placeInfo.getString("fixedAt");
             }
 
             place.durationVisit = placeInfo.getInt("duration");
@@ -87,7 +87,7 @@ public class PlanManager {
 
             City city = DatabaseManager.getCity(cityName);
             JSONObject preferences = body.getJSONObject("preferences");
-            OpeningPeriod period = OpeningPeriod.deserialize(preferences.getJSONArray("period"));
+            TimeFrame period = TimeFrame.deserialize(preferences.getJSONArray("timeFrame"));
             Enums.TravelMode travelMode = Enums.TravelMode.deserialize(preferences.getString("travelMode"));
             double heuristicValue = preferences.getDouble("heuristicValue");
             boolean dinner = preferences.getBoolean("dinner");
@@ -95,11 +95,11 @@ public class PlanManager {
             Place start = Place.deserializeStart(body.getJSONObject("start"));
             List<Place> places = getPlaces(city, body.getJSONArray("places"));
 
-            if (!city.hasDurations(travelMode)) {
-                city.setDuration(travelMode, DatabaseManager.getMatrix(cityName, travelMode, Enums.TravelInfo.DURATION));
+            if (!city.hasDurations()) {
+                city.setDurations();
             }
-            if (!city.hasDistances(travelMode)) {
-                city.setDistance(travelMode, DatabaseManager.getMatrix(cityName, travelMode, Enums.TravelInfo.DURATION));
+            if (!city.hasDistances()) {
+                city.setDistances();
             }
 
             // create the planner

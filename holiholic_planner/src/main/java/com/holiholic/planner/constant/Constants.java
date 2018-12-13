@@ -15,6 +15,7 @@ public class Constants {
 
     // Urls
     public final static String GET_PLACES_URL = "http://localhost:8092/getPlaces";
+    public final static String GET_MATRIX_URL = "http://localhost:8092/getMatrix";
 
     // Eating defaults
     public final static Interval defaultLunchInterval = new Interval(Interval.getHour(12, 0, 0),
