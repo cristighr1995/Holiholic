@@ -6,6 +6,9 @@ import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
 import com.holiholic.planner.utils.*;
 import javafx.util.Pair;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.ConsoleHandler;
@@ -30,7 +33,7 @@ class Planner {
     private City city;
     // The time the user wants to spend in the current city
     private OpeningPeriod openingPeriod;
-    private Place startPlace;
+    private Place start;
 
     private Map<Integer, Integer> placesToPlanMappings;
 
@@ -44,11 +47,10 @@ class Planner {
     private Enums.TravelMode travelMode;
 
     private double maxScore;
-    // Preference heuristic
-    // It is used in calculating the score for the places
+    // The heuristic value is used to calculate the score for the places
     // If closer to 1, means the user is interested in minimizing the distance between places
     // If closer to 0, means the user is interested in maximizing the ratings of the places
-    private double pH;
+    private double heuristicValue;
 
     // The rewards going from place i to place j at hour h
     private double[][][] rewards;
@@ -99,7 +101,7 @@ class Planner {
     Planner(City city, OpeningPeriod openingPeriod, Enums.TravelMode travelMode) {
         this.city = city; // we need to clone the city!!!
         this.openingPeriod = openingPeriod;
-        this.pH = 1;
+        this.heuristicValue = 1;
         this.travelMode = travelMode;
         // map ids to places
         buildPlaceMappings();
@@ -690,7 +692,7 @@ class Planner {
             Calendar userStartHour = CloneFactory.clone(openingPeriod.getInterval(currentDayOfWeek).getStart());
 
             try {
-                Place startPlaceCopy = CloneFactory.clone(startPlace);
+                Place startPlaceCopy = CloneFactory.clone(start);
                 // set the start place the very first hour of the visiting interval
                 startPlaceCopy.plannedHour = CloneFactory.clone(userStartHour);
                 // get the estimated time to reach from start place to next place
@@ -927,8 +929,8 @@ class Planner {
         double positionPreference = ((double) (placesToPlanSize - placePosition)) / ((double) placesToPlanSize);
 
         // the reward for the place
-        double reward = (1 / distance) * pH // distance contribution
-                        + popularity * (1 - pH) // popularity contribution
+        double reward = (1 / distance) * heuristicValue                     // distance contribution
+                        + popularity * (1 - heuristicValue)                 // popularity contribution
                         + Constants.placePositionRate * positionPreference; // place position contribution
 
         if (!currentPlace.fixedTime.equals("anytime")) {
@@ -1018,13 +1020,13 @@ class Planner {
         return rewards[cid][nid][hourIdx];
     }
 
-    /* setPreferenceHeuristic - Setter for the preference heuristic
+    /* setHeuristicValue - Setter for the heuristic value
      *
      *  @return                 : void
-     *  @pH                     : the value for the preference heuristic
+     *  @pH                     : the value for the heuristic
      */
-    void setPreferenceHeuristic(double pH) {
-        this.pH = pH;
+    void setHeuristicValue(double heuristicValue) {
+        this.heuristicValue = heuristicValue;
     }
 
     /* setLunch - Set default lunch interval and duration to include in plan
@@ -1136,13 +1138,13 @@ class Planner {
         return false;
     }
 
-    /* setStartPlace - Set the start place for this planner
+    /* setStart - Set the start place for this planner
      *
      *  @return                 : void
-     *  @startPlace             : the start place instance we want to set
+     *  @start                  : the start place instance we want to set
      */
-    void setStartPlace(Place startPlace) {
-        this.startPlace = startPlace;
+    void setStart(Place start) {
+        this.start = start;
     }
 
     /* getDurationFromStart - Approximate the duration to get from the start place to the next place
@@ -1152,7 +1154,7 @@ class Planner {
      */
     private int getDurationFromStart(Place nextPlace) {
         // get mathematical distance between two geo points
-        double distanceInMeters = GeoPosition.distanceBetweenGeoCoordinates(startPlace.location, nextPlace.location);
+        double distanceInMeters = GeoPosition.distanceBetweenGeoCoordinates(start.location, nextPlace.location);
 
         // this coefficient is used to calculate from distance in meters to seconds
         double coefficient = Constants.drivingCoefficient;
@@ -1182,6 +1184,102 @@ class Planner {
      *  @nextPlace              : the next place to visit starting from startPlace
      */
     private int getDistanceFromStart(Place nextPlace) {
-        return (int) GeoPosition.distanceBetweenGeoCoordinates(startPlace.location, nextPlace.location);
+        return (int) GeoPosition.distanceBetweenGeoCoordinates(start.location, nextPlace.location);
+    }
+
+    /* getAverageRating - Returns the average rating for an itinerary
+     *
+     *  @return         : average rating
+     *  @itinerary      : the itinerary for the user
+     */
+    private static double getAverageRating(List<Place> itinerary) {
+        if (itinerary == null || itinerary.isEmpty()) {
+            return 0;
+        }
+
+        double totalRating = 0;
+        for (Place place : itinerary) {
+            totalRating += place.rating;
+        }
+        return totalRating / itinerary.size();
+    }
+
+    /* getTotalDuration - Returns the total duration for an itinerary
+     *
+     *  @return         : total duration
+     *  @itinerary      : the itinerary for the user
+     */
+    private static long getTotalDuration(List<Place> itinerary) {
+        if (itinerary == null || itinerary.isEmpty()) {
+            return 0;
+        }
+
+        long totalTimeSpent = 0;
+        long timeSpentForPlace = 0;
+
+        for (Place place : itinerary) {
+            timeSpentForPlace = 0;
+            timeSpentForPlace += place.durationVisit;
+            if (place.parkHere) {
+                timeSpentForPlace += place.parkTime;
+            }
+            timeSpentForPlace += place.durationToNext;
+            totalTimeSpent += timeSpentForPlace;
+        }
+
+        return totalTimeSpent;
+    }
+
+    /* getTotalDistance - Returns the total distance for an itinerary
+     *
+     *  @return         : total distance
+     *  @itinerary      : the itinerary for the user
+     */
+    private static long getTotalDistance(List<Place> itinerary) {
+        if (itinerary == null || itinerary.isEmpty()) {
+            return 0;
+        }
+
+        long totalDistance = 0;
+        for (Place place : itinerary) {
+            totalDistance += place.distanceToNext;
+        }
+        return totalDistance;
+    }
+
+    /* getStats - Returns statistics for an itinerary
+     *
+     *  @return         : statistics
+     *  @itinerary      : the itinerary for the user
+     */
+    private static JSONObject getStats(List<Place> itinerary) {
+        JSONObject result = new JSONObject();
+        result.put("distance", getTotalDistance(itinerary));
+        result.put("duration", getTotalDuration(itinerary));
+        result.put("averageRating", getAverageRating(itinerary));
+        result.put("size", itinerary.size());
+        return result;
+    }
+
+    /* serialize - Serialize a list of itineraries into a json format
+     *
+     *  @return       : the json string which will be sent to user
+     *  @plan         : the final plan
+     */
+    public static JSONArray serialize(List<List<Place>> plan) {
+        JSONArray response = new JSONArray();
+        for (List<Place> itinerary : plan) {
+            JSONObject itineraryInfo = new JSONObject();
+            JSONArray route = new JSONArray();
+
+            itineraryInfo.put("stats", getStats(itinerary));
+            for (Place place : itinerary) {
+                route.put(place.serializeToPlan());
+            }
+            itineraryInfo.put("route", route);
+            response.put(itineraryInfo);
+        }
+
+        return response;
     }
 }

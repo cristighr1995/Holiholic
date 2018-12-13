@@ -202,4 +202,62 @@ public class OpeningPeriod {
 
         return result;
     }
+
+    /* deserializeHour - Creates a Calendar instance from a coded hour
+     *                   Example 0930 means the time 09:30
+     *
+     *  @return             : the calendar instance of the given hour
+     *  @hour               : the serialized hour
+     */
+    public static Calendar deserializeHour(String hour) {
+        int h = Integer.parseInt(hour.substring(0, 2));
+        int m = Integer.parseInt(hour.substring(2));
+        return Interval.getHour(h, m, 0);
+    }
+
+    /* deserialize - Creates an OpeningPeriod instance from a json period
+     *
+     *  @return             : the OpeningPeriod instance of the given json
+     *  @period             : the json from file which contains information about the opening hours for a place
+     */
+    public static OpeningPeriod deserialize(JSONArray period) {
+        // check if the place is non stop
+        if (period.getJSONObject(0).getJSONObject("open").getString("time").equals("0000")) {
+            return new OpeningPeriod();
+        }
+
+        Set<Integer> closed = new HashSet<>();
+        Map<Integer, Interval> intervals = new HashMap<>();
+        for (int day = 0; day < 7; day++) {
+            closed.add(day);
+        }
+
+        for (int i = 0; i < period.length(); i++) {
+            JSONObject dayPeriod = period.getJSONObject(i);
+            JSONObject open = dayPeriod.getJSONObject("open");
+            JSONObject close = dayPeriod.getJSONObject("close");
+            Calendar start = deserializeHour(open.getString("time"));
+            Calendar end = deserializeHour(close.getString("time"));
+            int dayOpen = open.getInt("day");
+            int dayClose = close.getInt("day");
+            // set the correct day
+            start.set(Calendar.DAY_OF_WEEK, dayOpen + 1);
+            end.set(Calendar.DAY_OF_WEEK, dayClose + 1);
+
+            // this means the bar is closing after midnight
+            if (dayClose != dayOpen) {
+                end.add(Calendar.DAY_OF_WEEK, 1);
+            }
+            intervals.put(dayOpen, new Interval(start, end));
+            // erase from closed days
+            closed.remove(dayOpen);
+        }
+        for (int closeDay : closed) {
+            Interval closeInterval = new Interval();
+            closeInterval.setClosed(true);
+            intervals.put(closeDay, closeInterval);
+        }
+
+        return new OpeningPeriod(intervals);
+    }
 }
