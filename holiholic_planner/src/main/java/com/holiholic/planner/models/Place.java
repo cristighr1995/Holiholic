@@ -223,4 +223,18 @@ public class Place implements Serializable, Comparable<Place> {
         Calendar p2Hour = Interval.getHour(other.fixedTime);
         return p1Hour.compareTo(p2Hour);
     }
+
+    /* deserializeStart - Creates an internal representation of the start place that the user chose
+     *
+     *  @return             : the start place
+     *  @startPlace         : the json that the user sent
+     */
+    public static Place deserializeStart(JSONObject place) {
+        return new Place(-1,
+                         place.getString("name"),
+                         new GeoPosition(place.getDouble("latitude"), place.getDouble("longitude")),
+                         0,
+                         place.getDouble("rating"),
+                         null);
+    }
 }

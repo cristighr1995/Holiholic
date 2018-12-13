@@ -135,6 +135,30 @@ public class DatabaseManager {
         }
     }
 
+    private static Map<String, Place> getPlaces(JSONObject body, String url) {
+        String rawPlaces = null;
+        try {
+            rawPlaces = getContentFromURL(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return deserializePlaces(rawPlaces);
+    }
+
+    private static Map<String, Place> deserializePlaces(String rawPlaces) {
+        return null;
+    }
+
+    private static JSONArray serializePlaces(List<Place> places) {
+        return null;
+    }
+
+    private static JSONArray filterPlaces(City city, Set<String> tags, OpeningPeriod period) {
+        return serializePlaces(city.getSortedPlaces(city.getOpenPlaces(city.getFilteredPlaces(tags), period)));
+    }
+
     /* getPlaces - Reads the database and collects all the places from a specific city
     *              This function sorts the places before sending them to user
     *
@@ -143,24 +167,39 @@ public class DatabaseManager {
     */
     public static String getPlaces(JSONObject body) {
         try {
-            String cityName = body.getString("city");
             String uid = body.getString("uid");
+            String cityName = body.getString("city");
+
+            if (!containsUser(uid)) {
+                LOGGER.log(Level.FINE, "Invalid request from user {0} to get places recommendation for {1} city",
+                           new Object[]{uid, cityName});
+                return "[]";
+            }
+
+            Set<String> tags = new HashSet<>();
+            JSONArray bodyTags = body.getJSONArray("tags");
+            for (int t = 0; t < bodyTags.length(); t++) {
+                tags.add(bodyTags.getString(t));
+            }
+            OpeningPeriod period = OpeningPeriod.deserialize(body.getJSONArray("period"));
 
             LOGGER.log(Level.FINE, "New request from user {0} to get places recommendation for {1} city",
                        new Object[]{uid, cityName});
 
-            if (!containsUser(uid)) {
-                return "[]";
+            if (isCityCached(cityName)) {
+                return filterPlaces(cities.get(cityName), tags, period).toString(2);
             }
 
-            // decode the city and cache it, to avoid duplicate work
-            City city = getCity(cityName);
+            String url = Constants.GET_PLACES_URL + "?city=" + cityName + "&uid=" + uid;
+            Map<String, Place> places = getPlaces(body, url);
+            Map<String, Place> restaurants = getRestaurants(body, url);
 
-            List<Place> placesFilteredByTags = filterPlacesByTags(city.places, body.getJSONArray("tags"));
-            OpeningPeriod visitingInterval = deserializeOpeningPeriod(body.getJSONArray("visitingInterval"));
-            List<Place> openPlaces = filterPlacesByVisitingHours(placesFilteredByTags, visitingInterval);
+            City city = City.getInstance(cityName);
+            city.setPlaces(places);
+            city.setRestaurants(restaurants);
+            cities.put(cityName, city);
 
-            return serializeToNetwork(openPlaces);
+            return filterPlaces(city, tags, period).toString(2);
         } catch (Exception e) {
             e.printStackTrace();
             return "[]";
@@ -317,20 +356,7 @@ public class DatabaseManager {
         if (cities.containsKey(cityName)) {
             return cities.get(cityName);
         }
-
-        try {
-            String path = getDatabasePath(Enums.FileType.PLACES, cityName);
-            City city = City.getInstance(cityName);
-            if (new File(path).getAbsoluteFile().exists()) {
-                fetchCityFromDatabase(city, path);
-                // store the city in the cache
-                cities.put(cityName, city);
-            }
-            return city;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return null;
     }
 
     /* isCityCached - Checks if the city instance is cached
@@ -527,176 +553,6 @@ public class DatabaseManager {
             initTrafficCoefficients(cityName);
         }
         return trafficCoefficients.get(cityName);
-    }
-
-    /* updatePlacesInDatabase - Write to file the places json array from the city
-     *
-     *  @return       : void
-     *  @city         : the city where the user wants to go/to visit
-     */
-    public static synchronized void updatePlacesInDatabase(City city) {
-        try {
-            LOGGER.log(Level.FINE, "Save places in database for {0} city", city.name);
-            String path = getDatabasePath(Enums.FileType.PLACES, city.name);
-            BufferedWriter out = new BufferedWriter(new FileWriter(path), 32768);
-            out.write(serializeToNetwork(city.places));
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /* getAverageRating - Returns the average rating for an itinerary
-     *
-     *  @return         : average rating
-     *  @itinerary      : the itinerary for the user
-     */
-    private static double getAverageRating(List<Place> itinerary) {
-        if (itinerary == null || itinerary.isEmpty()) {
-            return 0;
-        }
-
-        double totalRating = 0;
-        for (Place place : itinerary) {
-            totalRating += place.rating;
-        }
-        return totalRating / itinerary.size();
-    }
-
-    /* getTotalDuration - Returns the total duration for an itinerary
-     *
-     *  @return         : total duration
-     *  @itinerary      : the itinerary for the user
-     */
-    private static long getTotalDuration(List<Place> itinerary) {
-        if (itinerary == null || itinerary.isEmpty()) {
-            return 0;
-        }
-
-        long totalTimeSpent = 0;
-        long timeSpentForPlace = 0;
-
-        for (Place place : itinerary) {
-            timeSpentForPlace = 0;
-            timeSpentForPlace += place.durationVisit;
-            if (place.parkHere) {
-                timeSpentForPlace += place.parkTime;
-            }
-            timeSpentForPlace += place.durationToNext;
-            totalTimeSpent += timeSpentForPlace;
-        }
-
-        return totalTimeSpent;
-    }
-
-    /* getTotalDistance - Returns the total distance for an itinerary
-     *
-     *  @return         : total distance
-     *  @itinerary      : the itinerary for the user
-     */
-    private static long getTotalDistance(List<Place> itinerary) {
-        if (itinerary == null || itinerary.isEmpty()) {
-            return 0;
-        }
-
-        long totalDistance = 0;
-        for (Place place : itinerary) {
-            totalDistance += place.distanceToNext;
-        }
-        return totalDistance;
-    }
-
-    /* getStats - Returns statistics for an itinerary
-     *
-     *  @return         : statistics
-     *  @itinerary      : the itinerary for the user
-     */
-    private static JSONObject getStats(List<Place> itinerary) {
-        JSONObject result = new JSONObject();
-        result.put("distance", getTotalDistance(itinerary));
-        result.put("duration", getTotalDuration(itinerary));
-        result.put("averageRating", getAverageRating(itinerary));
-        result.put("size", itinerary.size());
-        return result;
-    }
-
-    /* updateCity - Serialize a list of itineraries into a json format
-     *
-     *  @return       : the json string which will be sent to user
-     *  @plan         : the final plan
-     */
-    public static String serializePlan(List<List<Place>> plan) {
-        JSONArray response = new JSONArray();
-        for (List<Place> itinerary : plan) {
-            JSONObject itineraryInfo = new JSONObject();
-            JSONArray route = new JSONArray();
-
-            itineraryInfo.put("stats", getStats(itinerary));
-            for (Place place : itinerary) {
-                route.put(place.serializeToPlan());
-            }
-            itineraryInfo.put("route", route);
-            response.put(itineraryInfo);
-        }
-
-        return response.toString(2);
-    }
-
-    /* deserializeHour - Creates a Calendar instance from a coded hour
-     *                   Example 0930 means the time 09:30
-     *
-     *  @return             : the calendar instance of the given hour
-     *  @hour               : the serialized hour
-     */
-    private static Calendar deserializeHour(String hour) {
-        int h = Integer.parseInt(hour.substring(0, 2));
-        int m = Integer.parseInt(hour.substring(2));
-        return Interval.getHour(h, m, 0);
-    }
-
-    /* deserializeOpeningPeriod - Creates an OpeningPeriod instance from a json period
-     *
-     *  @return             : the OpeningPeriod instance of the given json
-     *  @jsonOpeningPeriod  : the json from file which contains information about the opening hours for a place
-     */
-    public static OpeningPeriod deserializeOpeningPeriod(JSONArray jsonOpeningPeriod) {
-        // check if the place is non stop
-        if (jsonOpeningPeriod.getJSONObject(0).getJSONObject("open").getString("time").equals("0000")) {
-            return new OpeningPeriod();
-        }
-
-        Set<Integer> closed = new HashSet<>();
-        Map<Integer, Interval> intervals = new HashMap<>();
-        for (int day = 0; day < 7; day++) {
-            closed.add(day);
-        }
-        for (int i = 0; i < jsonOpeningPeriod.length(); i++) {
-            JSONObject period = jsonOpeningPeriod.getJSONObject(i);
-            JSONObject open = period.getJSONObject("open");
-            JSONObject close = period.getJSONObject("close");
-            Calendar start = deserializeHour(open.getString("time"));
-            Calendar end = deserializeHour(close.getString("time"));
-            int dayOpen = open.getInt("day");
-            int dayClose = close.getInt("day");
-            // set the correct day
-            start.set(Calendar.DAY_OF_WEEK, dayOpen + 1);
-            end.set(Calendar.DAY_OF_WEEK, dayClose + 1);
-
-            // this means the bar is closing after midnight
-            if (dayClose != dayOpen) {
-                end.add(Calendar.DAY_OF_WEEK, 1);
-            }
-            intervals.put(dayOpen, new Interval(start, end));
-            // erase from closed days
-            closed.remove(dayOpen);
-        }
-        for (int closeDay : closed) {
-            Interval closeInterval = new Interval();
-            closeInterval.setClosed(true);
-            intervals.put(closeDay, closeInterval);
-        }
-
-        return new OpeningPeriod(intervals);
     }
 
     /* deserializeRestaurant - Converts a restaurant into a place
