@@ -95,6 +95,13 @@ public class PlanManager {
             Place start = Place.deserializeStart(body.getJSONObject("start"));
             List<Place> places = getPlaces(city, body.getJSONArray("places"));
 
+            if (!city.hasDurations(travelMode)) {
+                city.setDuration(travelMode, DatabaseManager.getMatrix(cityName, travelMode, Enums.TravelInfo.DURATION));
+            }
+            if (!city.hasDistances(travelMode)) {
+                city.setDistance(travelMode, DatabaseManager.getMatrix(cityName, travelMode, Enums.TravelInfo.DURATION));
+            }
+
             // create the planner
             Planner planner = new Planner(city, period, travelMode);
             planner.setHeuristicValue(heuristicValue);

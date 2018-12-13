@@ -799,4 +799,9 @@ public class DatabaseManager {
                 return "";
         }
     }
+
+    public static double[][] getMatrix(String cityName, Enums.TravelMode travelMode, Enums.TravelInfo travelInfo) {
+        // make HTTP GET to database to read matrix
+        return null;
+    }
 }
