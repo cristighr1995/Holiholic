@@ -32,7 +32,7 @@ class Planner {
 
     private City city;
     // The time the user wants to spend in the current city
-    private OpeningPeriod openingPeriod;
+    private TimeFrame timeFrame;
     private Place start;
 
     private Map<Integer, Integer> placesToPlanMappings;
@@ -98,9 +98,9 @@ class Planner {
     }
 
     // constructor
-    Planner(City city, OpeningPeriod openingPeriod, Enums.TravelMode travelMode) {
+    Planner(City city, TimeFrame timeFrame, Enums.TravelMode travelMode) {
         this.city = city; // we need to clone the city!!!
-        this.openingPeriod = openingPeriod;
+        this.timeFrame = timeFrame;
         this.heuristicValue = 1;
         this.travelMode = travelMode;
         // map ids to places
@@ -150,7 +150,7 @@ class Planner {
      *  @currentPlace       : after visiting the current place, check if the tour is over
      */
     private boolean isTourOver(Calendar hour, Place currentPlace) {
-        if (!openingPeriod.isBetween(hour)) {
+        if (!timeFrame.isBetween(hour)) {
             return true;
         }
 
@@ -158,7 +158,7 @@ class Planner {
         int durationMinutes = currentPlace.durationVisit;
         afterVisiting.add(Calendar.MINUTE, durationMinutes);
 
-        return !openingPeriod.isBetween(afterVisiting);
+        return !timeFrame.isBetween(afterVisiting);
     }
 
     /* solutionContainsPlace - Checks if a solution contains a place
@@ -449,7 +449,7 @@ class Planner {
         // we have fixed places (these places have a higher priority)
         if (!fixedPlacesCopy.isEmpty()) {
             Calendar currentPlaceHour = CloneFactory.clone(currentHour);
-            Calendar peekFixedHour = Interval.getHour(fixedPlaces.peek().fixedTime);
+            Calendar peekFixedHour = Interval.getHour(fixedPlaces.peek().fixedAt);
             Place currentPlaceCopy = CloneFactory.clone(currentPlace);
 
             // after we visit the place we can go to the next place
@@ -508,11 +508,11 @@ class Planner {
         }
 
         // check if we need to wait some time to plan this place when the user wants
-        if (!currentPlace.fixedTime.equals("anytime") && currentPlace.plannedHour == null) {
-            Calendar fixedTime = Interval.getHour(currentPlace.fixedTime);
+        if (!currentPlace.fixedAt.equals("anytime") && currentPlace.plannedHour == null) {
+            Calendar fixedTime = Interval.getHour(currentPlace.fixedAt);
             // if true, it means the user should wait some time to visit the next place when desired
             if (fixedTime.after(currentHour) && currentPlace.canVisit(fixedTime)) {
-                currentPlace.needToWait = Interval.getDiff(currentHour, fixedTime, TimeUnit.MINUTES);
+                currentPlace.waitTime = Interval.getDiff(currentHour, fixedTime, TimeUnit.MINUTES);
                 currentHour = fixedTime;
             }
         }
@@ -689,7 +689,7 @@ class Planner {
             List<Place> currentSolutionCopy = CloneFactory.clone(currentSolution);
             PriorityQueue<Place> fixedPlacesCopy = CloneFactory.clone(fixedPlaces);
             Calendar currentHour = null;
-            Calendar userStartHour = CloneFactory.clone(openingPeriod.getInterval(currentDayOfWeek).getStart());
+            Calendar userStartHour = CloneFactory.clone(timeFrame.getInterval(currentDayOfWeek).getStart());
 
             try {
                 Place startPlaceCopy = CloneFactory.clone(start);
@@ -710,7 +710,7 @@ class Planner {
                     currentHour = CloneFactory.clone(userStartHour);
                 } else {
                     Calendar nextPlaceStartHour = nextPlace.openingPeriod.getInterval(currentDayOfWeek).getStart();
-                    if (openingPeriod.isBetween(nextPlaceStartHour)) {
+                    if (timeFrame.isBetween(nextPlaceStartHour)) {
                         // otherwise we need to start when the place opens
                         // for example if we can start at 09:00 but the place opens at 11:00, we will start at 11:00
                         currentHour = CloneFactory.clone(nextPlaceStartHour);
@@ -806,13 +806,13 @@ class Planner {
 
         // get fixed places
         PriorityQueue<Place> fixedPlaces = new PriorityQueue<>((p1, p2) -> {
-            Calendar p1Hour = Interval.getHour(p1.fixedTime);
-            Calendar p2Hour = Interval.getHour(p2.fixedTime);
+            Calendar p1Hour = Interval.getHour(p1.fixedAt);
+            Calendar p2Hour = Interval.getHour(p2.fixedAt);
             return p1Hour.compareTo(p2Hour);
         });
 
         for (Place p : placesToPlan) {
-            if (!p.fixedTime.equals("anytime")) {
+            if (!p.fixedAt.equals("anytime")) {
                 fixedPlaces.add(p);
             } else {
                 open.add(p.id);
@@ -933,8 +933,8 @@ class Planner {
                         + popularity * (1 - heuristicValue)                 // popularity contribution
                         + Constants.placePositionRate * positionPreference; // place position contribution
 
-        if (!currentPlace.fixedTime.equals("anytime")) {
-            Calendar fixedTime = Interval.getHour(currentPlace.fixedTime);
+        if (!currentPlace.fixedAt.equals("anytime")) {
+            Calendar fixedTime = Interval.getHour(currentPlace.fixedAt);
             Calendar minus = CloneFactory.clone(hour);
             Calendar plus = CloneFactory.clone(hour);
             minus.add(Calendar.MINUTE, -Constants.fixedTimeIntervalRange);
@@ -957,7 +957,7 @@ class Planner {
         int numberOfPlaces = city.places.size();
         rewards = new double[numberOfPlaces][numberOfPlaces][24];
         int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-        Calendar startHour = CloneFactory.clone(openingPeriod.getInterval(dayOfWeek).getStart());
+        Calendar startHour = CloneFactory.clone(timeFrame.getInterval(dayOfWeek).getStart());
 
         for (int h = 0; h < 24; h++) {
             startHour.add(Calendar.HOUR_OF_DAY, h);
@@ -1125,9 +1125,9 @@ class Planner {
             currentHour.add(Calendar.MINUTE, meal.duration);
 
             if (mealType == Enums.MealType.LUNCH) {
-                lastPlace.eatLunch = true;
+                lastPlace.lunch = true;
             } else if (mealType == Enums.MealType.DINNER) {
-                lastPlace.eatDinner = true;
+                lastPlace.dinner = true;
             }
 
             // add the place to the current solution
@@ -1274,12 +1274,37 @@ class Planner {
 
             itineraryInfo.put("stats", getStats(itinerary));
             for (Place place : itinerary) {
-                route.put(place.serializeToPlan());
+                route.put(serialize(place));
             }
             itineraryInfo.put("route", route);
             response.put(itineraryInfo);
         }
 
+        return response;
+    }
+
+    /* serializeToPlan - Serialize the place into a json format which is used for plan representation
+     *
+     *  @return       : the serialized place
+     */
+    public static JSONObject serialize(Place place) {
+        JSONObject response = new JSONObject();
+        response.put("id", place.id);
+        response.put("name", place.name);
+        response.put("rating", place.rating);
+        response.put("duration", place.durationVisit);
+        response.put("type", place.type);
+        response.put("travelMode", Enums.TravelMode.serialize(place.travelMode));
+        response.put("durationToNext", place.durationToNext);
+        response.put("distanceToNext", place.distanceToNext);
+        response.put("plannedHour", Interval.serializeHour(place.plannedHour));
+        response.put("getCarBack", place.getCarBack);
+        response.put("parkHere", place.parkHere);
+        response.put("carPlaceId", place.carPlaceId);
+        response.put("carPlaceName", place.carPlaceName);
+        response.put("mealType", Enums.MealType.serialize(place.mealType));
+        response.put("latitude", place.location.latitude);
+        response.put("longitude", place.location.longitude);
         return response;
     }
 }
