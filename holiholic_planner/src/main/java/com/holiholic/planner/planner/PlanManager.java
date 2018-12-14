@@ -113,13 +113,8 @@ public class PlanManager {
             Planner planner = new Planner(city, timeFrame, travelMode);
             planner.setHeuristicValue(heuristicValue);
             planner.setStart(start);
-
-            if (lunch) {
-                planner.setLunch();
-            }
-            if (dinner) {
-                planner.setDinner();
-            }
+            planner.setLunch(lunch);
+            planner.setDinner(dinner);
 
             LOGGER.log(Level.FINE, "Generate a plan for user {0} in {1} city having {2} places",
                        new Object[]{uid, cityName, places.size()});

@@ -16,8 +16,6 @@ public class City {
     private static City instance;
     private String name;
     private Map<Integer, Place> places;
-    private Map<Integer, Place> restaurants;
-
     private Map<Enums.TravelMode, double[][]> distance;
     private Map<Enums.TravelMode, double[][]> duration;
 
@@ -71,14 +69,6 @@ public class City {
 
     public void setPlaces(Map<Integer, Place> places) {
         this.places = places;
-    }
-
-    public Map<Integer, Place> getRestaurants() {
-        return restaurants;
-    }
-
-    public void setRestaurants(Map<Integer, Place> restaurants) {
-        this.restaurants = restaurants;
     }
 
     public Map<Integer, Place> getFilteredPlaces(Set<String> tags) {
@@ -170,5 +160,30 @@ public class City {
             setDistance(Enums.TravelMode.WALKING,
                         DatabaseManager.getMatrix(this.name, Enums.TravelMode.WALKING, Enums.TravelInfo.DISTANCE));
         }
+    }
+
+    public List<Place> getTopRestaurants(int limit, Calendar hour) {
+        // min heap
+        PriorityQueue<Place> pq = new PriorityQueue<>(Comparator.comparingDouble(p -> p.rating));
+
+        for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
+            if (placeEntry.getValue().canVisit(hour)) {
+                if (pq.size() < limit) {
+                    pq.add(placeEntry.getValue());
+
+                } else {
+                    if (!pq.isEmpty() && pq.peek().rating < placeEntry.getValue().rating) {
+                        pq.poll();
+                        pq.add(placeEntry.getValue());
+                    }
+                }
+            }
+        }
+
+        List<Place> topRestaurants = new ArrayList<>(pq);
+        // reverse to higher rating
+        Collections.reverse(topRestaurants);
+
+        return topRestaurants;
     }
 }

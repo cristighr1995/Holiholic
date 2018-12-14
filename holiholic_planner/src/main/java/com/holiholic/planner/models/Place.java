@@ -49,17 +49,8 @@ public class Place implements Comparable<Place> {
         this.location = location;
     }
 
-    private Place(int id,
-                 String name,
-                 GeoPosition location,
-                 int durationVisit,
-                 double rating,
-                 TimeFrame timeFrame,
-                 String imageUrl,
-                 String vicinity,
-                 String phone,
-                 Set<String> tags,
-                 String type) {
+    private Place(int id, String name, GeoPosition location, int durationVisit, double rating, TimeFrame timeFrame,
+                 String imageUrl, String vicinity, String phone, Set<String> tags, String type) {
         this.id = id;
         this.name = name;
         this.location = location;

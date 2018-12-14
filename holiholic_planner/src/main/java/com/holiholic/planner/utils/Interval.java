@@ -10,16 +10,14 @@ import java.util.concurrent.TimeUnit;
 /* Interval - Holds information about the place opening hours for a specific day
  *
  */
-public class Interval implements Comparator<Interval>, Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class Interval implements Comparator<Interval> {
     private Calendar start;
     private Calendar end;
     private boolean nonStop;
     private boolean closed;
 
     // default constructor creates a non stop place
-    public Interval() {
+    Interval() {
         this.nonStop = true;
     }
 
@@ -44,7 +42,7 @@ public class Interval implements Comparator<Interval>, Serializable {
      *
      *  @return             : the end calendar (hour)
      */
-    Calendar getEnd() {
+    public Calendar getEnd() {
         return end;
     }
 
@@ -231,9 +229,10 @@ public class Interval implements Comparator<Interval>, Serializable {
      *  @return             : a corresponding calendar instance
      *  @str                : a string format of the hour (example 21:35)
      */
-    public static Calendar getHour(String str) {
-        String[] hour = str.split(":");
-        return getHour(Integer.parseInt(hour[0]), Integer.parseInt(hour[1]), 0);
+    public static Calendar getHour(String hour) {
+        int hourOfDay = Integer.parseInt(hour.substring(0, 2));
+        int minutes = Integer.parseInt(hour.substring(2));
+        return getHour(hourOfDay, minutes, 0);
     }
 
     /* getDiff - Returns the difference between two calendar instance expressed in the given time unit
