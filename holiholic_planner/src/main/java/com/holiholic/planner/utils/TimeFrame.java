@@ -191,9 +191,7 @@ public class TimeFrame {
      *  @hour               : the serialized hour
      */
     public static Calendar deserializeHour(String hour) {
-        int h = Integer.parseInt(hour.substring(0, 2));
-        int m = Integer.parseInt(hour.substring(2));
-        return Interval.getHour(h, m, 0);
+        return Interval.getHour(hour);
     }
 
     /* deserialize - Creates an OpeningPeriod instance from a json period

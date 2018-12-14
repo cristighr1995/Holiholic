@@ -127,12 +127,10 @@ public class DatabaseManager {
             }
 
             String url = Constants.GET_PLACES_URL + "?city=" + cityName + "&uid=" + uid;
-            Map<Integer, Place> places = getPlaces(url + "&type=attraction");
-            Map<Integer, Place> restaurants = getPlaces(url + "&type=restaurant");
+            Map<Integer, Place> places = getPlaces(url);
 
             City city = City.getInstance(cityName);
             city.setPlaces(places);
-            city.setRestaurants(restaurants);
             cities.put(cityName, city);
 
             return filterPlaces(city, tags, period).toString(2);
