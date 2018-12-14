@@ -7,13 +7,12 @@ import com.holiholic.planner.utils.Interval;
  */
 public class Constants {
     // Paths
-    public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser";
-    public final static String UPDATE_HISTORY_URL = "http://localhost:8092/updateHistory";
-    public final static String DATABASE_PATH = System.getProperty("user.dir") + "/db/";
     public final static String GOOGLE_API_PATH = System.getProperty("user.dir") + "/apis/Google_API.txt";
     public final static String UPDATE_ACCESS_KEY_PATH = System.getProperty("user.dir") + "/apis/admin_key.txt";
 
     // Urls
+    public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser";
+    public final static String UPDATE_HISTORY_URL = "http://localhost:8092/updateHistory";
     public final static String GET_PLACES_URL = "http://localhost:8092/getPlaces";
     public final static String GET_MATRIX_URL = "http://localhost:8092/getMatrix";
 
@@ -26,15 +25,8 @@ public class Constants {
     public final static int defaultDinnerDuration = 90;
 
     // We consider a fixed time to be planned successfully if the time is between interval [time-range, time+range]
-    public final static int fixedTimeIntervalRange = 30;
-
-    public final static int scoreFixedTime = 100;
-
-    public final static double maxWeatherRainThreshold = 0.65;
-    public final static double maxWeatherSnowThreshold = 0.9;
-
-    public final static double maxRating = 5.0;
-    public final static double placePositionRate = 0.2;
+    public final static int FIXED_RANGE_ACCEPTANCE = 30;
+    public final static int FIXED_TIME_REWARD = 100;
 
     public final static double drivingCoefficient = 1.3;
     public final static double walkingCoefficient = 2.0;

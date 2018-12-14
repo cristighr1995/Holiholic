@@ -10,7 +10,6 @@ import java.util.*;
  */
 public class TimeFrame {
     private Map<Integer, Interval> intervals;
-    private Map<Integer, Integer> dayMappings;
     private boolean nonStop = false;
 
     // default constructor creates a non stop place
@@ -21,22 +20,6 @@ public class TimeFrame {
     // constructor
     public TimeFrame(Map<Integer, Interval> intervals) {
         this.intervals = intervals;
-        setDayMappings();
-    }
-
-    /* setDayMappings - Maps Calendar day representation to Google day representation
-     *
-     *  @return             : void
-     */
-    private void setDayMappings() {
-        dayMappings = new HashMap<>();
-        dayMappings.put(Calendar.MONDAY, 1);
-        dayMappings.put(Calendar.TUESDAY, 2);
-        dayMappings.put(Calendar.WEDNESDAY, 3);
-        dayMappings.put(Calendar.THURSDAY, 4);
-        dayMappings.put(Calendar.FRIDAY, 5);
-        dayMappings.put(Calendar.SATURDAY, 6);
-        dayMappings.put(Calendar.SUNDAY, 0);
     }
 
     /* setDayMappings - Makes the current opening period closed for all seven days
@@ -44,7 +27,6 @@ public class TimeFrame {
      *  @return             : void
      */
     public void setClosedAllDays() {
-        setDayMappings();
         this.intervals = new HashMap<>();
         for (int dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
             Interval closeInterval = new Interval();
@@ -59,8 +41,7 @@ public class TimeFrame {
      *  @dayOfWeek          : the calendar day of the week when to check
      */
     public boolean isClosed(int dayOfWeek) {
-        int day = dayMappings.get(dayOfWeek);
-        return intervals.get(day).isClosed();
+        return intervals.get(dayOfWeek).isClosed();
     }
 
     /* canVisit - Checks if the place can be visited at the given hour
@@ -72,15 +53,15 @@ public class TimeFrame {
         if (isNonStop()) {
             return true;
         }
-        int day = dayMappings.get(hour.get(Calendar.DAY_OF_WEEK));
-        return !intervals.get(day).isClosed() && intervals.get(day).isBetween(hour);
+        int dayOfWeek = hour.get(Calendar.DAY_OF_WEEK);
+        return !intervals.get(dayOfWeek).isClosed() && intervals.get(dayOfWeek).isBetween(hour);
     }
 
     /* getOpenDays - Get a list of open days
      *
      *  @return             : a list of indexes for each open day
      */
-    private List<Integer> getOpenDays() {
+    public List<Integer> getOpenDays() {
         List<Integer> openDays = new ArrayList<>();
         for (int dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
             if (isNonStop() || !isClosed(dayOfWeek)) {
@@ -150,7 +131,7 @@ public class TimeFrame {
      *  @dayOfWeek          : the calendar day of the week
      */
     public Interval getInterval(int dayOfWeek) {
-        return intervals.get(dayMappings.get(dayOfWeek));
+        return intervals.get(dayOfWeek);
     }
 
     /* clone - Deep copy of the current object
@@ -196,7 +177,7 @@ public class TimeFrame {
 
         for (int dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
             if (!isClosed(dayOfWeek)) {
-                result.put(getInterval(dayOfWeek).serialize(dayMappings.get(dayOfWeek)));
+                result.put(getInterval(dayOfWeek).serialize(dayOfWeek));
             }
         }
 
@@ -220,20 +201,20 @@ public class TimeFrame {
      *  @return             : the OpeningPeriod instance of the given json
      *  @period             : the json from file which contains information about the opening hours for a place
      */
-    public static TimeFrame deserialize(JSONArray period) {
+    public static TimeFrame deserialize(JSONArray timeFrame) {
         // check if the place is non stop
-        if (period.getJSONObject(0).getJSONObject("open").getString("time").equals("0000")) {
+        if (timeFrame.getJSONObject(0).getJSONObject("open").getString("time").equals("0000")) {
             return new TimeFrame();
         }
 
         Set<Integer> closed = new HashSet<>();
         Map<Integer, Interval> intervals = new HashMap<>();
-        for (int day = 0; day < 7; day++) {
+        for (int day = 1; day <= 7; day++) {
             closed.add(day);
         }
 
-        for (int i = 0; i < period.length(); i++) {
-            JSONObject dayPeriod = period.getJSONObject(i);
+        for (int i = 0; i < timeFrame.length(); i++) {
+            JSONObject dayPeriod = timeFrame.getJSONObject(i);
             JSONObject open = dayPeriod.getJSONObject("open");
             JSONObject close = dayPeriod.getJSONObject("close");
             Calendar start = deserializeHour(open.getString("time"));
@@ -241,8 +222,8 @@ public class TimeFrame {
             int dayOpen = open.getInt("day");
             int dayClose = close.getInt("day");
             // set the correct day
-            start.set(Calendar.DAY_OF_WEEK, dayOpen + 1);
-            end.set(Calendar.DAY_OF_WEEK, dayClose + 1);
+            start.set(Calendar.DAY_OF_WEEK, dayOpen);
+            end.set(Calendar.DAY_OF_WEEK, dayClose);
 
             // this means the bar is closing after midnight
             if (dayClose != dayOpen) {
