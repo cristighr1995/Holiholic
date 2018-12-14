@@ -1,7 +1,6 @@
 package com.holiholic.planner.planner;
 
 import com.holiholic.planner.constant.Constants;
-import com.holiholic.planner.database.DatabaseManager;
 import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
 import com.holiholic.planner.utils.*;
@@ -21,57 +20,30 @@ import java.util.logging.Logger;
  */
 class Planner {
     private static final Logger LOGGER = Logger.getLogger(Planner.class.getName());
-
-    // Key = Place id, Value = The place reference
-    private Map<Integer, Place> placeMappings;
-
-    // for each place we store the best plan starting with that place
-    private Map<Integer, List<Place>> planMappings = new HashMap<>();
-    // for each place we store the current max score for the plan
-    private Map<Integer, Double> maxScoreMappings = new HashMap<>();
-
+    // best plan starting from a place
+    private Map<Integer, List<Place>> plans = new HashMap<>();
+    // max scores for each place
+    private Map<Integer, Double> maxScores = new HashMap<>();
     private City city;
-    // The time the user wants to spend in the current city
     private TimeFrame timeFrame;
     private Place start;
-
-    private Map<Integer, Integer> placesToPlanMappings;
-
-    // Eating preferences
     private Meal lunch;
     private Meal dinner;
-
-    // The way the user wants to travel between places
-    // It can be driving | walking | bicycling | transit (we can not use transit which is public transportation because
-    // it is paid)
     private Enums.TravelMode travelMode;
-
-    private double maxScore;
+    private double globalMaxScore;
     // The heuristic value is used to calculate the score for the places
     // If closer to 1, means the user is interested in minimizing the distance between places
     // If closer to 0, means the user is interested in maximizing the ratings of the places
     private double heuristicValue;
-
     // The rewards going from place i to place j at hour h
-    private double[][][] rewards;
-
+    private Map<Integer, Map<Integer, Pair<Integer, Double>>> rewards;
     private double[][] durationDriving;
     private double[][] durationWalking;
     private double[][] distanceDriving;
     private double[][] distanceWalking;
-
-    // The map used for calculating the traffic coefficients
-    private Map<Integer, Double> trafficCoefficients;
-
-    // Information about weather, it will be calculated real-time using the city of the user
-    private WeatherForecastInformation weatherForecastInformation;
-    // This rate is used to adjust the duration between places
-    // For example if it's raining, it will take longer to move between places
-    private double weatherRate = 1.0;
-
     private ThreadManager threadManager;
     private boolean acceptNewTasks = true;
-    private int numberOfSolutions;
+    private int solutionsCount;
     private long startTimeMeasure = 0;
 
     /* PlaceComparator - Comparator for sorting the places by their reward (descending)
@@ -87,11 +59,11 @@ class Planner {
             this.currentHour = currentHour;
         }
 
+        // Descending order based on reward
         @Override
         public int compare(Place first, Place second) {
             double firstScore = getReward(currentPlace, first, currentHour);
             double secondScore = getReward(currentPlace, second, currentHour);
-            // Need to be in descending order base on the score
             int epsilonError = 100000000;
             return (int)((secondScore - firstScore) * epsilonError);
         }
@@ -99,16 +71,12 @@ class Planner {
 
     // constructor
     Planner(City city, TimeFrame timeFrame, Enums.TravelMode travelMode) {
-        this.city = city; // we need to clone the city!!!
+        this.city = city;
         this.timeFrame = timeFrame;
         this.heuristicValue = 1;
         this.travelMode = travelMode;
-        // map ids to places
-        buildPlaceMappings();
-        // used for logging
+        this.threadManager = ThreadManager.getInstance();
         setLogger();
-        // get the instance of thread manager to reuse existing threads
-        threadManager = ThreadManager.getInstance();
     }
 
     /* setLogger - Configure the logger
@@ -124,25 +92,6 @@ class Planner {
         LOGGER.setLevel(Level.ALL);
     }
 
-    /* buildPlaceMappings - Map the place id to a place instance
-     *
-     *  @return             : void
-     */
-    private void buildPlaceMappings() {
-        placeMappings = new HashMap<>();
-        for (Place p : city.places) {
-            placeMappings.put(p.id, p);
-        }
-    }
-
-    /* getPlaceMappings - Getter for placeMappings
-     *
-     *  @return             : the place mappings
-     */
-    Map<Integer, Place> getPlaceMappings() {
-        return placeMappings;
-    }
-
     /* isTourOver - Checks if the tour is over
      *
      *  @return             : true/false
@@ -150,24 +99,24 @@ class Planner {
      *  @currentPlace       : after visiting the current place, check if the tour is over
      */
     private boolean isTourOver(Calendar hour, Place currentPlace) {
-        if (!timeFrame.isBetween(hour)) {
+        if (!timeFrame.canVisit(hour)) {
             return true;
         }
 
-        Calendar afterVisiting = CloneFactory.clone(hour);
         int durationMinutes = currentPlace.durationVisit;
+        Calendar afterVisiting = CloneFactory.clone(hour);
         afterVisiting.add(Calendar.MINUTE, durationMinutes);
 
-        return !timeFrame.isBetween(afterVisiting);
+        return !timeFrame.canVisit(afterVisiting);
     }
 
-    /* solutionContainsPlace - Checks if a solution contains a place
+    /* contains - Checks if a solution contains a place
      *
      *  @return             : true/false
      *  @solution           : the solution where we want to search
      *  @place              : the place we want to find
      */
-    private boolean solutionContainsPlace(List<Place> solution, Place place) {
+    private boolean contains(List<Place> solution, Place place) {
         for (Place p : solution) {
             if (p.id == place.id) {
                 return true;
@@ -181,186 +130,145 @@ class Planner {
      *  @return             : true/false
      *  @open               : a set of ids that we didn't visit yet
      *  @hour               : the current hour
-     *  @currentPlace       : the current place where we are
-     *  @fixedPlaces        : a priority queue which contains the fixed places
-     *  @currentSolution    : the current solution
+     *  @current            : the current place
+     *  @fixed              : priority queue which contains the fixed places
+     *  @solution           : the current solution
      */
-    private boolean isSolution(Set<Integer> open,
-                               Calendar hour,
-                               Place currentPlace,
-                               PriorityQueue<Place> fixedPlaces,
-                               List<Place> currentSolution) {
-        if (isTourOver(hour, currentPlace)) {
+    private boolean isSolution(Set<Integer> open, Calendar hour, Place current,
+                               PriorityQueue<Place> fixed, List<Place> solution) {
+        if (isTourOver(hour, current)) {
             return true;
         }
 
-        for (Integer id : open) {
-            Place place = placeMappings.get(id);
-            if (place.canVisit(hour)) {
+        for (int id : open) {
+            if (city.getPlaces().get(id).canVisit(hour)) {
                 return false;
             }
         }
 
-        if (!fixedPlaces.isEmpty()) {
+        if (!fixed.isEmpty()) {
             return false;
         }
 
-        return solutionContainsPlace(currentSolution, currentPlace) || !currentPlace.canVisit(hour);
+        return contains(solution, current) || !current.canVisit(hour);
     }
 
     /* predictScore - A greedy score that will be used for pruning
      *
      *  @return             : the predicted score for the current solution
-     *  @currentPlace       : the current place used as a reference
+     *  @current            : the current place
      *  @open               : a set of ids of the unvisited place
      *  @hour               : the hour of visiting the current place
-     *  @fixedPlaces        : a priority queue which contains the fixed places
+     *  @fixed              : a priority queue which contains the fixed places
      */
-    private double predictScore(Place currentPlace,
-                                Set<Integer> open,
-                                Calendar hour,
-                                PriorityQueue<Place> fixedPlaces) {
-        double prediction;
+    private double predictScore(Place current, Set<Integer> open, Calendar hour, PriorityQueue<Place> fixed) {
         double maxReward = 0;
-        double trafficCoefficient;
+        double durationToNext;
         int count = 0;
-        int timeToNextPlace;
-        int durationInMinutes;
-
-        List<Place> placesToVisit = new ArrayList<>();
-        Calendar copyHour = CloneFactory.clone(hour);
-        Place last = currentPlace;
+        List<Place> places = new ArrayList<>();
+        Calendar movingHour = CloneFactory.clone(hour);
+        Place last = current;
 
         for (int i : open) {
-            placesToVisit.add(placeMappings.get(i));
+            places.add(city.getPlaces().get(i));
         }
 
-        Collections.addAll(placesToVisit, fixedPlaces.toArray(new Place[0]));
-        placesToVisit.sort(new PlaceComparator(currentPlace, copyHour));
+        Collections.addAll(places, fixed.toArray(new Place[0]));
+        places.sort(new PlaceComparator(current, movingHour));
 
-        for (Place p : placesToVisit) {
-            if (p.canVisit(copyHour)) {
-                durationInMinutes = p.durationVisit;
-                copyHour.add(Calendar.MINUTE, durationInMinutes);
-
-                // consider the traffic congestion at the current hour
-                trafficCoefficient = trafficCoefficients.get(copyHour.get(Calendar.HOUR_OF_DAY));
+        for (Place place : places) {
+            if (place.canVisit(movingHour)) {
+                movingHour.add(Calendar.MINUTE, place.durationVisit);
 
                 if (travelMode == Enums.TravelMode.DRIVING) {
-                    timeToNextPlace = (int) Math.min(durationWalking[last.id][p.id],
-                                                     durationDriving[last.id][p.id] * trafficCoefficient
-                                                     + p.parkTime);
+                    durationToNext = Math.min(durationWalking[last.id][place.id], durationDriving[last.id][place.id]);
                 } else {
-                    timeToNextPlace = (int) durationWalking[last.id][p.id];
+                    durationToNext = (int) durationWalking[last.id][place.id];
                 }
 
-                timeToNextPlace *= weatherRate;
-
-                // get the reward for the current place
-                maxReward = Math.max(maxReward, getReward(last, p, copyHour));
-                // add the time for arriving to next place
-                copyHour.add(Calendar.SECOND, timeToNextPlace);
+                maxReward = Math.max(maxReward, getReward(last, place, movingHour));
+                movingHour.add(Calendar.SECOND, (int) durationToNext);
 
                 count++;
-                last = p;
+                last = place;
             }
         }
 
-        // approximate the score considering the maxReward for all the places we can visit
-        prediction = count * maxReward;
-        return prediction;
+        return count * maxReward;
     }
 
-    /* getDurationToNeighbor - Calculates the time to get from current place to the neighbor
-     *                         It considers if it is better to just drive or walk to next place and return after the car
+    /* getDuration - Calculates the duration to get from current place to next place
+     *               It considers if it is better to just drive or (park, walk to next place and return later after car)
      *
-     *  @return             : a 3-element array (durationToNeighbor, returnTimeWalking, nextCarPlaceId)
-     *  @currentPlace       : the current place used as a reference
-     *  @neighbor           : the next place that we want to visit
+     *  @return             : an array with information about the travel from current to next
+     *  @current            : the current place
+     *  @next               : the next place we want to visit
      *  @carPlaceId         : the id where the car is right now
-     *  @currentHour        : the current time
      */
-    private int[] getDurationToNeighbor(Place currentPlace,
-                                        Place neighbor,
-                                        int carPlaceId,
-                                        Calendar currentHour) {
-        int durationToNeighbor;
+    private int[] getDuration(Place current, Place next, int carPlaceId) {
+        int durationToNext;
         int returningTimeWalking = 0;
         int nextCarPlaceId = carPlaceId;
-        int distanceToNeighbor;
+        int distanceToNext;
 
-        // the duration to neighbor from start place is approximate
-        if (currentPlace.id == -1) {
-            durationToNeighbor = getDurationFromStart(neighbor);
-            distanceToNeighbor = getDistanceFromStart(neighbor);
-            currentPlace.parkHere = false;
+        // the duration to neighbor from start place
+        if (current.id == -1) {
+            durationToNext = getDurationFromStart(next);
+            distanceToNext = getDistanceFromStart(next);
+            current.parkHere = false;
             if (travelMode == Enums.TravelMode.DRIVING) {
-                nextCarPlaceId = neighbor.id;
+                nextCarPlaceId = next.id;
             }
-            currentPlace.travelMode = travelMode;
+            current.travelMode = travelMode;
         } else {
-            // If the user selected driving, we need to take in consideration if it's closer to walk instead
-            // of drive and find parking slot
+            // if user selected driving, take into consideration if it's closer to walk instead of driving
             if (travelMode == Enums.TravelMode.DRIVING) {
-                if (carPlaceId == currentPlace.id) {
-                    currentPlace.parkHere = true;
+                if (carPlaceId == current.id) {
+                    current.parkHere = true;
                 }
 
-                double durationDrivingValue, durationWalkingValue;
-                double distanceDrivingValue;
-                // we also need to take into account the traffic for driving duration
-                // the traffic will raise the normal duration with a coefficient
-                double trafficCoefficient = trafficCoefficients.get(currentHour.get(Calendar.HOUR_OF_DAY));
+                double durationDrivingValue, durationWalkingValue, distanceDrivingValue;
 
-                // If we have the car right to the current place
-                if (carPlaceId == currentPlace.id) {
-                    durationDrivingValue = durationDriving[currentPlace.id][neighbor.id] * trafficCoefficient
-                                        + neighbor.parkTime;
-                    distanceDrivingValue = distanceDriving[currentPlace.id][neighbor.id];
+                if (carPlaceId == current.id) {
+                    durationDrivingValue = durationDriving[current.id][next.id];
+                    distanceDrivingValue = distanceDriving[current.id][next.id];
                 } else {
-                    // Or we need to get back where we have the car and continue from there
-                    durationDrivingValue = durationWalking[currentPlace.id][carPlaceId]
-                                           + durationDriving[carPlaceId][neighbor.id] * trafficCoefficient
-                                           + neighbor.parkTime;
-                    distanceDrivingValue = distanceWalking[currentPlace.id][carPlaceId]
-                                           + distanceDriving[carPlaceId][neighbor.id];
+                    // calculate duration to get where the car is parked and continue from there
+                    durationDrivingValue = durationWalking[current.id][carPlaceId] + durationDriving[carPlaceId][next.id];
+                    distanceDrivingValue = distanceWalking[current.id][carPlaceId] + distanceDriving[carPlaceId][next.id];
                 }
 
-                // Or just walk to the next place
-                durationWalkingValue = durationWalking[currentPlace.id][neighbor.id]
-                                       + durationWalking[neighbor.id][carPlaceId];
+                // or just walk to the next place
+                durationWalkingValue = durationWalking[current.id][next.id] + durationWalking[next.id][carPlaceId];
 
                 if (durationDrivingValue < durationWalkingValue) {
-                    // it means that we were walking to next place
-                    // and need to remind the user to get back for the car
-                    if (carPlaceId != currentPlace.id) {
-                        currentPlace.getCarBack = true;
-                        currentPlace.carPlaceId = carPlaceId;
-                        currentPlace.carPlaceName = placeMappings.get(carPlaceId).name;
+                    // walk to next place and remind user to get the car back
+                    if (carPlaceId != current.id) {
+                        current.getCarBack = true;
+                        current.carPlaceId = carPlaceId;
+                        current.carPlaceName = city.getPlaces().get(carPlaceId).name;
                     }
 
-                    nextCarPlaceId = neighbor.id;
-                    durationToNeighbor = (int) durationDrivingValue;
-                    distanceToNeighbor = (int) distanceDrivingValue;
-                    currentPlace.travelMode = Enums.TravelMode.DRIVING;
+                    nextCarPlaceId = next.id;
+                    durationToNext = (int) durationDrivingValue;
+                    distanceToNext = (int) distanceDrivingValue;
+                    current.travelMode = Enums.TravelMode.DRIVING;
                 } else {
-                    // The actual duration is without taking into consideration the returning time for the car
-                    // We will count that time later
-                    durationToNeighbor = (int) durationWalking[currentPlace.id][neighbor.id];
-                    distanceToNeighbor = (int) distanceWalking[currentPlace.id][neighbor.id];
-                    currentPlace.travelMode = Enums.TravelMode.WALKING;
-                    returningTimeWalking = (int) durationWalking[neighbor.id][carPlaceId];
+                    // the actual duration is without taking into consideration the returning time for the car
+                    // it will be considered later
+                    durationToNext = (int) durationWalking[current.id][next.id];
+                    distanceToNext = (int) distanceWalking[current.id][next.id];
+                    current.travelMode = Enums.TravelMode.WALKING;
+                    returningTimeWalking = (int) durationWalking[next.id][carPlaceId];
                 }
             } else {
-                durationToNeighbor = (int) durationWalking[currentPlace.id][neighbor.id];
-                distanceToNeighbor = (int) distanceWalking[currentPlace.id][neighbor.id];
-                currentPlace.travelMode = Enums.TravelMode.WALKING;
+                durationToNext = (int) durationWalking[current.id][next.id];
+                distanceToNext = (int) distanceWalking[current.id][next.id];
+                current.travelMode = Enums.TravelMode.WALKING;
             }
         }
 
-        durationToNeighbor *= weatherRate;
-
-        return new int[]{durationToNeighbor, returningTimeWalking, nextCarPlaceId, distanceToNeighbor};
+        return new int[]{durationToNext, returningTimeWalking, nextCarPlaceId, distanceToNext};
     }
 
     /* includeMeal - Add a nearby restaurant in plan
@@ -456,7 +364,7 @@ class Planner {
             currentPlaceHour.add(Calendar.MINUTE, currentPlace.durationVisit);
 
             // parse the estimated duration
-            int[] estimatedDuration = getDurationToNeighbor(currentPlaceCopy, fixedPlaces.peek(),
+            int[] estimatedDuration = getDuration(currentPlaceCopy, fixedPlaces.peek(),
                                                             carPlaceId, currentPlaceHour);
             int durationToNeighbor = estimatedDuration[0];
             int currentReturningTimeWalking = estimatedDuration[1];
@@ -485,7 +393,7 @@ class Planner {
                         carPlaceId = lastPlace.carPlaceId;
                     }
 
-                    int[] durationResults = getDurationToNeighbor(lastPlace, next, carPlaceId, lastPlaceAvailableTime);
+                    int[] durationResults = getDuration(lastPlace, next, carPlaceId, lastPlaceAvailableTime);
                     int durationToNext = durationResults[0];
                     int retToCarTime = durationResults[1];
                     int nextCarId = durationResults[2];
@@ -528,16 +436,16 @@ class Planner {
                 return;
             }
 
-            if (cScore > maxScore) {
+            if (cScore > globalMaxScore) {
                 // to avoid concurrent modification we should synchronize this part
                 synchronized (Planner.class) {
                     // update the max score
-                    maxScoreMappings.put(firstPlannedPlace.id, cScore);
-                    maxScore = cScore;
+                    maxScores.put(firstPlannedPlace.id, cScore);
+                    globalMaxScore = cScore;
 
                     List<Place> currentPlan = new ArrayList<>(currentSolution);
-                    planMappings.put(firstPlannedPlace.id, currentPlan);
-                    numberOfSolutions++;
+                    plans.put(firstPlannedPlace.id, currentPlan);
+                    solutionsCount++;
 
                     // ... the code being measured ...
                     long estimatedTime = System.nanoTime() - startTimeMeasure;
@@ -560,7 +468,7 @@ class Planner {
         // Very IMPORTANT
         // Using a prediction of the score we won't consider the tour if the score will be less the maximum score so far
         double prediction = predictScore(currentPlace, openCopy, currentHour, fixedPlacesCopy);
-        if (cScore + prediction <= maxScore) {
+        if (cScore + prediction <= globalMaxScore) {
             return;
         }
 
@@ -590,7 +498,7 @@ class Planner {
                 double placeScore = getReward(currentPlace, neighbor, currentHour);
 
                 // get the duration to neighbor
-                int[] durationResults = getDurationToNeighbor(currentPlaceCopy, neighbor, carPlaceId, currentHour);
+                int[] durationResults = getDuration(currentPlaceCopy, neighbor, carPlaceId, currentHour);
                 int durationToNext = durationResults[0];
                 int currentReturningTimeWalking = durationResults[1];
                 int nextCarPlaceId = durationResults[2];
@@ -646,7 +554,7 @@ class Planner {
                     Place neighbor = CloneFactory.clone(fixedPlacesCopy.poll());
                     nextId = neighbor.id;
 
-                    int[] durationResults = getDurationToNeighbor(currentPlace, neighbor, carPlaceId, currentHour);
+                    int[] durationResults = getDuration(currentPlace, neighbor, carPlaceId, currentHour);
                     int durationToNext = durationResults[0];
                     currentReturningTimeWalking = durationResults[1];
                     nextCarPlaceId = durationResults[2];
@@ -767,62 +675,55 @@ class Planner {
      *  @places                 : a list of places
      */
     private void initMaxScores(List<Place> places) {
-        for (Place p : places) {
-            maxScoreMappings.put(p.id, Double.NEGATIVE_INFINITY);
+        globalMaxScore = Double.NEGATIVE_INFINITY;
+
+        for (Place place : places) {
+            maxScores.put(place.id, Double.NEGATIVE_INFINITY);
         }
     }
 
-    /* getPlan - Calculates the itineraries for the places that the user wants to visit
-     *
-     *  @return                 : multiple possible itineraries
-     *  @placesToPlan           : a list of places the user wants to visit
-     */
-    List<List<Place>> getPlan(List<Place> placesToPlan) {
-        // Store the positions for the placesToPlan
-        placesToPlanMappings = new HashMap<>();
-        for (int i = 0; i < placesToPlan.size(); i++) {
-            placesToPlanMappings.put(placesToPlan.get(i).id, i);
-            placeMappings.put(placesToPlan.get(i).id, placesToPlan.get(i));
-        }
+    private void initMatrix() {
+        durationDriving = city.getDurations(Enums.TravelMode.DRIVING);
+        durationWalking = city.getDurations(Enums.TravelMode.WALKING);
+        distanceDriving = city.getDistances(Enums.TravelMode.DRIVING);
+        distanceWalking = city.getDistances(Enums.TravelMode.WALKING);
+    }
 
-        // Cache weather information
-        weatherForecastInformation = DatabaseManager.getWeatherForecastInformation(city.name);
-        weatherRate = getWeatherRate();
-        // Cache traffic coefficients
-        cacheTrafficCoefficients();
-        // Cache distances because we will use them intensely when getting the rewards !!!
-        cacheDistanceMatrix();
-        // Cache rewards
-        cacheRewards();
-        // initialize the max score for each place
-        initMaxScores(placesToPlan);
-        // set or reset the maxScore to -Inf
-        maxScore = Double.NEGATIVE_INFINITY;
-        // start measuring time
+    private void init(List<Place> places) {
+        initMatrix();
+        generateRewards(places);
+        initMaxScores(places);
         startTimeMeasure = System.nanoTime();
+    }
+
+    /* getPlan - Generate possible itineraries
+     *
+     *  @return                 : possible itineraries
+     *  @places                 : a list of places the user wants to visit
+     */
+    List<List<Place>> getPlan(List<Place> places) {
+        init(places);
 
         List<Place> currentSolution = new ArrayList<>();
         Set<Integer> open = new HashSet<>();
-
-        // get fixed places
-        PriorityQueue<Place> fixedPlaces = new PriorityQueue<>((p1, p2) -> {
+        PriorityQueue<Place> fixed = new PriorityQueue<>((p1, p2) -> {
             Calendar p1Hour = Interval.getHour(p1.fixedAt);
             Calendar p2Hour = Interval.getHour(p2.fixedAt);
             return p1Hour.compareTo(p2Hour);
         });
 
-        for (Place p : placesToPlan) {
-            if (!p.fixedAt.equals("anytime")) {
-                fixedPlaces.add(p);
+        for (Place place : places) {
+            if (!place.fixedAt.equals("anytime")) {
+                fixed.add(place);
             } else {
-                open.add(p.id);
+                open.add(place.id);
             }
         }
 
         // if we have only fixedPlaces
-        if (open.isEmpty() && !fixedPlaces.isEmpty()) {
-            Place p = CloneFactory.clone(fixedPlaces.poll());
-            submitPlaceToPlanner(p, open, currentSolution, fixedPlaces);
+        if (open.isEmpty() && !fixed.isEmpty()) {
+            Place p = CloneFactory.clone(fixed.poll());
+            submitPlaceToPlanner(p, open, currentSolution, fixed);
         }
         else {
             // Sort the places by rating and by the remaining time for visiting
@@ -859,7 +760,7 @@ class Planner {
         }
 
         LOGGER.log(Level.FINE, "Finished planning for the city ({0}). Number of solutions found: {1}",
-                   new Object[]{city.name, numberOfSolutions});
+                   new Object[]{city.name, solutionsCount});
 
         return sortItineraries();
     }
@@ -872,8 +773,8 @@ class Planner {
         List<List<Place>> sortedPlans = new ArrayList<>();
         List<Pair<Double, List<Place>>> plans = new ArrayList<>();
 
-        for (Map.Entry<Integer, List<Place>> pair : planMappings.entrySet()) {
-            double score = maxScoreMappings.get(pair.getKey());
+        for (Map.Entry<Integer, List<Place>> pair : this.plans.entrySet()) {
+            double score = maxScores.get(pair.getKey());
             List<Place> placesList = pair.getValue();
             plans.add(new Pair<>(score, placesList));
         }
@@ -891,118 +792,62 @@ class Planner {
      *
      *  @return                 : the reward for going from current place to next place at that hour
      *                            considering the distance between and the rating of the next place
-     *  @currentPlace           : the current place used as a reference
-     *  @nextPlace              : the place where the user can go
-     *  @hour                   : the current hour for visiting the current place
+     *  @current                : the current place
+     *  @next                   : the next place
+     *  @hour                   : the current hour
      */
-    private double evaluateReward(Place currentPlace, Place nextPlace, Calendar hour) {
-        Integer position = placesToPlanMappings.get(nextPlace.id);
-        // early out if a place is not supposed to be planned
-        if (position == null) {
-            return 0;
-        }
-
+    private double evaluateReward(Place current, Place next, Calendar hour) {
         double distance;
-        double trafficCoefficient = trafficCoefficients.get(hour.get(Calendar.HOUR_OF_DAY));
-        int placesToPlanSize = placesToPlanMappings.size();
-        int placePosition = position;
+        double reward = 0;
 
         if (travelMode == Enums.TravelMode.DRIVING) {
-            distance = Math.min(durationWalking[currentPlace.id][nextPlace.id],
-                                // traffic and parking time contribution to distance
-                                durationDriving[currentPlace.id][nextPlace.id] * trafficCoefficient
-                                + nextPlace.parkTime);
+            distance = Math.min(durationWalking[current.id][next.id], durationDriving[current.id][next.id]);
         } else {
-            distance = durationWalking[currentPlace.id][nextPlace.id];
+            distance = durationWalking[current.id][next.id];
         }
 
-        // weather contribution to distance
-        distance *= weatherRate;
+        reward = (1 / distance) * heuristicValue + next.rating * (1 - heuristicValue);
 
-        // the number of components <1 that contribute to the popularity
-        double numberOfComponents = 3;
-        double checkIns = ((double) nextPlace.checkIns) / ((double) city.totalCheckIns);
-        double wanToGoNumber = ((double) nextPlace.wantToGoNumber) / ((double) city.totalWantToGo);
-
-        // we also need to scale correctly the popularity between [0, 1]
-        double popularity = (nextPlace.rating / Constants.maxRating + checkIns + wanToGoNumber) / numberOfComponents;
-        double positionPreference = ((double) (placesToPlanSize - placePosition)) / ((double) placesToPlanSize);
-
-        // the reward for the place
-        double reward = (1 / distance) * heuristicValue                     // distance contribution
-                        + popularity * (1 - heuristicValue)                 // popularity contribution
-                        + Constants.placePositionRate * positionPreference; // place position contribution
-
-        if (!currentPlace.fixedAt.equals("anytime")) {
-            Calendar fixedTime = Interval.getHour(currentPlace.fixedAt);
+        if (!current.fixedAt.equals("anytime")) {
             Calendar minus = CloneFactory.clone(hour);
             Calendar plus = CloneFactory.clone(hour);
-            minus.add(Calendar.MINUTE, -Constants.fixedTimeIntervalRange);
-            plus.add(Calendar.MINUTE, Constants.fixedTimeIntervalRange);
-            Interval i = new Interval(minus, plus);
+            minus.add(Calendar.MINUTE, -Constants.FIXED_RANGE_ACCEPTANCE);
+            plus.add(Calendar.MINUTE, Constants.FIXED_RANGE_ACCEPTANCE);
+            Interval range = new Interval(minus, plus);
 
-            if (i.isBetween(fixedTime)) {
-                reward += Constants.scoreFixedTime;
+            if (range.isBetween(Interval.getHour(current.fixedAt))) {
+                reward += Constants.FIXED_TIME_REWARD;
             }
         }
 
         return reward;
     }
 
-    /* cacheRewards - Cache the rewards for fast retrieval
+    /* generateRewards - Generate the rewards
      *
      *  @return                 : void
      */
-    private void cacheRewards() {
-        int numberOfPlaces = city.places.size();
-        rewards = new double[numberOfPlaces][numberOfPlaces][24];
-        int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-        Calendar startHour = CloneFactory.clone(timeFrame.getInterval(dayOfWeek).getStart());
+    private void generateRewards(List<Place> places) {
+        int dayOfWeek = timeFrame.getOpenDays().iterator().next();
+        Calendar movingHour = CloneFactory.clone(timeFrame.getInterval(dayOfWeek).getStart());
+        rewards = new HashMap<>();
 
-        for (int h = 0; h < 24; h++) {
-            startHour.add(Calendar.HOUR_OF_DAY, h);
-            for (int i = 0; i < numberOfPlaces; i++) {
-                Place currentPlace = placeMappings.get(i);
-                for (int j = i + 1; j < numberOfPlaces; j++) {
-                    Place nextPlace = placeMappings.get(j);
-                    rewards[i][j][h] = evaluateReward(currentPlace, nextPlace, startHour);
-                    rewards[j][i][h] = evaluateReward(nextPlace, currentPlace, startHour);
+        for (int hour = 0; hour < 24; hour++) {
+            movingHour.add(Calendar.HOUR_OF_DAY, hour);
+            rewards.put(movingHour.get(Calendar.HOUR_OF_DAY), new HashMap<>());
+
+            for (int i = 0; i < places.size(); i++) {
+                for (int j = i + 1; j < places.size(); j++) {
+                    Place current = places.get(i);
+                    Place next = places.get(j);
+                    double reward = evaluateReward(current, next, movingHour);
+                    double inverseReward = evaluateReward(next, current, movingHour);
+
+                    rewards.get(movingHour.get(Calendar.HOUR_OF_DAY)).put(current.id, new Pair<>(next.id, reward));
+                    rewards.get(movingHour.get(Calendar.HOUR_OF_DAY)).put(next.id, new Pair<>(current.id, inverseReward));
                 }
             }
         }
-    }
-
-    /* cacheDistanceMatrix - Cache the distance matrix
-     *
-     *  @return                 : void
-     */
-    private void cacheDistanceMatrix() {
-        durationDriving = DatabaseManager.getDurationMatrix(city.name, Enums.TravelMode.DRIVING);
-        durationWalking = DatabaseManager.getDurationMatrix(city.name, Enums.TravelMode.WALKING);
-
-        distanceDriving = DatabaseManager.getDistanceMatrix(city.name, Enums.TravelMode.DRIVING);
-        distanceWalking = DatabaseManager.getDistanceMatrix(city.name, Enums.TravelMode.WALKING);
-    }
-
-    /* cacheTrafficCoefficients - Cache the traffic coefficients
-     *
-     *  @return                 : void
-     */
-    private void cacheTrafficCoefficients() {
-        trafficCoefficients = DatabaseManager.getTrafficCoefficients(city.name);
-    }
-
-    /* getWeatherRate - Calculates the weather rate which is used to adjust the duration between two places
-     *
-     *  @return                 : the weather rate
-     */
-    private double getWeatherRate() {
-        double rate = 1.0;
-        // using the third simple rule we calculate how to raise the rate
-        rate += weatherForecastInformation.rainProbability * Constants.maxWeatherRainThreshold / 100.0;
-        // also for snow
-        rate += weatherForecastInformation.snowProbability * Constants.maxWeatherSnowThreshold / 100.0;
-        return rate;
     }
 
     /* getReward - Get the cached reward between two places at a given hour

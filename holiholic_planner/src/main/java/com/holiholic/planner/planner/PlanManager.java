@@ -77,7 +77,16 @@ public class PlanManager {
             String uid = body.getString("uid");
 
             if (!DatabaseManager.containsUser(uid)) {
-                LOGGER.log(Level.FINE, "Invalid request from user {0} to generate a plan in {1} city",
+                LOGGER.log(Level.FINE, "User {0} does not exist in the system and can not generate a plan in {1} city",
+                           new Object[]{uid, cityName});
+                return "[]";
+            }
+
+            JSONObject preferences = body.getJSONObject("preferences");
+            TimeFrame timeFrame = TimeFrame.deserialize(preferences.getJSONArray("timeFrame"));
+
+            if (timeFrame.getOpenDays().isEmpty()) {
+                LOGGER.log(Level.FINE, "Invalid request from user {0} to generate a plan in {1} city, because time frame is missing",
                            new Object[]{uid, cityName});
                 return "[]";
             }
@@ -86,8 +95,6 @@ public class PlanManager {
                        new Object[]{uid, cityName});
 
             City city = DatabaseManager.getCity(cityName);
-            JSONObject preferences = body.getJSONObject("preferences");
-            TimeFrame period = TimeFrame.deserialize(preferences.getJSONArray("timeFrame"));
             Enums.TravelMode travelMode = Enums.TravelMode.deserialize(preferences.getString("travelMode"));
             double heuristicValue = preferences.getDouble("heuristicValue");
             boolean dinner = preferences.getBoolean("dinner");
@@ -103,7 +110,7 @@ public class PlanManager {
             }
 
             // create the planner
-            Planner planner = new Planner(city, period, travelMode);
+            Planner planner = new Planner(city, timeFrame, travelMode);
             planner.setHeuristicValue(heuristicValue);
             planner.setStart(start);
 

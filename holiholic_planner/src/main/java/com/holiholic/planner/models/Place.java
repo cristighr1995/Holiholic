@@ -40,16 +40,16 @@ public class Place implements Comparable<Place> {
 
 
     // default constructor
-    public Place() {}
+    private Place() {}
 
     // constructor
-    public Place(int id, String name, GeoPosition location) {
+    private Place(int id, String name, GeoPosition location) {
         this.id = id;
         this.name = name;
         this.location = location;
     }
 
-    public Place(int id,
+    private Place(int id,
                  String name,
                  GeoPosition location,
                  int durationVisit,
