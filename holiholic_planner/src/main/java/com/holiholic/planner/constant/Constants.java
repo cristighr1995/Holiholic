@@ -17,6 +17,7 @@ public class Constants {
     public final static String UPDATE_HISTORY_URL = "http://localhost:8092/updateHistory";
     public final static String GET_PLACES_URL = "http://localhost:8092/getPlaces";
     public final static String GET_MATRIX_URL = "http://localhost:8092/getMatrix";
+    public final static String UPDATE_PLANNER_URL = "http://localhost:8092/updatePlanner";
 
     public final static Calendar DEFAULT_LUNCH_HOUR = Interval.getHour(13, 0, 0);
     public final static Calendar DEFAULT_DINNER_HOUR = Interval.getHour(19, 0, 0);

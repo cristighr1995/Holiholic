@@ -13,45 +13,31 @@ import java.util.Set;
 public class VisitTask implements Runnable {
     private int id;
     private Set<Integer> open;
-    private List<Place> currentSolution;
+    private List<Place> solution;
     private Calendar hour;
-    private double cScore;
+    private double score;
     private int carPlaceId;
-    private int returningToCarTime;
-    private boolean alreadyPlannedLunch;
-    private boolean alreadyPlannedDinner;
+    private int returnDurationToCar;
+    private PriorityQueue<Place> fixed;
     private Planner planner;
-    private PriorityQueue<Place> fixedPlaces;
 
-    public VisitTask(int id,
-                     Set<Integer> open,
-                     List<Place> currentSolution,
-                     Calendar hour,
-                     double cScore,
-                     int carPlaceId,
-                     int returningToCarTime,
-                     boolean alreadyPlannedLunch,
-                     boolean alreadyPlannedDinner,
-                     Planner planner,
-                     PriorityQueue<Place> fixedPlaces) {
+    VisitTask(int id, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
+              int returnDurationToCar, PriorityQueue<Place> fixed, Planner planner) {
         this.id = id;
         this.open = open;
-        this.currentSolution = currentSolution;
+        this.solution = solution;
         this.hour = hour;
-        this.cScore = cScore;
+        this.score = score;
         this.carPlaceId = carPlaceId;
-        this.returningToCarTime = returningToCarTime;
-        this.alreadyPlannedLunch = alreadyPlannedLunch;
-        this.alreadyPlannedDinner = alreadyPlannedDinner;
+        this.returnDurationToCar = returnDurationToCar;
+        this.fixed = fixed;
         this.planner = planner;
-        this.fixedPlaces = fixedPlaces;
     }
 
     @Override
     public void run() {
         try {
-            planner.visit(id, open, currentSolution, hour, cScore, carPlaceId, returningToCarTime,
-                          alreadyPlannedLunch, alreadyPlannedDinner, fixedPlaces);
+            planner.visit(id, open, solution, hour, score, carPlaceId, returnDurationToCar, fixed);
         } catch (Exception e) {
             e.printStackTrace();
         }

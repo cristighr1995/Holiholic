@@ -538,7 +538,7 @@ class Planner {
             if (currentHour != null) {
                 solutionCopy.add(startPlaceCopy);
                 Runnable worker = new VisitTask(next.id, CloneFactory.clone(open), solutionCopy, currentHour, 0.0,
-                                                next.id, 0, false, false, this, fixedCopy);
+                                                next.id, 0, fixedCopy, this);
                 ThreadManager.getInstance().addTask(worker);
             }
         } catch (Exception e) {
