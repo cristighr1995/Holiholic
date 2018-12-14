@@ -42,7 +42,7 @@ class Planner {
     private double[][] distanceDriving;
     private double[][] distanceWalking;
     private boolean acceptNewTasks = true;
-    private int solutionsCount;
+    private int solutionsCount = 0;
     private long startTimeMeasure = 0;
 
     /* PlaceComparator - Comparator for sorting the places by their reward (descending)
@@ -269,6 +269,18 @@ class Planner {
         return new int[]{durationToNext, returningTimeWalking, nextCarPlaceId, distanceToNext};
     }
 
+    /* scheduleFixed - Try to schedule a fixed place because they have higher priority
+     *
+     *  @return                 : true if can visit the current place before the first fixed place otherwise false
+     *  @current                : the current place
+     *  @open                   : ids of unvisited places
+     *  @solution               : current solution
+     *  @hourAtCurrent          : hour at the current place
+     *  @score                  : current score
+     *  @carPlaceId             : id of the place where is the car parked (if applicable)
+     *  @returnDurationToCar    : duration to walk after the car
+     *  @fixed                  : fixed places
+     */
     private boolean scheduleFixed(Place current, Set<Integer> open, List<Place> solution, Calendar hourAtCurrent,
                                   double score, int carPlaceId, int returnDurationToCar,PriorityQueue<Place> fixed) {
         if (!fixed.isEmpty()) {
@@ -310,6 +322,7 @@ class Planner {
                     peekHour = lastHour;
                 }
 
+                assert next != null;
                 visit(next.id, open, solution, peekHour, score, carPlaceId, returnDurationToCar, fixed);
                 return true;
             }
@@ -317,6 +330,13 @@ class Planner {
         return false;
     }
 
+    /* generateItinerary - Add the current solution in possible plans
+     *
+     *  @return                 : void
+     *  @score                  : current score
+     *  @solution               : current solution
+     *  @verbose                : true if need more printing otherwise false
+     */
     private void generateItinerary(double score, List<Place> solution, boolean verbose) {
         if (solution.size() < 2) {
             return;
@@ -348,6 +368,19 @@ class Planner {
         }
     }
 
+    /* visitNeighbor - Try to visit the neighbor starting from the current place
+     *
+     *  @return                 : void
+     *  @current                : the current place
+     *  @neighbor               : the next place where can go from here
+     *  @open                   : ids of unvisited places
+     *  @solution               : current solution
+     *  @score                  : current score
+     *  @hour                   : hour at the current place
+     *  @carPlaceId             : id of the place where is the car parked (if applicable)
+     *  @returnDurationToCar    : duration to walk after the car
+     *  @fixed                  : fixed places
+     */
     private void visitNeighbor(Place current, Place neighbor, Set<Integer> open, List<Place> solution, double score,
                                Calendar hour, int carPlaceId, int returnDurationToCar, PriorityQueue<Place> fixed) {
         double reward = getReward(current, neighbor, hour);
@@ -370,6 +403,20 @@ class Planner {
         visit(neighbor.id, open, solution, temporaryHour, score + reward, carPlaceId, returnDurationWalking, fixed);
     }
 
+    /* triggerSolution - A hack function to trigger the solution checking when could include in an itinerary all places
+     *                   the user chose and still got time for others!
+     *                   Here we can recommend some more places to user in the future!
+     *
+     *  @return                 : void
+     *  @current                : the current place
+     *  @open                   : ids of unvisited places
+     *  @solution               : current solution
+     *  @score                  : current score
+     *  @hour                   : hour at the current place
+     *  @carPlaceId             : id of the place where is the car parked (if applicable)
+     *  @returnDurationToCar    : duration to walk after the car
+     *  @fixed                  : fixed places
+     */
     private void triggerSolution(Place current, Set<Integer> open, List<Place> solution, double score, Calendar hour,
                                  int carPlaceId, int returnDurationToCar, PriorityQueue<Place> fixed) {
         Calendar currentHour = CloneFactory.clone(hour);
@@ -417,16 +464,14 @@ class Planner {
      *         It uses heuristics to prune solutions that are impossible to be better than the current best
      *
      *  @return                 : void
-     *  @id                     : the id of the current place
+     *  @id                     : id of the current place
      *  @open                   : a set of ids of unvisited places
-     *  @currentSolution        : the current solution (like an accumulator)
-     *  @hour                   : the current time
+     *  @solution               : current solution
+     *  @hour                   : the current hour
      *  @cScore                 : current score
      *  @carPlaceId             : the id of the place where is the car parked
-     *  @returningToCarTime     : the time for getting back to where is the car from the current place
-     *  @alreadyPlannedLunch    : if planned lunch
-     *  @alreadyPlannedDinner   : if planned dinner
-     *  @fixedPlaces            : a priority queue which contains the fixed places
+     *  @returnDurationToCar    : duration to walk after the car
+     *  @fixed                  : fixed places
      */
     void visit(int id, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
                int returnDurationToCar, PriorityQueue<Place> fixed) {
@@ -495,10 +540,11 @@ class Planner {
         }
     }
 
-    /* createTask - Create a task with each starting point
+    /* createTask - Create a task for each place to be visited from the starting point
+     *              Do not call this method from visit method
      *
      *  @return                 : void
-     *  @nextPlace              : the place we want to submit
+     *  @next                   : the place we want to submit
      *  @open                   : a set of ids of unvisited places
      *  @currentSolution        : the current solution (like an accumulator)
      *  @fixedPlaces            : a priority queue which contains the fixed places
@@ -529,7 +575,7 @@ class Planner {
                 currentHour = userStartHour;
             } else {
                 Calendar placeStartHour = next.timeFrame.getInterval(dayOfWeek).getStart();
-                if (timeFrame.isBetween(placeStartHour)) {
+                if (timeFrame.canVisit(placeStartHour)) {
                     // start as soon as the place opens
                     currentHour = CloneFactory.clone(placeStartHour);
                 }
@@ -588,6 +634,10 @@ class Planner {
         }
     }
 
+    /* initMatrix - Get references for distance and duration matrix (from the city instance)
+     *
+     *  @return                 : void
+     */
     private void initMatrix() {
         durationDriving = city.getDurations(Enums.TravelMode.DRIVING);
         durationWalking = city.getDurations(Enums.TravelMode.WALKING);
@@ -595,6 +645,11 @@ class Planner {
         distanceWalking = city.getDistances(Enums.TravelMode.WALKING);
     }
 
+    /* initRestaurants - Check if need to include meals and get the best restaurants and fix them accordingly
+     *
+     *  @return                 : void
+     *  @places                 : restaurants will be added to the list of places which will be used by the planner
+     */
     private void initRestaurants(List<Place> places) {
         if (!lunch && !dinner) {
             return;
@@ -633,6 +688,11 @@ class Planner {
 
     }
 
+    /* init - Initialize the planner only when the getPlan method is called
+     *
+     *  @return                 : void
+     *  @places                 : places to be visited
+     */
     private void init(List<Place> places) {
         initMatrix();
         initRestaurants(places);
@@ -777,6 +837,7 @@ class Planner {
     /* generateRewards - Generate the rewards
      *
      *  @return                 : void
+     *  @places                 : the rewards will be calculated only for this places
      */
     private void generateRewards(List<Place> places) {
         int dayOfWeek = timeFrame.getOpenDays().get(0);
@@ -815,7 +876,7 @@ class Planner {
         return rewards.get(hour.get(Calendar.HOUR_OF_DAY)).get(current.id).get(next.id);
     }
 
-    /* setHeuristicValue - Setter for the heuristic value
+    /* setHeuristicValue - Set the heuristic value
      *
      *  @return                 : void
      *  @pH                     : the value for the heuristic
@@ -824,7 +885,7 @@ class Planner {
         this.heuristicValue = heuristicValue;
     }
 
-    /* setLunch - Set default lunch interval and duration to include in plan
+    /* setLunch - Set the lunch for the current plan
      *
      *  @return                 : void
      */
@@ -832,7 +893,7 @@ class Planner {
         this.lunch = lunch;
     }
 
-    /* setDinner - Set default dinner interval and duration to include in plan
+    /* setDinner - Set the dinner for the current plan
      *
      *  @return                 : void
      */
@@ -960,7 +1021,7 @@ class Planner {
      *  @return       : the json string which will be sent to user
      *  @plan         : the final plan
      */
-    public static JSONArray serialize(List<List<Place>> plan) {
+    static JSONArray serialize(List<List<Place>> plan) {
         JSONArray response = new JSONArray();
         for (List<Place> itinerary : plan) {
             JSONObject itineraryInfo = new JSONObject();
@@ -981,7 +1042,7 @@ class Planner {
      *
      *  @return       : the serialized place
      */
-    public static JSONObject serialize(Place place) {
+    private static JSONObject serialize(Place place) {
         JSONObject response = new JSONObject();
         response.put("id", place.id);
         response.put("name", place.name);

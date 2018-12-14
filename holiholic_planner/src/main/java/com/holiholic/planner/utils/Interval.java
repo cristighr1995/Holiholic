@@ -42,7 +42,7 @@ public class Interval implements Comparator<Interval> {
      *
      *  @return             : the end calendar (hour)
      */
-    public Calendar getEnd() {
+    Calendar getEnd() {
         return end;
     }
 
@@ -62,14 +62,12 @@ public class Interval implements Comparator<Interval> {
         return closed;
     }
 
-    /* setClosed - Close or open a place in the current interval
-     *             Right now this method only closes a place so be careful!
+    /* setClosed - Close the place in the current interval
      *
      *  @return             : void
-     *  @closed             : true / false
      */
-    public void setClosed(boolean closed) {
-        this.closed = closed;
+    void setClosed() {
+        this.closed = true;
         this.nonStop = false;
     }
 
@@ -281,7 +279,7 @@ public class Interval implements Comparator<Interval> {
         }
         if (isClosed()) {
             Interval closedInterval = new Interval();
-            closedInterval.setClosed(true);
+            closedInterval.setClosed();
             return closedInterval;
         }
         assert (start != null && end != null);

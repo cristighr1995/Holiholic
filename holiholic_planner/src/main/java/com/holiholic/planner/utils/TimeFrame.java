@@ -13,12 +13,12 @@ public class TimeFrame {
     private boolean nonStop = false;
 
     // default constructor creates a non stop place
-    public TimeFrame() {
+    private TimeFrame() {
         this.nonStop = true;
     }
 
     // constructor
-    public TimeFrame(Map<Integer, Interval> intervals) {
+    private TimeFrame(Map<Integer, Interval> intervals) {
         this.intervals = intervals;
     }
 
@@ -30,7 +30,7 @@ public class TimeFrame {
         this.intervals = new HashMap<>();
         for (int dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
             Interval closeInterval = new Interval();
-            closeInterval.setClosed(true);
+            closeInterval.setClosed();
             this.intervals.put(dayOfWeek, closeInterval);
         }
     }
@@ -117,14 +117,6 @@ public class TimeFrame {
         return nonStop;
     }
 
-    /* isBetween - Checks if the hour is fitted in the user visiting interval
-     *
-     *  @return             : true / false
-     */
-    public boolean isBetween(Calendar hour) {
-        return true;
-    }
-
     /* getInterval - Get the interval instance for a specific day
      *
      *  @return             : the interval instance for the given day
@@ -190,7 +182,7 @@ public class TimeFrame {
      *  @return             : the calendar instance of the given hour
      *  @hour               : the serialized hour
      */
-    public static Calendar deserializeHour(String hour) {
+    private static Calendar deserializeHour(String hour) {
         return Interval.getHour(hour);
     }
 
@@ -233,7 +225,7 @@ public class TimeFrame {
         }
         for (int closeDay : closed) {
             Interval closeInterval = new Interval();
-            closeInterval.setClosed(true);
+            closeInterval.setClosed();
             intervals.put(closeDay, closeInterval);
         }
 
