@@ -48,7 +48,7 @@ public class ThreadManager {
      *
      *  @return       : the thread manager instance
      */
-    public static void addTask(Runnable task) {
+    public void addTask(Runnable task) {
         executor.execute(task);
     }
 }

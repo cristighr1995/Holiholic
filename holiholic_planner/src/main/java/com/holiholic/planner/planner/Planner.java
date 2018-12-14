@@ -36,12 +36,11 @@ class Planner {
     // If closer to 0, means the user is interested in maximizing the ratings of the places
     private double heuristicValue;
     // The rewards going from place i to place j at hour h
-    private Map<Integer, Map<Integer, Pair<Integer, Double>>> rewards;
+    private Map<Integer, Map<Integer, Map<Integer, Double>>> rewards;
     private double[][] durationDriving;
     private double[][] durationWalking;
     private double[][] distanceDriving;
     private double[][] distanceWalking;
-    private ThreadManager threadManager;
     private boolean acceptNewTasks = true;
     private int solutionsCount;
     private long startTimeMeasure = 0;
@@ -75,7 +74,6 @@ class Planner {
         this.timeFrame = timeFrame;
         this.heuristicValue = 1;
         this.travelMode = travelMode;
-        this.threadManager = ThreadManager.getInstance();
         setLogger();
     }
 
@@ -574,7 +572,7 @@ class Planner {
         }
     }
 
-    /* submitPlaceToPlanner - Submit a task with each starting point
+    /* createTask - Create a task with each starting point
      *
      *  @return                 : void
      *  @nextPlace              : the place we want to submit
@@ -582,58 +580,43 @@ class Planner {
      *  @currentSolution        : the current solution (like an accumulator)
      *  @fixedPlaces            : a priority queue which contains the fixed places
      */
-    private void submitPlaceToPlanner(Place nextPlace,
-                                      Set<Integer> open,
-                                      List<Place> currentSolution,
-                                      PriorityQueue<Place> fixedPlaces) {
+    private void createTask(Place next, Set<Integer> open, List<Place> solution, PriorityQueue<Place> fixed) {
         try {
-            int currentDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-            // early out if the place is closed
-            if (!nextPlace.openingPeriod.isNonStop() && nextPlace.openingPeriod.isClosed(currentDayOfWeek)) {
+            int dayOfWeek = timeFrame.getOpenDays().get(0);
+            if (!next.timeFrame.isNonStop() && next.timeFrame.isClosed(dayOfWeek)) {
                 return;
             }
 
-            Set<Integer> openCopy = CloneFactory.clone(open);
-            List<Place> currentSolutionCopy = CloneFactory.clone(currentSolution);
-            PriorityQueue<Place> fixedPlacesCopy = CloneFactory.clone(fixedPlaces);
+            List<Place> solutionCopy = CloneFactory.clone(solution);
+            PriorityQueue<Place> fixedCopy = CloneFactory.clone(fixed);
+            Calendar userStartHour = CloneFactory.clone(timeFrame.getInterval(dayOfWeek).getStart());
             Calendar currentHour = null;
-            Calendar userStartHour = CloneFactory.clone(timeFrame.getInterval(currentDayOfWeek).getStart());
+            Place startPlaceCopy = CloneFactory.clone(start);
+            int durationToNext = getDurationFromStart(next);
 
-            try {
-                Place startPlaceCopy = CloneFactory.clone(start);
-                // set the start place the very first hour of the visiting interval
-                startPlaceCopy.plannedHour = CloneFactory.clone(userStartHour);
-                // get the estimated time to reach from start place to next place
-                int timeInSecondsToNextPlace = getDurationFromStart(nextPlace);
-                // add duration to next place
-                userStartHour.add(Calendar.SECOND, timeInSecondsToNextPlace);
+            startPlaceCopy.plannedHour = CloneFactory.clone(userStartHour);
+            userStartHour.add(Calendar.SECOND, durationToNext);
+            startPlaceCopy.durationToNext = durationToNext / 60;
+            startPlaceCopy.distanceToNext = getDistanceFromStart(next);
+            startPlaceCopy.travelMode = travelMode;
+            startPlaceCopy.type = "starting_point";
 
-                startPlaceCopy.durationToNext = timeInSecondsToNextPlace / 60;
-                startPlaceCopy.distanceToNext = getDistanceFromStart(nextPlace);
-                startPlaceCopy.travelMode = travelMode;
-                startPlaceCopy.type = "starting_point";
-
-                // if can plan the place at the start of the interval
-                if (nextPlace.canVisit(userStartHour)) {
-                    currentHour = CloneFactory.clone(userStartHour);
-                } else {
-                    Calendar nextPlaceStartHour = nextPlace.openingPeriod.getInterval(currentDayOfWeek).getStart();
-                    if (timeFrame.isBetween(nextPlaceStartHour)) {
-                        // otherwise we need to start when the place opens
-                        // for example if we can start at 09:00 but the place opens at 11:00, we will start at 11:00
-                        currentHour = CloneFactory.clone(nextPlaceStartHour);
-                    }
+            // place can be visited immediately
+            if (next.canVisit(userStartHour)) {
+                currentHour = userStartHour;
+            } else {
+                Calendar placeStartHour = next.timeFrame.getInterval(dayOfWeek).getStart();
+                if (timeFrame.isBetween(placeStartHour)) {
+                    // start as soon as the place opens
+                    currentHour = CloneFactory.clone(placeStartHour);
                 }
-                if (currentHour != null) {
-                    currentSolutionCopy.add(startPlaceCopy);
+            }
 
-                    // start a new task for each possible next place
-                    Runnable worker = new VisitTask(nextPlace.id, openCopy, currentSolutionCopy, currentHour, 0.0,
-                                                    nextPlace.id, 0, false, false, this, fixedPlacesCopy);
-                    threadManager.addTask(worker);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (currentHour != null) {
+                solutionCopy.add(startPlaceCopy);
+                Runnable worker = new VisitTask(next.id, CloneFactory.clone(open), solutionCopy, currentHour, 0.0,
+                                                next.id, 0, false, false, this, fixedCopy);
+                ThreadManager.getInstance().addTask(worker);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -652,10 +635,10 @@ class Planner {
                 LOGGER.log( Level.FINE, "Accepting tasks for {0} seconds", timeToWait);
                 // wait a time frame
                 Thread.sleep(timeToWait * 1000);
-                LOGGER.log( Level.FINE, "No longer accepting tasks for the city ({0})", city.name);
+                LOGGER.log( Level.FINE, "No longer accepting tasks for the city ({0})", city.getName());
                 // no longer accept tasks
                 acceptNewTasks = false;
-                LOGGER.log( Level.FINE, "Wait for finishing remaining tasks for the city ({0})", city.name);
+                LOGGER.log( Level.FINE, "Wait for finishing remaining tasks for the city ({0})", city.getName());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -704,7 +687,6 @@ class Planner {
     List<List<Place>> getPlan(List<Place> places) {
         init(places);
 
-        List<Place> currentSolution = new ArrayList<>();
         Set<Integer> open = new HashSet<>();
         PriorityQueue<Place> fixed = new PriorityQueue<>((p1, p2) -> {
             Calendar p1Hour = Interval.getHour(p1.fixedAt);
@@ -720,47 +702,45 @@ class Planner {
             }
         }
 
-        // if we have only fixedPlaces
+        // only fixed places
         if (open.isEmpty() && !fixed.isEmpty()) {
-            Place p = CloneFactory.clone(fixed.poll());
-            submitPlaceToPlanner(p, open, currentSolution, fixed);
+            createTask(CloneFactory.clone(fixed.poll()), open, new ArrayList<>(), fixed);
         }
         else {
-            // Sort the places by rating and by the remaining time for visiting
-            placesToPlan.sort((first, second) -> {
-                if (second.rating != first.rating) {
-                    return Double.compare(second.rating, first.rating);
+            // sort descending by rating and by the remaining time for visiting
+            places.sort((p1, p2) -> {
+                if (p2.rating != p1.rating) {
+                    return Double.compare(p2.rating, p1.rating);
                 }
 
-                if (first.isNonStop() && second.isNonStop()) {
+                if (p1.isNonStop() && p2.isNonStop()) {
                     return 0;
-                } else if (first.isNonStop()) {
+                } else if (p1.isNonStop()) {
                     return 1;
-                } else if (second.isNonStop()) {
+                } else if (p2.isNonStop()) {
                     return -1;
                 }
 
-                int day = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-                return Interval.compareIntervals(second.openingPeriod.getInterval(day),
-                                                 first.openingPeriod.getInterval(day));
+                int day = timeFrame.getOpenDays().get(0);
+                return Interval.compareIntervals(p2.timeFrame.getInterval(day), p1.timeFrame.getInterval(day));
             });
 
-            for (Place p : placesToPlan) {
-                if (!open.contains(p.id)) {
+            for (Place place : places) {
+                if (!open.contains(place.id)) {
                     continue;
                 }
-                submitPlaceToPlanner(p, open, currentSolution, fixedPlaces);
+                createTask(place, open, new ArrayList<>(), fixed);
             }
         }
 
         try {
-            awaitTermination(placesToPlan.size());
+            awaitTermination(places.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         LOGGER.log(Level.FINE, "Finished planning for the city ({0}). Number of solutions found: {1}",
-                   new Object[]{city.name, solutionsCount});
+                   new Object[]{city.getName(), solutionsCount});
 
         return sortItineraries();
     }
@@ -828,7 +808,7 @@ class Planner {
      *  @return                 : void
      */
     private void generateRewards(List<Place> places) {
-        int dayOfWeek = timeFrame.getOpenDays().iterator().next();
+        int dayOfWeek = timeFrame.getOpenDays().get(0);
         Calendar movingHour = CloneFactory.clone(timeFrame.getInterval(dayOfWeek).getStart());
         rewards = new HashMap<>();
 
@@ -837,32 +817,31 @@ class Planner {
             rewards.put(movingHour.get(Calendar.HOUR_OF_DAY), new HashMap<>());
 
             for (int i = 0; i < places.size(); i++) {
-                for (int j = i + 1; j < places.size(); j++) {
-                    Place current = places.get(i);
+                Place current = places.get(i);
+                rewards.get(movingHour.get(Calendar.HOUR_OF_DAY)).put(current.id, new HashMap<>());
+
+                for (int j = 0; j < places.size(); j++) {
+                    if (i == j) {
+                        continue;
+                    }
+
                     Place next = places.get(j);
                     double reward = evaluateReward(current, next, movingHour);
-                    double inverseReward = evaluateReward(next, current, movingHour);
-
-                    rewards.get(movingHour.get(Calendar.HOUR_OF_DAY)).put(current.id, new Pair<>(next.id, reward));
-                    rewards.get(movingHour.get(Calendar.HOUR_OF_DAY)).put(next.id, new Pair<>(current.id, inverseReward));
+                    rewards.get(movingHour.get(Calendar.HOUR_OF_DAY)).get(current.id).put(next.id, reward);
                 }
             }
         }
     }
 
-    /* getReward - Get the cached reward between two places at a given hour
+    /* getReward - Get the reward for going from current place to the next place at the specified hour
      *
-     *  @return                 : the cached reward for going from current place to next place at that hour
-     *                            considering also the minutes left for visiting the next place
-     *  @currentPlace           : the current place used as a reference
-     *  @nextPlace              : the place where the user can go
-     *  @hour                   : the current hour for visiting the current place
+     *  @return                 : the reward
+     *  @current                : the current place
+     *  @next                   : the next place
+     *  @hour                   : the current hour
      */
-    private double getReward(Place currentPlace, Place nextPlace, Calendar hour) {
-        int cid = currentPlace.id;
-        int nid = nextPlace.id;
-        int hourIdx = hour.get(Calendar.HOUR_OF_DAY);
-        return rewards[cid][nid][hourIdx];
+    private double getReward(Place current, Place next, Calendar hour) {
+        return rewards.get(hour.get(Calendar.HOUR_OF_DAY)).get(current.id).get(next.id);
     }
 
     /* setHeuristicValue - Setter for the heuristic value
@@ -1065,9 +1044,6 @@ class Planner {
         for (Place place : itinerary) {
             timeSpentForPlace = 0;
             timeSpentForPlace += place.durationVisit;
-            if (place.parkHere) {
-                timeSpentForPlace += place.parkTime;
-            }
             timeSpentForPlace += place.durationToNext;
             totalTimeSpent += timeSpentForPlace;
         }
