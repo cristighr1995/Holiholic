@@ -64,6 +64,11 @@ public class DatabaseManager {
         }
     }
 
+    /* getPlaces - Get the places from the database making a HTTP GET and deserialize places
+     *
+     *  @return             : places
+     *  @url                : the url for the GET request
+     */
     private static Map<Integer, Place> getPlaces(String url) {
         try {
             String rawPlaces = getContentFromURL(url);
@@ -74,13 +79,18 @@ public class DatabaseManager {
         }
     }
 
+    /* deserializePlaces - Deserialize places from raw string format
+     *
+     *  @return             : places
+     *  @rawPlaces          : raw string (json) containing places information
+     */
     private static Map<Integer, Place> deserializePlaces(String rawPlaces) {
         try {
             JSONArray placesArray = new JSONArray(rawPlaces);
             Map<Integer, Place> places = new HashMap<>();
 
             for (int i = 0; i < placesArray.length(); i++) {
-                Place place = Place.deserializeStart(placesArray.getJSONObject(i));
+                Place place = Place.deserialize(placesArray.getJSONObject(i));
                 if (place == null) {
                     continue;
                 }
@@ -94,6 +104,11 @@ public class DatabaseManager {
         }
     }
 
+    /* serializePlaces - Serialize a list of places to be sent over network
+     *
+     *  @return             : serialized places into a json array format
+     *  @places             : list of places to be serialized
+     */
     private static JSONArray serializePlaces(List<Place> places) {
         JSONArray serializedPlaces = new JSONArray();
 
@@ -104,6 +119,13 @@ public class DatabaseManager {
         return serializedPlaces;
     }
 
+    /* filterPlaces - Filter places from a city that can visited in the allocated time frame and have specific tags
+     *
+     *  @return             : filtered places ready to be sent over network
+     *  @city               : the city instance
+     *  @tags               : desired tags
+     *  @timeFrame          : the time frame to search for open places
+     */
     private static JSONArray filterPlaces(City city, Set<String> tags, TimeFrame timeFrame) {
         return serializePlaces(city.getSortedPlaces(city.getOpenPlaces(city.getFilteredPlaces(tags), timeFrame)));
     }
@@ -153,7 +175,7 @@ public class DatabaseManager {
         }
     }
 
-    /* getCity - Returns the instance of the city and constructs it only the first time
+    /* getCity - Returns the instance of the city
      *
      *  @return       : a city instance
      *  @cityName     : the city where the user wants to go/to visit
@@ -170,7 +192,7 @@ public class DatabaseManager {
      *  @return       : true or false
      *  @cityName     : the city where the user wants to go/to visit
      */
-    public static boolean isCityCached(String cityName) {
+    private static boolean isCityCached(String cityName) {
         return cities.containsKey(cityName);
     }
 
@@ -289,6 +311,13 @@ public class DatabaseManager {
         }
     }
 
+    /* getMatrix - Get and deserialize matrix from the database
+     *
+     *  @return             : matrix
+     *  @cityName           : city instance
+     *  @travelMode         : driving or walking
+     *  @travelInfo         : duration or distance
+     */
     public static double[][] getMatrix(String cityName, Enums.TravelMode travelMode, Enums.TravelInfo travelInfo) {
         String url = Constants.GET_MATRIX_URL
                      + "?city=" + cityName

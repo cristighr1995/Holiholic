@@ -50,7 +50,7 @@ public class Place implements Comparable<Place> {
     }
 
     private Place(int id, String name, GeoPosition location, int durationVisit, double rating, TimeFrame timeFrame,
-                 String imageUrl, String vicinity, String phone, Set<String> tags, String type) {
+                  String imageUrl, String vicinity, String phone, Set<String> tags, String type) {
         this.id = id;
         this.name = name;
         this.location = location;
@@ -151,6 +151,11 @@ public class Place implements Comparable<Place> {
         return p1Hour.compareTo(p2Hour);
     }
 
+    /* serialize - Serialize the place into a json object format
+     *             This is general information about a place
+     *
+     *  @return       : the serialized place
+     */
     public JSONObject serialize() {
         JSONObject serializedPlace = new JSONObject();
         serializedPlace.put("id", id);
@@ -168,7 +173,7 @@ public class Place implements Comparable<Place> {
         return serializedPlace;
     }
 
-    /* serializeTags - Serialize the tags into a json format for network
+    /* serializeTags - Serialize the tags into a json format
      *
      *  @return       : the serialized tags
      */
@@ -189,7 +194,7 @@ public class Place implements Comparable<Place> {
     /* deserializeStart - Creates an internal representation of the start place that the user chose
      *
      *  @return             : the start place
-     *  @startPlace         : the json that the user sent
+     *  @place              : information about the start place
      */
     public static Place deserializeStart(JSONObject place) {
         try {
@@ -204,7 +209,12 @@ public class Place implements Comparable<Place> {
         }
     }
 
-    private static Place deserialize(JSONObject place) {
+    /* deserialize - Creates an internal representation of a place in json format
+     *
+     *  @return             : the place
+     *  @place              : information about the place
+     */
+    public static Place deserialize(JSONObject place) {
         try {
             int id = place.getInt("id");
             String name = place.getString("name");
