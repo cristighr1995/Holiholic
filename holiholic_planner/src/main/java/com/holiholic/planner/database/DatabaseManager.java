@@ -4,11 +4,8 @@ import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
-import com.holiholic.planner.update.action.Action;
-import com.holiholic.planner.update.action.ActionFactory;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -78,7 +75,23 @@ public class DatabaseManager {
     }
 
     private static Map<Integer, Place> deserializePlaces(String rawPlaces) {
-        return null;
+        try {
+            JSONArray placesArray = new JSONArray(rawPlaces);
+            Map<Integer, Place> places = new HashMap<>();
+
+            for (int i = 0; i < placesArray.length(); i++) {
+                Place place = Place.deserializeStart(placesArray.getJSONObject(i));
+                if (place == null) {
+                    continue;
+                }
+                places.put(place.id, place);
+            }
+
+            return places;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static JSONArray serializePlaces(List<Place> places) {
@@ -208,9 +221,7 @@ public class DatabaseManager {
         try {
             String cityName = body.getString("city");
             String uid = body.getString("uid");
-
-            LOGGER.log(Level.FINE, "New request from user {0} to save itinerary from {1} city",
-                       new Object[]{uid, cityName});
+            LOGGER.log(Level.FINE, "User {0} wants to save itinerary from {1} city", new Object[]{uid, cityName});
             return postContentToURL(body, Constants.UPDATE_HISTORY_URL);
         } catch (Exception e) {
             e.printStackTrace();
@@ -265,11 +276,13 @@ public class DatabaseManager {
     public static boolean updatePlanner(JSONObject body) {
         try {
             if (!isKeyAuthorized(body.getString("accessKey"))) {
+                LOGGER.log(Level.FINE, "Unauthorized key to update planner database");
                 return false;
             }
-
-            Action action = ActionFactory.getAction(body);
-            return action.execute();
+            String operation = body.getString("operation");
+            String cityName = body.getString("city");
+            LOGGER.log(Level.FINE, "New request to update {0} database for {1} city", new Object[]{operation, cityName});
+            return postContentToURL(body, Constants.UPDATE_PLANNER_URL);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
