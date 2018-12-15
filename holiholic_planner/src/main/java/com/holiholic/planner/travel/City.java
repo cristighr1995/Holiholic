@@ -264,7 +264,7 @@ public class City {
         PriorityQueue<Place> pq = new PriorityQueue<>(Comparator.comparingDouble(p -> p.rating));
 
         for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
-            if (placeEntry.getValue().canVisit(hour)) {
+            if (placeEntry.getValue().type.equals("restaurant") && placeEntry.getValue().canVisit(hour)) {
                 if (pq.size() < limit) {
                     pq.add(placeEntry.getValue());
 
