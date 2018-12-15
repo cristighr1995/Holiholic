@@ -69,7 +69,7 @@ public class DatabaseManager {
      *  @return             : places
      *  @url                : the url for the GET request
      */
-    private static Map<Integer, Place> getPlaces(String url) {
+    public static Map<Integer, Place> getPlaces(String url) {
         try {
             String rawPlaces = getContentFromURL(url);
             return deserializePlaces(rawPlaces);
@@ -161,7 +161,7 @@ public class DatabaseManager {
                 return filterPlaces(cities.get(cityName), tags, period).toString(2);
             }
 
-            String url = Constants.GET_PLACES_URL + "?city=" + cityName + "&uid=" + uid;
+            String url = Constants.GET_PLACES_URL + "?city=" + cityName;
             Map<Integer, Place> places = getPlaces(url);
 
             City city = City.getInstance(cityName);
@@ -187,12 +187,21 @@ public class DatabaseManager {
         return null;
     }
 
+    /* cacheCity - Stores in cache a new or updated city
+     *
+     *  @return         : void
+     *  @city           : the city instance
+     */
+    static void cacheCity(City city) {
+        cities.put(city.getName(), city);
+    }
+
     /* isCityCached - Checks if the city instance is cached
      *
      *  @return       : true or false
      *  @cityName     : the city where the user wants to go/to visit
      */
-    private static boolean isCityCached(String cityName) {
+    static boolean isCityCached(String cityName) {
         return cities.containsKey(cityName);
     }
 
@@ -257,7 +266,7 @@ public class DatabaseManager {
      *  @body               : the body of the HTTP POST request
      *  @strUrl             : the url for the HTTP POST request
      */
-    private static boolean postContentToURL(JSONObject body, String strUrl) {
+    static boolean postContentToURL(JSONObject body, String strUrl) {
         try {
             StringEntity entity = new StringEntity(body.toString(2),
                                                    ContentType.APPLICATION_JSON);
@@ -301,10 +310,17 @@ public class DatabaseManager {
                 LOGGER.log(Level.FINE, "Unauthorized key to update planner database");
                 return false;
             }
-            String operation = body.getString("operation");
+            String type = body.getString("type");
             String cityName = body.getString("city");
-            LOGGER.log(Level.FINE, "New request to update {0} database for {1} city", new Object[]{operation, cityName});
-            return postContentToURL(body, Constants.UPDATE_PLANNER_URL);
+            LOGGER.log(Level.FINE, "New request to update {0} database for {1} city", new Object[]{type, cityName});
+
+            UpdateAction action = UpdateAction.Factory.getInstance(type);
+            if (action == null) {
+                LOGGER.log(Level.FINE, "Invalid type to update the database");
+                return false;
+            }
+
+            return action.execute(body);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
