@@ -356,7 +356,8 @@ class Planner {
                         long estimatedTime = System.nanoTime() - startTimeMeasure;
                         double seconds = (double) estimatedTime / 1000000000.0;
                         StringBuilder logMessage = new StringBuilder();
-                        logMessage.append("New solution found in " + seconds + " seconds having " + score + " score\n");
+                        logMessage.append("New solution found in ").append(seconds).append(" seconds having ")
+                                  .append(score).append(" score\n");
                         logMessage.append("Itinerary:\n");
                         for (Place place : itinerary) {
                             logMessage.append(serialize(place).toString()).append("\n");
@@ -973,7 +974,7 @@ class Planner {
         }
 
         long totalTimeSpent = 0;
-        long timeSpentForPlace = 0;
+        long timeSpentForPlace;
 
         for (Place place : itinerary) {
             timeSpentForPlace = 0;
