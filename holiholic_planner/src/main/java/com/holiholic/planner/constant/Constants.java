@@ -13,11 +13,12 @@ public class Constants {
     public final static String UPDATE_ACCESS_KEY_PATH = System.getProperty("user.dir") + "/apis/admin_key.txt";
 
     // Urls
-    public final static String CONTAINS_USER_URL = "http://localhost:8092/containsUser";
-    public final static String UPDATE_HISTORY_URL = "http://localhost:8092/updateHistory";
-    public final static String GET_PLACES_URL = "http://localhost:8092/getPlaces";
-    public final static String GET_MATRIX_URL = "http://localhost:8092/getMatrix";
-    public final static String UPDATE_PLANNER_URL = "http://localhost:8092/updatePlanner";
+    private final static String DATABASE_URL = "http://localhost:8092/";
+    public final static String CONTAINS_USER_URL = DATABASE_URL + "containsUser";
+    public final static String UPDATE_HISTORY_URL = DATABASE_URL + "updateHistory";
+    public final static String GET_PLACES_URL = DATABASE_URL + "getPlaces";
+    public final static String GET_MATRIX_URL = DATABASE_URL + "getMatrix";
+    public final static String UPDATE_PLANNER_URL = DATABASE_URL + "updatePlanner";
 
     public final static Calendar DEFAULT_LUNCH_HOUR = Interval.getHour(13, 0, 0);
     public final static Calendar DEFAULT_DINNER_HOUR = Interval.getHour(19, 0, 0);
@@ -29,5 +30,4 @@ public class Constants {
     public final static double WALKING_ADJUST_COEFFICIENT = 2.0;
     public final static double ESTIMATED_DRIVING_VELOCITY = 20;     // in kilometers / hour
     public final static double ESTIMATED_WALKING_VELOCITY = 6;
-    public final static int RESTAURANTS_SEARCH_RADIUS = 500;        // in meters
 }
