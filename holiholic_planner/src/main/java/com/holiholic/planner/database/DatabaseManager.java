@@ -69,7 +69,7 @@ public class DatabaseManager {
      *  @return             : places
      *  @url                : the url for the GET request
      */
-    public static Map<Integer, Place> getPlaces(String url) {
+    static Map<Integer, Place> getPlaces(String url) {
         try {
             String rawPlaces = getContentFromURL(url);
             return deserializePlaces(rawPlaces);
