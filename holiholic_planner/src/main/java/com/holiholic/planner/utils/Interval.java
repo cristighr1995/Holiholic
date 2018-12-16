@@ -2,7 +2,6 @@ package com.holiholic.planner.utils;
 
 import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
