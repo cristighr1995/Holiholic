@@ -102,8 +102,12 @@ public class City {
         Map<Integer, Place> filteredPlaces = new HashMap<>();
 
         for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
-            for (String tag : tags) {
-                if (placeEntry.getValue().tags.contains(tag)) {
+            if (placeEntry.getValue().tags == null) {
+                continue;
+            }
+
+            for (String tag : placeEntry.getValue().tags) {
+                if (tags.contains(tag)) {
                     filteredPlaces.put(placeEntry.getKey(), placeEntry.getValue());
                     break;
                 }
