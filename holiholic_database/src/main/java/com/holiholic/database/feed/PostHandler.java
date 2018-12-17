@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 /* PostHandler - Handle operations for a post item
  *
  */
-public class PostHandler extends Feed implements IFeedEditable, IDatabaseQueries {
+public class PostHandler extends Feed implements IFeedEditable {
     private static final Logger LOGGER = Logger.getLogger(PostHandler.class.getName());
     private final String path;
     private final String city;

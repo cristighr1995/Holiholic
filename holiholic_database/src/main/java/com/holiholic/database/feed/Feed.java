@@ -1,5 +1,6 @@
 package com.holiholic.database.feed;
 
+import com.holiholic.database.database.IDatabaseOperations;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.holiholic.database.database.DatabaseManager;
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
 /* Feed - Handle the questions, guides and posts operations (is abstract!)
  *
  */
-public abstract class Feed {
+public abstract class Feed implements IDatabaseOperations {
     private Logger LOGGER;
 
     /* Factory - Creates object for PostHandler or QuestionHandler
@@ -437,7 +438,9 @@ public abstract class Feed {
      *
      *  @return             : success or not
      */
-    public abstract boolean add();
+    boolean add() {
+        return true;
+    }
 
     /* add - Adds a new feed item (this is the actual implementation)
      *
