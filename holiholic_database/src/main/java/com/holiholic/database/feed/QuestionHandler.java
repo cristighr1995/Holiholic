@@ -2,38 +2,39 @@ package com.holiholic.database.feed;
 
 import com.holiholic.database.constant.Constants;
 import org.json.JSONObject;
-
 import java.util.logging.Logger;
 
-/* Guide - Handle operations for a guide item
+/* QuestionHandler - Handle operations for a question item
  *
  */
-public class Guide extends Feed implements IFeedEditable {
-    private static final Logger LOGGER = Logger.getLogger(Guide.class.getName());
+public class QuestionHandler extends Feed implements IFeedEditable {
+    private static final Logger LOGGER = Logger.getLogger(QuestionHandler.class.getName());
     private final String path;
     private final String city;
     private final String idField;
     private final String type;
     private final JSONObject body;
 
-    Guide(String city, JSONObject body) {
+    QuestionHandler(String city, JSONObject body) {
         this.city = city;
         this.body = body;
-        path = Constants.GUIDES_DB_PATH;
-        idField = "gid";
-        type = "guide";
+        path = Constants.QUESTIONS_DB_PATH;
+        idField = "qid";
+        type = "question";
         setLogger(LOGGER);
         initDatabaseFile();
     }
 
     @Override
-    public boolean add(JSONObject body) {
-        return add();
+    public void add() {
     }
 
     @Override
-    public boolean remove(JSONObject body) {
-        return remove();
+    public void remove() {
+    }
+
+    @Override
+    public void edit() {
     }
 
     @Override

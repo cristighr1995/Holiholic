@@ -1,8 +1,9 @@
 package com.holiholic.database.feed;
 
+import com.holiholic.database.database.IDatabaseOperations;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.holiholic.database.DatabaseManager;
+import com.holiholic.database.database.DatabaseManager;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,14 +14,14 @@ import java.util.logging.Logger;
 /* Feed - Handle the questions, guides and posts operations (is abstract!)
  *
  */
-public abstract class Feed {
+public abstract class Feed implements IDatabaseOperations {
     private Logger LOGGER;
 
-    /* Factory - Creates object for Post or Question
+    /* Factory - Creates object for PostHandler or QuestionHandler
      *
      */
     public static class Factory {
-        /* getInstance - Returns a new instance of a Post or Question
+        /* getInstance - Returns a new instance of a PostHandler or QuestionHandler
          *
          *  @return             : a new Feed instance
          *  @city               : where
@@ -30,13 +31,13 @@ public abstract class Feed {
         public static Feed getInstance(String city, String type, JSONObject body) {
             switch (type) {
                 case "post":
-                    return new Post(city, body);
+                    return new PostHandler(body);
                 case "question":
-                    return new Question(city, body);
+                    return new QuestionHandler(city, body);
                 case "guide":
-                    return new Guide(city, body);
-                case "guideProfile":
-                    return new GuideProfile(city, body);
+                    return new GuideHandler(city, body);
+                case "review":
+                    return new GuideProfileHandler(city, body);
                 default:
                     return null;
             }
@@ -168,7 +169,7 @@ public abstract class Feed {
      *  @uid                : current user id
      *  @path               : the database path
      *  @city               : the requested city
-     *  @type               : guideProfile
+     *  @type               : review
      *  @LOGGER             : logger to print useful information
      */
     public static JSONObject getGuideProfile(String uid,
@@ -177,12 +178,12 @@ public abstract class Feed {
                                              String type,
                                              Logger LOGGER) {
         try {
-            JSONObject guideProfile = fetch(path, city);
-            JSONArray guidePosts = getFeed(uid, city, type, LOGGER, guideProfile.getJSONObject(type));
+            JSONObject review = fetch(path, city);
+            JSONArray guidePosts = getFeed(uid, city, type, LOGGER, review.getJSONObject(type));
 
             JSONObject result = new JSONObject();
             result.put("guidePosts", guidePosts);
-            result.put("likes", guideProfile.getJSONObject("likes"));
+            result.put("likes", review.getJSONObject("likes"));
 
             return result;
         } catch (Exception e) {
@@ -437,110 +438,112 @@ public abstract class Feed {
      *
      *  @return             : success or not
      */
-    public abstract boolean add(JSONObject body);
+//    boolean add() {
+//        return true;
+//    }
 
     /* add - Adds a new feed item (this is the actual implementation)
      *
      *  @return             : success or not
      */
-    boolean add() {
-        String uidAuthor = getBody().getString("uidAuthor");
-        if (!containsUser(uidAuthor)) {
-            return false;
-        }
+//    public boolean add() {
+//        String uidAuthor = getBody().getString("uidAuthor");
+//        if (!containsUser(uidAuthor)) {
+//            return false;
+//        }
+//
+//        // create the body which is saved in the database
+//        JSONObject entity = createDatabaseEntity(getBody(), getIdField());
+//
+//        LOGGER.log(Level.FINE, "User {0} wants to add a {1} in {2} city",
+//                   new Object[]{uidAuthor, getType(), getCity()});
+//
+//        try {
+//            synchronized (DatabaseManager.class) {
+//                JSONObject feed = fetch(getPath(), getCity());
+//                int count = feed.getInt(getType() + "Count");
+//                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
+//                userFeed.put(entity.getString(getIdField()), entity);
+//                feed.put(getType() + "Count", ++count);
+//                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
+//                return saveFeed(getPath(), getCity(), feed);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
-        // create the body which is saved in the database
-        JSONObject entity = createDatabaseEntity(getBody(), getIdField());
+//    /* remove - Remove a feed item (is abstract)
+//     *
+//     *  @return             : success or not
+//     */
+//    public abstract boolean remove(JSONObject body);
+//
+//    /* remove - Remove a feed item (this is the actual implementation)
+//     *
+//     *  @return             : success or not
+//     */
+//    boolean remove() {
+//        try {
+//            synchronized (DatabaseManager.class) {
+//                JSONObject feed = fetch(getPath(), getCity());
+//                int count = feed.getInt(getType() + "Count");
+//                String uidCurrent = getBody().getString("uidCurrent");
+//                String uidAuthor = getBody().getString("uidAuthor");
+//                String id = getBody().getString(getIdField());
+//
+//                LOGGER.log(Level.FINE, "User {0} wants to remove {1} with id {2} from {3} city",
+//                           new Object[]{uidCurrent, getType(), id, getCity()});
+//
+//                if (!uidCurrent.equals(uidAuthor)) {
+//                    return false;
+//                }
+//
+//                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
+//                if (!userFeed.has(id)) {
+//                    return true;
+//                }
+//
+//                userFeed.remove(id);
+//                feed.put(getType() + "Count", --count);
+//                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
+//
+//                return saveFeed(getPath(), getCity(), feed);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
-        LOGGER.log(Level.FINE, "User {0} wants to add a {1} in {2} city",
-                   new Object[]{uidAuthor, getType(), getCity()});
-
-        try {
-            synchronized (DatabaseManager.class) {
-                JSONObject feed = fetch(getPath(), getCity());
-                int count = feed.getInt(getType() + "Count");
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
-                userFeed.put(entity.getString(getIdField()), entity);
-                feed.put(getType() + "Count", ++count);
-                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
-                return saveFeed(getPath(), getCity(), feed);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /* remove - Remove a feed item (is abstract)
-     *
-     *  @return             : success or not
-     */
-    public abstract boolean remove(JSONObject body);
-
-    /* remove - Remove a feed item (this is the actual implementation)
-     *
-     *  @return             : success or not
-     */
-    boolean remove() {
-        try {
-            synchronized (DatabaseManager.class) {
-                JSONObject feed = fetch(getPath(), getCity());
-                int count = feed.getInt(getType() + "Count");
-                String uidCurrent = getBody().getString("uidCurrent");
-                String uidAuthor = getBody().getString("uidAuthor");
-                String id = getBody().getString(getIdField());
-
-                LOGGER.log(Level.FINE, "User {0} wants to remove {1} with id {2} from {3} city",
-                           new Object[]{uidCurrent, getType(), id, getCity()});
-
-                if (!uidCurrent.equals(uidAuthor)) {
-                    return false;
-                }
-
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
-                if (!userFeed.has(id)) {
-                    return true;
-                }
-
-                userFeed.remove(id);
-                feed.put(getType() + "Count", --count);
-                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
-
-                return saveFeed(getPath(), getCity(), feed);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /* edit - Edit a feed item
-     *
-     *  @return             : success or not
-     *  @body               : the network body request
-     */
-    public boolean edit(JSONObject body) {
-        try {
-            JSONObject editField = body.getJSONObject("editField");
-            assert editField.length() == 1;
-            String field = editField.keys().next();
-            FeedEditHandler feedEditHandler = new FeedEditHandler(this);
-
-            switch (field) {
-                case "title":
-                    return feedEditHandler.editTitle(body, editField.getString(field));
-                case "comments":
-                    return feedEditHandler.editComment(body, editField.getJSONObject(field));
-                case "likes":
-                    return feedEditHandler.editLikes(body, editField.getJSONObject(field));
-                default:
-                    return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    /* edit - Edit a feed item
+//     *
+//     *  @return             : success or not
+//     *  @body               : the network body request
+//     */
+//    public boolean edit(JSONObject body) {
+//        try {
+//            JSONObject editField = body.getJSONObject("editField");
+//            assert editField.length() == 1;
+//            String field = editField.keys().next();
+//            FeedEditHandler feedEditHandler = new FeedEditHandler(this);
+//
+//            switch (field) {
+//                case "title":
+//                    return feedEditHandler.editTitle(body, editField.getString(field));
+//                case "comments":
+//                    return feedEditHandler.editComment(body, editField.getJSONObject(field));
+//                case "likes":
+//                    return feedEditHandler.editLikes(body, editField.getJSONObject(field));
+//                default:
+//                    return false;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
     /* editTitle - Edit the title of a feed item (is abstract)
      *
@@ -602,7 +605,7 @@ public abstract class Feed {
      *  @editField          : contains information about the operation parameters
      */
     boolean editComment(JSONObject editField) {
-        Comment comment = new Comment(this);
+        CommentHandler comment = new CommentHandler(this);
         try {
             switch (editField.getString("operation")) {
                 case "add":
