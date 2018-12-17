@@ -1,24 +1,23 @@
 package com.holiholic.database.feed;
 
-import com.holiholic.database.DatabaseManager;
+import com.holiholic.database.database.DatabaseManager;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/* GuideProfile - Handle operations for a guide profile
+/* GuideProfileHandler - Handle operations for a guide profile
  *
  */
-public class GuideProfile extends Feed implements IFeedEditable {
-    private static final Logger LOGGER = Logger.getLogger(GuideProfile.class.getName());
+public class GuideProfileHandler extends Feed {
+    private static final Logger LOGGER = Logger.getLogger(GuideProfileHandler.class.getName());
     private String path;
     private final String city;
     private final String idField;
     private final String type;
     private final JSONObject body;
 
-    GuideProfile(String city, JSONObject body) {
+    GuideProfileHandler(String city, JSONObject body) {
         this.city = city;
         this.body = body;
         if (body.has("uidGuide")) {
@@ -40,13 +39,15 @@ public class GuideProfile extends Feed implements IFeedEditable {
     }
 
     @Override
-    public boolean add(JSONObject body) {
-        return add();
+    public void add() {
     }
 
     @Override
-    public boolean remove(JSONObject body) {
-        return remove();
+    public void remove() {
+    }
+
+    @Override
+    public void edit() {
     }
 
     @Override
