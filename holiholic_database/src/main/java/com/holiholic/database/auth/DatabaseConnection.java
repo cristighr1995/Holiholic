@@ -11,11 +11,11 @@ import java.sql.SQLException;
 public class DatabaseConnection {
     private static Connection connection;
 
-    private static DbCredentials getDbCredentials() {
+    private static DatabaseCredentials getDbCredentials() {
         ObjectMapper objectMapper = new ObjectMapper();
-        DbCredentials credentials = null;
+        DatabaseCredentials credentials = null;
         try {
-            credentials = objectMapper.readValue(new File("db/auth/dbCredentials.json"), DbCredentials.class);
+            credentials = objectMapper.readValue(new File("db/auth/dbCredentials.json"), DatabaseCredentials.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -24,10 +24,9 @@ public class DatabaseConnection {
     }
 
     private static void init() {
-        DbCredentials credentials = getDbCredentials();
+        DatabaseCredentials credentials = getDbCredentials();
         try {
             Class.forName(credentials.getJdbcDriver());
-            System.out.println("Connecting to database...");
             connection = DriverManager.getConnection(credentials.getDbUrl(),
                                                     credentials.getUsername(),
                                                     credentials.getPassword());

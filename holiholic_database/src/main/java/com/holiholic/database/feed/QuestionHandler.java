@@ -26,13 +26,15 @@ public class QuestionHandler extends Feed implements IFeedEditable {
     }
 
     @Override
-    public boolean add(JSONObject body) {
-        return add();
+    public void add() {
     }
 
     @Override
-    public boolean remove(JSONObject body) {
-        return remove();
+    public void remove() {
+    }
+
+    @Override
+    public void edit() {
     }
 
     @Override

@@ -1,34 +1,33 @@
 package com.holiholic.database.feed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.holiholic.database.database.DatabaseOperations;
 import com.holiholic.database.constant.Constants;
 import com.holiholic.database.dataStructures.Post;
+import com.holiholic.database.database.DatabaseManager;
+import com.holiholic.database.database.Query;
 import org.json.JSONObject;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 
 /* PostHandler - Handle operations for a post item
  *
  */
-public class PostHandler extends Feed implements IFeedEditable {
+public class PostHandler extends Feed {
     private static final Logger LOGGER = Logger.getLogger(PostHandler.class.getName());
-    private final String path;
-    private final String city;
-    private final String idField;
-    private final String type;
+    private static final String TABLE_NAME = "holiholicdb.Posts";
     private final JSONObject body;
     private Post post;
 
-    PostHandler(String city, JSONObject body) {
-        this.city = city;
+    PostHandler(JSONObject body) {
+        body.remove("operation");
+        body.remove("type");
         this.body = body;
-        path = Constants.POSTS_DB_PATH;
-        idField = "pid";
-        type = "post";
         setLogger(LOGGER);
-        initDatabaseFile();
     }
 
     private void unmarshal() {
@@ -41,35 +40,29 @@ public class PostHandler extends Feed implements IFeedEditable {
     }
 
     @Override
-    public boolean add() {
+    public void add() {
         unmarshal();
-        // cache
-
-        // db task
-        String sql = generateInsertQuery();
-        try {
-            DatabaseOperations.insert(sql);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return  false;
-        }
-
-        return true;
+        post.setPid(DatabaseManager.generateMD5(post.toString()));
+        Query.insert(TABLE_NAME, getValuesList());
     }
 
-    private String generateInsertQuery() {
+    private List<String> getValuesList() {
+        List<String> values = new ArrayList<>();
+        values.add("\"" + post.getPid() + "\"");
+        values.add("\"" + post.getTimestamp() + "\"");
+        values.add("\"" + post.getCity() + "\"");
+        values.add("\"" + post.getUidAuthor() + "\"");
+        values.add("\"" + post.getContent() + "\"");
 
-        StringBuilder sb = new StringBuilder();
-        String sql;
-        sql = "INSERT into holiholicdb.Employees values (105, 1555, \"cristi\", \"ghr\");";
-        sb.append("INSERT into holiholicdb.Posts values (");
-        sb.append()
-
+        return values;
     }
 
     @Override
-    public boolean remove(JSONObject body) {
-        return remove();
+    public void remove() {
+    }
+
+    @Override
+    public void edit() {
     }
 
     @Override
@@ -89,27 +82,39 @@ public class PostHandler extends Feed implements IFeedEditable {
         return editLikes(operation, react);
     }
 
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public String getCity() {
-        return city;
-    }
-
-    @Override
-    public String getIdField() {
-        return idField;
-    }
-
-    @Override
-    public String getType() {
-        return type;
-    }
-
     public JSONObject getBody() {
         return body;
     }
+    /* getCity - Get the city for the current feed
+     *
+     *  @return             : the city name for the current feed
+     */
+    protected  String getCity() {
+        return null;
+    }
+
+    /* getPath - Get the database path for the current feed
+     *
+     *  @return             : the database path for the current feed
+     */
+    protected  String getPath(){
+        return null;
+    }
+
+    /* getIdField - Get the field id for the current feed
+     *
+     *  @return             : qid or pid
+     */
+    protected  String getIdField() {
+        return null;
+    }
+
+    /* getType - Get the type for the current feed
+     *
+     *  @return             : question or post
+     */
+    protected  String getType(){
+        return null;
+    }
+
 }

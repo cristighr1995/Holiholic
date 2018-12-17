@@ -31,7 +31,7 @@ public abstract class Feed implements IDatabaseOperations {
         public static Feed getInstance(String city, String type, JSONObject body) {
             switch (type) {
                 case "post":
-                    return new PostHandler(city, body);
+                    return new PostHandler(body);
                 case "question":
                     return new QuestionHandler(city, body);
                 case "guide":
@@ -438,9 +438,9 @@ public abstract class Feed implements IDatabaseOperations {
      *
      *  @return             : success or not
      */
-    boolean add() {
-        return true;
-    }
+//    boolean add() {
+//        return true;
+//    }
 
     /* add - Adds a new feed item (this is the actual implementation)
      *
@@ -474,76 +474,76 @@ public abstract class Feed implements IDatabaseOperations {
 //        }
 //    }
 
-    /* remove - Remove a feed item (is abstract)
-     *
-     *  @return             : success or not
-     */
-    public abstract boolean remove(JSONObject body);
+//    /* remove - Remove a feed item (is abstract)
+//     *
+//     *  @return             : success or not
+//     */
+//    public abstract boolean remove(JSONObject body);
+//
+//    /* remove - Remove a feed item (this is the actual implementation)
+//     *
+//     *  @return             : success or not
+//     */
+//    boolean remove() {
+//        try {
+//            synchronized (DatabaseManager.class) {
+//                JSONObject feed = fetch(getPath(), getCity());
+//                int count = feed.getInt(getType() + "Count");
+//                String uidCurrent = getBody().getString("uidCurrent");
+//                String uidAuthor = getBody().getString("uidAuthor");
+//                String id = getBody().getString(getIdField());
+//
+//                LOGGER.log(Level.FINE, "User {0} wants to remove {1} with id {2} from {3} city",
+//                           new Object[]{uidCurrent, getType(), id, getCity()});
+//
+//                if (!uidCurrent.equals(uidAuthor)) {
+//                    return false;
+//                }
+//
+//                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
+//                if (!userFeed.has(id)) {
+//                    return true;
+//                }
+//
+//                userFeed.remove(id);
+//                feed.put(getType() + "Count", --count);
+//                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
+//
+//                return saveFeed(getPath(), getCity(), feed);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
-    /* remove - Remove a feed item (this is the actual implementation)
-     *
-     *  @return             : success or not
-     */
-    boolean remove() {
-        try {
-            synchronized (DatabaseManager.class) {
-                JSONObject feed = fetch(getPath(), getCity());
-                int count = feed.getInt(getType() + "Count");
-                String uidCurrent = getBody().getString("uidCurrent");
-                String uidAuthor = getBody().getString("uidAuthor");
-                String id = getBody().getString(getIdField());
-
-                LOGGER.log(Level.FINE, "User {0} wants to remove {1} with id {2} from {3} city",
-                           new Object[]{uidCurrent, getType(), id, getCity()});
-
-                if (!uidCurrent.equals(uidAuthor)) {
-                    return false;
-                }
-
-                JSONObject userFeed = fetchUserFeed(feed.getJSONObject(getType()), uidAuthor);
-                if (!userFeed.has(id)) {
-                    return true;
-                }
-
-                userFeed.remove(id);
-                feed.put(getType() + "Count", --count);
-                feed.getJSONObject(getType()).put(uidAuthor, userFeed);
-
-                return saveFeed(getPath(), getCity(), feed);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /* edit - Edit a feed item
-     *
-     *  @return             : success or not
-     *  @body               : the network body request
-     */
-    public boolean edit(JSONObject body) {
-        try {
-            JSONObject editField = body.getJSONObject("editField");
-            assert editField.length() == 1;
-            String field = editField.keys().next();
-            FeedEditHandler feedEditHandler = new FeedEditHandler(this);
-
-            switch (field) {
-                case "title":
-                    return feedEditHandler.editTitle(body, editField.getString(field));
-                case "comments":
-                    return feedEditHandler.editComment(body, editField.getJSONObject(field));
-                case "likes":
-                    return feedEditHandler.editLikes(body, editField.getJSONObject(field));
-                default:
-                    return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    /* edit - Edit a feed item
+//     *
+//     *  @return             : success or not
+//     *  @body               : the network body request
+//     */
+//    public boolean edit(JSONObject body) {
+//        try {
+//            JSONObject editField = body.getJSONObject("editField");
+//            assert editField.length() == 1;
+//            String field = editField.keys().next();
+//            FeedEditHandler feedEditHandler = new FeedEditHandler(this);
+//
+//            switch (field) {
+//                case "title":
+//                    return feedEditHandler.editTitle(body, editField.getString(field));
+//                case "comments":
+//                    return feedEditHandler.editComment(body, editField.getJSONObject(field));
+//                case "likes":
+//                    return feedEditHandler.editLikes(body, editField.getJSONObject(field));
+//                default:
+//                    return false;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
 
     /* editTitle - Edit the title of a feed item (is abstract)
      *

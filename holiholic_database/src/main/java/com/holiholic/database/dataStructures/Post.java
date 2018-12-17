@@ -1,48 +1,40 @@
 package com.holiholic.database.dataStructures;
 
-import java.util.Date;
-import java.util.List;
+
+import org.json.JSONObject;
 
 public class Post {
-    private Date timeStamp;
-    private List<Comment> comments;
+    private String pid;
+    private String timestamp;
     private String city;
     private String uidAuthor;
-    private User authorInformation;
-    private String pid;
-    private String type;
-    private String title;
-    private Reactions reactions;
+    private String content;
 
     public Post() {
     }
 
-    public Post(Date timeStamp, List<Comment> comments, String city, String uidAuthor, User authorInformation, String pid, String type, String title, Reactions reactions) {
-        this.timeStamp = timeStamp;
-        this.comments = comments;
+    public Post(String pid, String timestamp, String city, String uidAuthor, String content) {
+        this.pid = pid;
+        this.timestamp = timestamp;
         this.city = city;
         this.uidAuthor = uidAuthor;
-        this.authorInformation = authorInformation;
+        this.content = content;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
         this.pid = pid;
-        this.type = type;
-        this.title = title;
-        this.reactions = reactions;
     }
 
-    public Date getTimeStamp() {
-        return timeStamp;
+    public String getTimestamp() {
+        return timestamp;
     }
 
-    public void setTimeStamp(Date timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-
-    public List<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getCity() {
@@ -61,43 +53,21 @@ public class Post {
         this.uidAuthor = uidAuthor;
     }
 
-    public User getAuthorInformation() {
-        return authorInformation;
+    public String getContent() {
+        return content;
     }
 
-    public void setAuthorInformation(User authorInformation) {
-        this.authorInformation = authorInformation;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public String getPid() {
-        return pid;
-    }
-
-    public void setPid(String pid) {
-        this.pid = pid;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public Reactions getReactions() {
-        return reactions;
-    }
-
-    public void setReactions(Reactions reactions) {
-        this.reactions = reactions;
+    @Override
+    public String toString() {
+        return "Post{" +
+                "timestamp='" + timestamp + '\'' +
+                ", city='" + city + '\'' +
+                ", uidAuthor='" + uidAuthor + '\'' +
+                ", content=" + content +
+                '}';
     }
 }

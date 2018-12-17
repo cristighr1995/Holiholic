@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 /* GuideProfileHandler - Handle operations for a guide profile
  *
  */
-public class GuideProfileHandler extends Feed implements IFeedEditable {
+public class GuideProfileHandler extends Feed {
     private static final Logger LOGGER = Logger.getLogger(GuideProfileHandler.class.getName());
     private String path;
     private final String city;
@@ -39,13 +39,15 @@ public class GuideProfileHandler extends Feed implements IFeedEditable {
     }
 
     @Override
-    public boolean add(JSONObject body) {
-        return add();
+    public void add() {
     }
 
     @Override
-    public boolean remove(JSONObject body) {
-        return remove();
+    public void remove() {
+    }
+
+    @Override
+    public void edit() {
     }
 
     @Override

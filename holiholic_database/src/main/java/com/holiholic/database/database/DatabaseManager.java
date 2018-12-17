@@ -24,13 +24,17 @@ public class DatabaseManager {
      *
      *  @return             : void
      */
-    static void setLogger() {
+    public static void setLogger() {
         // add logger handler
         ConsoleHandler ch = new ConsoleHandler();
         ch.setLevel(Level.ALL);
 
         LOGGER.addHandler(ch);
         LOGGER.setLevel(Level.ALL);
+    }
+
+    static void logMessage(Level level, String message) {
+        LOGGER.log(level, message);
     }
 
     /* generateMD5 - Generates an md5 key for a plain text
@@ -149,11 +153,14 @@ public class DatabaseManager {
 
             switch (operation) {
                 case "add":
-                    return feed.add();
+                    feed.add();
+                    break;
                 case "remove":
-                    return feed.remove(body);
+                    feed.remove();
+                    break;
                 case "edit":
-                    return feed.edit(body);
+                    feed.edit();
+                    break;
                 default:
                     return false;
             }
@@ -161,6 +168,7 @@ public class DatabaseManager {
             e.printStackTrace();
             return false;
         }
+        return true;
     }
 
     /* getUserProfile - Get profile information about the current user id

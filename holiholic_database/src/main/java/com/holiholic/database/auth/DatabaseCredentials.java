@@ -1,19 +1,19 @@
 package com.holiholic.database.auth;
 
-public class DbCredentials {
+public class DatabaseCredentials {
     private String username;
     private String password;
     private String dbUrl;
     private String jdbcDriver;
 
-    public DbCredentials(String username, String password, String dbUrl, String jdbcDriver) {
+    public DatabaseCredentials(String username, String password, String dbUrl, String jdbcDriver) {
         this.username = username;
         this.password = password;
         this.dbUrl = dbUrl;
         this.jdbcDriver = jdbcDriver;
     }
 
-    public DbCredentials() {
+    public DatabaseCredentials() {
     }
 
     public String getUsername() {
