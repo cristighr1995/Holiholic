@@ -1,7 +1,6 @@
-/apis/
+/out/
 /src/test/
 /target/
-/db/
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
