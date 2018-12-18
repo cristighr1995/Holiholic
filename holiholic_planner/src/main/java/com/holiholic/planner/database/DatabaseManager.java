@@ -338,7 +338,7 @@ public class DatabaseManager {
         String url = Constants.GET_MATRIX_URL
                      + "?city=" + cityName
                      + "&travelMode=" + Enums.TravelMode.serialize(travelMode)
-                     + "travelInfo=" + Enums.TravelInfo.serialize(travelInfo);
+                     + "&travelInfo=" + Enums.TravelInfo.serialize(travelInfo);
 
         try {
             JSONObject response = new JSONObject(getContentFromURL(url));
