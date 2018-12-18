@@ -1,6 +1,6 @@
 package com.holiholic.database.feed;
 
-import com.holiholic.database.DatabaseManager;
+import com.holiholic.database.database.DatabaseManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -8,14 +8,14 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/* Comment - Handle the comments operations
+/* CommentHandler - Handle the comments operations
  *
  */
-public class Comment implements ICommentAction {
-    private static final Logger LOGGER = Logger.getLogger(Comment.class.getName());
+public class CommentHandler implements ICommentAction {
+    private static final Logger LOGGER = Logger.getLogger(CommentHandler.class.getName());
     private final Feed feed;
 
-    Comment(Feed feed) {
+    CommentHandler(Feed feed) {
         this.feed = feed;
         setLogger();
     }
