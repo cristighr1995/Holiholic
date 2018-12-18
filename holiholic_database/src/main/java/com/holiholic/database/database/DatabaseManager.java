@@ -1,4 +1,4 @@
-package com.holiholic.database;
+package com.holiholic.database.database;
 
 import com.holiholic.database.constant.Constants;
 import com.holiholic.database.feed.Feed;
@@ -26,13 +26,17 @@ public class DatabaseManager {
      *
      *  @return             : void
      */
-    static void setLogger() {
+    public static void setLogger() {
         // add logger handler
         ConsoleHandler ch = new ConsoleHandler();
         ch.setLevel(Level.ALL);
 
         LOGGER.addHandler(ch);
         LOGGER.setLevel(Level.ALL);
+    }
+
+    static void logMessage(Level level, String message) {
+        LOGGER.log(level, message);
     }
 
     /* generateMD5 - Generates an md5 key for a plain text
@@ -151,11 +155,14 @@ public class DatabaseManager {
 
             switch (operation) {
                 case "add":
-                    return feed.add(body);
+                    feed.add();
+                    break;
                 case "remove":
-                    return feed.remove(body);
+                    feed.remove();
+                    break;
                 case "edit":
-                    return feed.edit(body);
+                    feed.edit();
+                    break;
                 default:
                     return false;
             }
@@ -163,6 +170,7 @@ public class DatabaseManager {
             e.printStackTrace();
             return false;
         }
+        return true;
     }
 
     /* getUserProfile - Get profile information about the current user id
@@ -622,7 +630,7 @@ public class DatabaseManager {
      *  @uidGuide           : unique identifier for the guide
      */
     public static String getGuideProfile(String city, String uid, String uidGuide) {
-        return Feed.getGuideProfile(uid, getGuideProfilePath(uidGuide), city, "guideProfile", LOGGER).toString(2);
+        return Feed.getGuideProfile(uid, getGuideProfilePath(uidGuide), city, "review", LOGGER).toString(2);
     }
 
     /* getGuideProfilePostDetails - Get details for a specific post from the guide profile
@@ -639,7 +647,7 @@ public class DatabaseManager {
                                                     String uidCurrent,
                                                     String uidAuthor,
                                                     String uidGuide) {
-        return Feed.getDetails(city, gpid, "guideProfile", getGuideProfilePath(uidGuide), uidCurrent, uidAuthor, LOGGER);
+        return Feed.getDetails(city, gpid, "review", getGuideProfilePath(uidGuide), uidCurrent, uidAuthor, LOGGER);
     }
 
     /* initDatabaseFileObject - Check if the file exists at the specified path and if not, creates an empty object
