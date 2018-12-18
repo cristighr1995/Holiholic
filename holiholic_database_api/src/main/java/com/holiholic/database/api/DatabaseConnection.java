@@ -1,4 +1,4 @@
-package api;
+package com.holiholic.database.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

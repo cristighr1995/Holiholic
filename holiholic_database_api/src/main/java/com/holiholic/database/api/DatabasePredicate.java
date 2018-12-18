@@ -1,4 +1,4 @@
-package api;
+package com.holiholic.database.api;
 
 public class DatabasePredicate {
     private String attribute;

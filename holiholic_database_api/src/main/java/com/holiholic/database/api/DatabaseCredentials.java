@@ -1,4 +1,4 @@
-package api;
+package com.holiholic.database.api;
 
 public class DatabaseCredentials {
     private String username;

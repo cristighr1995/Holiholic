@@ -1,4 +1,4 @@
-package api;
+package com.holiholic.database.api;
 
 class QueryTask implements Runnable {
     private String query;

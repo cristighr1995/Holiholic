@@ -1,4 +1,4 @@
-package api;
+package com.holiholic.database.api;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
