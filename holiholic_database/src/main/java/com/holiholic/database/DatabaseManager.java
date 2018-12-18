@@ -2,6 +2,7 @@ package com.holiholic.database;
 
 import com.holiholic.database.constant.Constants;
 import com.holiholic.database.feed.Feed;
+import com.holiholic.database.planner.*;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -9,6 +10,7 @@ import org.json.JSONObject;
 import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -702,6 +704,19 @@ public class DatabaseManager {
                 f.createNewFile();
                 return DatabaseManager.syncDatabase(path, jsonArray);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean updatePlanner(JSONObject body) {
+        try {
+            UpdatePlannerAction action = UpdatePlannerAction.Factory.getInstance(body.getString("type"));
+            if (action == null) {
+                return false;
+            }
+            return action.execute(body.getString("city"));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
