@@ -15,7 +15,7 @@ public class DatabaseConnection {
         ObjectMapper objectMapper = new ObjectMapper();
         DatabaseCredentials credentials = null;
         try {
-            credentials = objectMapper.readValue(new File("db/auth/dbCredentials.json"), DatabaseCredentials.class);
+            credentials = objectMapper.readValue(new File("db/auth/db_credentials.json"), DatabaseCredentials.class);
         } catch (IOException e) {
             e.printStackTrace();
         }

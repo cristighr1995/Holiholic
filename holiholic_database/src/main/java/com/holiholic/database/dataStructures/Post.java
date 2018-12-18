@@ -71,3 +71,12 @@ public class Post {
                 '}';
     }
 }
+
+    private String pid;
+    private Date timestamp;
+    private String city;
+    private String uidAuthor;
+    private Content content;
+    private Set<String> topics;
+
+
