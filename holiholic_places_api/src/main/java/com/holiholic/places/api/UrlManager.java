@@ -4,12 +4,20 @@ import java.util.List;
 
 class UrlManager {
 
-    public static String getSearchVenuesUrl(String near, List<String> categoryIds) {
+    static String getSearchVenuesUrl(String near, List<String> categoryIds) {
         PlacesCredentials placesCredentials = PlacesManager.getPlacesCredentials();
         if (placesCredentials == null) {
             return "";
         }
-        return Constants.SEARCH_VENUES_URL + "?near=" + near + serialize(categoryIds) + placesCredentials.toString();
+        return Constants.SEARCH_VENUES_URL + "?near=" + near + serialize(categoryIds) + "&" + placesCredentials.toString();
+    }
+
+    static String getVenueDetailsUrl(String placeId) {
+        PlacesCredentials placesCredentials = PlacesManager.getPlacesCredentials();
+        if (placesCredentials == null) {
+            return "";
+        }
+        return Constants.VENUES_URL + placeId + "?" + placesCredentials.toString();
     }
 
     private static String serialize(List<String> categoryIds) {

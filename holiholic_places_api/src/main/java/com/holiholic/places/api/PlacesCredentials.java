@@ -41,6 +41,6 @@ public class PlacesCredentials {
 
     @Override
     public String toString() {
-        return "&client_id=" + clientId + "&client_secret=" + clientSecret + "&v=" + version;
+        return "client_id=" + clientId + "&client_secret=" + clientSecret + "&v=" + version;
     }
 }
