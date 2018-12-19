@@ -1,6 +1,7 @@
 package com.holiholic.feed.handler;
 
-import api.Query;
+import com.holiholic.database.api.DatabasePredicate;
+import com.holiholic.database.api.Query;
 import com.holiholic.feed.model.Post;
 import org.json.JSONObject;
 
@@ -39,7 +40,13 @@ public class PostHandler extends Feed {
 
     @Override
     public boolean remove() {
-        return false;
+        try {
+            Query.delete(POSTS_TABLE_NAME,Arrays.asList(new DatabasePredicate("pid", "=", "\"" + post.getPid() + "\"")));
+            Query.delete(TOPICS_TABLE_NAME,Arrays.asList(new DatabasePredicate("parentId", "=", "\"" + post.getPid() + "\"")));
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
     @Override
