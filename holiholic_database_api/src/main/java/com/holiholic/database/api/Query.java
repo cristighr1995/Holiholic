@@ -19,13 +19,13 @@ public class Query {
         if (attributes == null || attributes.isEmpty()) {
             query.append("*");
         } else {
-            query.append(serialize(attributes));
+            query.append(serialize(attributes, ","));
         }
 
         query.append(" FROM ").append(tableName);
 
         if (predicates != null && !predicates.isEmpty()) {
-            query.append(" WHERE ").append(serialize(predicates));
+            query.append(" WHERE ").append(serialize(predicates, "AND"));
         }
 
         query.append(";");
@@ -38,7 +38,7 @@ public class Query {
             return;
         }
 
-        String query = "INSERT INTO " + tableName + " VALUES (" + serialize(values) + ");";
+        String query = "INSERT INTO " + tableName + " VALUES (" + serialize(values, ",") + ");";
 
         ThreadManager.getInstance().addTask(new QueryTask(query));
     }
@@ -50,7 +50,7 @@ public class Query {
             return;
         }
 
-        String query = "UPDATE " + tableName + " SET " + serialize(attributes) + " WHERE " + serialize(predicates) + ";";
+        String query = "UPDATE " + tableName + " SET " + serialize(attributes) + " WHERE " + serialize(predicates, "AND") + ";";
 
         ThreadManager.getInstance().addTask(new QueryTask(query));
     }
@@ -60,7 +60,7 @@ public class Query {
             return;
         }
 
-        String query = "DELETE FROM " + tableName + " WHERE " + serialize(predicates) + ";";
+        String query = "DELETE FROM " + tableName + " WHERE " + serialize(predicates, "AND") + ";";
 
         ThreadManager.getInstance().addTask(new QueryTask(query));
     }
@@ -88,7 +88,7 @@ public class Query {
         return builder.toString();
     }
 
-    private static <T> String serialize(List<T> values) {
+    private static <T> String serialize(List<T> values, String separator) {
         if (values == null || values.isEmpty()) {
             return "";
         }
@@ -97,7 +97,7 @@ public class Query {
 
         builder.append(values.get(0));
         for (int i = 1; i < values.size(); i++) {
-            builder.append(", ").append(values.get(i));
+            builder.append(" ").append(separator).append(" ").append(values.get(i));
         }
 
         return builder.toString();
