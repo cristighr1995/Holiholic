@@ -12,9 +12,9 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 
 public class Places {
 
@@ -44,11 +44,11 @@ public class Places {
         return builder.toString();
     }
 
-    private static JSONArray searchPlaces(String near, List<String> categoryIds) {
+    private static JSONArray searchPlaces(String near, String categoryId) {
         JSONArray places = new JSONArray();
 
         try {
-            String url = UrlManager.getSearchVenuesUrl(near, categoryIds);
+            String url = UrlManager.getSearchVenuesUrl(near, categoryId);
             JSONObject content = new JSONObject(getContentFromUrl(url));
             places = content.getJSONObject("response").getJSONArray("venues");
         } catch (Exception e) {
@@ -58,18 +58,82 @@ public class Places {
         return places;
     }
 
-    static JSONObject buildPlaceInfo(String placeId) {
+    private static JSONObject buildHourObject(String time, int day) {
+        JSONObject hour = new JSONObject();
+        hour.put("time", time);
+        hour.put("day", day);
+        return hour;
+    }
+
+    private static String decodeHour(String hour) {
+
+    }
+
+    private static JSONObject buildDayObject(int day, String renderedTime) {
+        String[] hours = renderedTime.split(Pattern.quote(" -"));
+        JSONObject dayObject = new JSONObject();
+        int index = 0;
+
+        switch (hours[0]) {
+            case "Noon":
+                dayObject.put(buildHourObject("open", "1200", day));
+
+        }
+    }
+
+    private static JSONArray buildPlaceHours(JSONArray timeframes) {
+        JSONArray hours = new JSONArray();
+        // check if is 24 hours open
+        if (timeframes.getJSONObject(0).getJSONArray("open").getJSONObject(0).getString("renderedTime").equals("24 Hours")) {
+            JSONObject hour = new JSONObject();
+            hour.put("open", buildHourObject("0000", 0));
+            hours.put(hour);
+            return hours;
+        }
+
+        for (int i = 0; i < timeframes.length(); i++) {
+            JSONObject timeframe = timeframes.getJSONObject(i);
+            String daysInfo = timeframe.getString("days");
+            // skip today information
+            if (daysInfo.equals("Today")) {
+                continue;
+            }
+            String renderedTime = timeframe.getJSONArray("open").getJSONObject(0).getString("renderedTime");
+            String[] days = daysInfo.split(Pattern.quote("-"));
+            // just one day information
+            if (days.length == 1) {
+                hours.put(buildDayObject(PlacesManager.getDays().get(days[0]), renderedTime));
+            }
+        }
+    }
+
+    static JSONObject buildPlaceInfo(String placeId, PlaceCategory placeCategory) {
         JSONObject place = new JSONObject();
 
         try {
             String url = UrlManager.getVenueDetailsUrl(placeId);
             JSONObject content = new JSONObject(getContentFromUrl(url));
             JSONObject venue = content.getJSONObject("response").getJSONObject("venue");
+
+            if (!venue.has("hours") && !venue.has("popular")) {
+                return null;
+            }
+            if (venue.has("hours")) {
+                if (!venue.getJSONObject("hours").getBoolean("isOpen")) {
+                    return null;
+                }
+                place.put("timeFrames", buildPlaceHours(venue.getJSONObject("hours").getJSONArray("timeframes")));
+            } else {
+                if (!venue.getJSONObject("popular").getBoolean("isOpen")) {
+                    return null;
+                }
+                place.put("timeFrames", buildPlaceHours(venue.getJSONObject("popular").getJSONArray("timeframes")));
+            }
+
             place.put("id", -1);
             place.put("name", venue.getString("name"));
             place.put("latitude", venue.getJSONObject("location").getDouble("lat"));
             place.put("longitude", venue.getJSONObject("location").getDouble("lng"));
-            place.put("type", "attraction");
 
             String imagePrefix = venue.getJSONObject("bestPhoto").getString("prefix");
             String imageSuffix = venue.getJSONObject("bestPhoto").getString("suffix");
@@ -81,16 +145,11 @@ public class Places {
             }
             place.put("rating", rating);
 
-            JSONArray tags = new JSONArray();
-            JSONArray categories = venue.getJSONArray("categories");
-            for (int i = 0; i < categories.length(); i++) {
-                JSONObject category = categories.getJSONObject(i);
-                JSONObject tag = new JSONObject();
-                tag.put("id", category.getString("id"));
-                tag.put("name", category.getString("name"));
-                tags.put(tag);
-            }
-            place.put("tags", tags);
+            JSONObject category = new JSONObject();
+            category.put("name", placeCategory.getName());
+            category.put("topic", placeCategory.getTopic());
+            place.put("category", category);
+            place.put("duration", placeCategory.getDuration());
 
             // decode time frames
 
@@ -102,18 +161,14 @@ public class Places {
         return place;
     }
 
-    public static JSONArray getPlaces(String near, String categoryId) {
-        return getPlaces(near, Arrays.asList(categoryId));
-    }
-
-    public static JSONArray getPlaces(String near, List<String> categoryIds) {
-        JSONArray searchList = searchPlaces(near, categoryIds);
+    public static JSONArray getPlaces(String near, PlaceCategory placeCategory) {
+        JSONArray searchList = searchPlaces(near, placeCategory.getId());
         JSONArray places = new JSONArray();
         List<Callable<Boolean>> tasks = new ArrayList<>();
 
         for (int i = 0; i < searchList.length(); i++) {
             String placeId = searchList.getJSONObject(i).getString("id");
-            tasks.add(new PlaceDetailsTask(placeId, i, places));
+            tasks.add(new PlaceDetailsTask(placeId, i, places, placeCategory));
         }
 
         ThreadManager.getInstance().invokeAll(tasks);
