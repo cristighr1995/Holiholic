@@ -60,10 +60,10 @@ public class FeedController {
                     success = feed.add();
                     break;
                 case "remove":
-                    success = feed.remove();
+                    success = feed.remove(requestJson.getString("id"));
                     break;
                 case "edit":
-                    success = feed.edit();
+                    success = feed.edit(requestJson.getString("id"));
                     break;
                 default:
                     success = false;

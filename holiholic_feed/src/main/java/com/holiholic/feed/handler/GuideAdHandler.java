@@ -9,12 +9,12 @@ public class GuideAdHandler extends Feed {
     }
 
     @Override
-    public boolean remove() {
+    public boolean remove(String id) {
         return false;
     }
 
     @Override
-    public boolean edit() {
+    public boolean edit(String id) {
         return false;
     }
 

@@ -5,9 +5,10 @@ import com.holiholic.database.api.Query;
 import com.holiholic.feed.model.Post;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.Array;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,10 +40,10 @@ public class PostHandler extends Feed {
     }
 
     @Override
-    public boolean remove() {
+    public boolean remove(String id) {
         try {
-            Query.delete(POSTS_TABLE_NAME,Arrays.asList(new DatabasePredicate("pid", "=", "\"" + post.getPid() + "\"")));
-            Query.delete(TOPICS_TABLE_NAME,Arrays.asList(new DatabasePredicate("parentId", "=", "\"" + post.getPid() + "\"")));
+            Query.delete(POSTS_TABLE_NAME, Arrays.asList(new DatabasePredicate("pid", "=", "\"" + id + "\"")));
+            Query.delete(TOPICS_TABLE_NAME, Arrays.asList(new DatabasePredicate("parentId", "=", "\"" + id + "\"")));
         } catch (Exception e) {
             return false;
         }
@@ -50,8 +51,26 @@ public class PostHandler extends Feed {
     }
 
     @Override
-    public boolean edit() {
-        return false;
+    public boolean edit(String id) {
+        try {
+            Map<String, String> attributes = getAttributesMap();
+            Query.update(POSTS_TABLE_NAME, attributes, Arrays.asList(new DatabasePredicate("pid", "=", "\"" + id + "\"")));
+            Map<String, Boolean> oldTopics = getOldTopicsList(id);
+            for (String topic : post.getTopics()) {
+                if (!oldTopics.containsKey(topic)) {
+                    Query.insert(TOPICS_TABLE_NAME, Arrays.asList("\"" + topic + "\"", "\"post\"", "\"" + id + "\""));
+                    oldTopics.remove(topic);
+                }
+            }
+
+            for (Map.Entry<String, Boolean> entry : oldTopics.entrySet()) {
+                Query.delete(TOPICS_TABLE_NAME, Arrays.asList(new DatabasePredicate("name","=", "\"" + entry.getKey()+ "\""),
+                                                              new DatabasePredicate("parentId", "=", "\"" + id + "\"")));
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -85,5 +104,39 @@ public class PostHandler extends Feed {
         values.add("\"" + post.getUidAuthor() + "\"");
         values.add("\'" + post.getContent().serialize().toString() + "\'");
         return values;
+    }
+
+    /* getAttributesMap - This method constructs the map of attributes for the update query
+     *
+     * @ return             : Map<String, String>
+     */
+    private Map<String, String> getAttributesMap() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("city", "\"" + post.getCity() + "\"");
+        attributes.put("content", "\'" + post.getContent().serialize().toString() + "\'");
+
+        return attributes;
+    }
+
+    /* getOldTopicsList - This method constructs a list with old topics
+     *
+     * @ return             : List<String>
+     */
+    private Map<String, Boolean> getOldTopicsList(String id) {
+        ResultSet rs = Query.select(Arrays.asList("name"), TOPICS_TABLE_NAME, Arrays.asList(new DatabasePredicate("parentType", "=", "\"" + "post" + "\""),
+                new DatabasePredicate("parentId", "=", "\"" + id + "\"")));
+
+        Map<String, Boolean> topics = new HashMap<>();
+        while (true) {
+            try {
+                if (!rs.next()) break;
+                String topic = rs.getString("name");
+                topics.put(topic, true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        }
+        return topics;
     }
 }

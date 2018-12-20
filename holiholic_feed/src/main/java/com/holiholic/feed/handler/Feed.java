@@ -2,10 +2,6 @@ package com.holiholic.feed.handler;
 
 import org.json.JSONObject;
 
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /* Feed - Handle the questions, guide ads and reviews, posts operations (is abstract!)
  *
  */
@@ -38,9 +34,9 @@ public abstract class Feed {
 
     public abstract boolean add();
 
-    public abstract boolean remove();
+    public abstract boolean remove(String id);
 
-    public abstract boolean edit();
+    public abstract boolean edit(String id);
 
     public abstract void setModel(JSONObject model);
 }
