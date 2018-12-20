@@ -3,11 +3,15 @@ package com.holiholic.places.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 class PlacesManager {
     private static PlacesCredentials placesCredentials;
+    private static Map<String, Integer> days;
 
-    public static PlacesCredentials getPlacesCredentials() {
+    static PlacesCredentials getPlacesCredentials() {
         if (placesCredentials != null) {
             return placesCredentials;
         }
@@ -25,5 +29,21 @@ class PlacesManager {
         }
 
         return placesCredentials;
+    }
+
+    static Map<String, Integer> getDays() {
+        if (days != null) {
+            return days;
+        }
+
+        days = new HashMap<>();
+        days.put("Sun", Calendar.SUNDAY);
+        days.put("Mon", Calendar.MONDAY);
+        days.put("Tue", Calendar.TUESDAY);
+        days.put("wed", Calendar.WEDNESDAY);
+        days.put("Thu", Calendar.THURSDAY);
+        days.put("Fri", Calendar.FRIDAY);
+        days.put("Sat", Calendar.SATURDAY);
+        return days;
     }
 }

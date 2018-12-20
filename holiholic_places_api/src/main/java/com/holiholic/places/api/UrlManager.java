@@ -1,15 +1,20 @@
 package com.holiholic.places.api;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 class UrlManager {
 
-    static String getSearchVenuesUrl(String near, List<String> categoryIds) {
+    static String getSearchVenuesUrl(String near, String categoryId) {
         PlacesCredentials placesCredentials = PlacesManager.getPlacesCredentials();
         if (placesCredentials == null) {
             return "";
         }
-        return Constants.SEARCH_VENUES_URL + "?near=" + near + serialize(categoryIds) + "&" + placesCredentials.toString();
+        return Constants.SEARCH_VENUES_URL
+               + "?near=" + near
+               + serialize(Collections.singletonList(categoryId))
+               + "&" + placesCredentials.toString();
     }
 
     static String getVenueDetailsUrl(String placeId) {
