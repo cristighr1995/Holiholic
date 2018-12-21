@@ -29,7 +29,7 @@ class PlaceDetailsTask implements Callable<Boolean> {
             places.put(index, place);
             Instant end = Instant.now();
             Duration timeElapsed = Duration.between(start, end);
-            System.out.println("Built place \"" + placeId + "\" in "+ timeElapsed.toMillis() +" milliseconds");
+            System.out.println("Built place \"" + placeId + "\" in " + timeElapsed.toMillis() + " milliseconds");
         } catch (Exception e) {
             e.printStackTrace();
             result = Boolean.FALSE;
