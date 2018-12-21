@@ -2,7 +2,7 @@ package com.holiholic.places.api;
 
 class UrlManager {
 
-    static String getSearchVenuesUrl(String near, String categoryId) {
+    static String getSearchVenuesUrl(String near, String categoryId, int limit) {
         PlacesCredentials placesCredentials = PlacesManager.getPlacesCredentials();
         if (placesCredentials == null) {
             return "";
@@ -10,6 +10,7 @@ class UrlManager {
         return Constants.SEARCH_VENUES_URL
                + "?near=" + near
                + "&categoryId=" + categoryId
+               + "&limit=" + limit
                + "&" + placesCredentials.toString();
     }
 

@@ -43,11 +43,11 @@ public class Places {
         return builder.toString();
     }
 
-    private static JSONArray searchPlaces(String near, String categoryId) {
+    private static JSONArray searchPlaces(String near, String categoryId, int limit) {
         JSONArray places = new JSONArray();
 
         try {
-            String url = UrlManager.getSearchVenuesUrl(near, categoryId);
+            String url = UrlManager.getSearchVenuesUrl(near, categoryId, limit);
             JSONObject content = new JSONObject(getContentFromUrl(url));
             places = content.getJSONObject("response").getJSONArray("venues");
         } catch (Exception e) {
@@ -58,7 +58,7 @@ public class Places {
     }
 
     public static JSONArray getPlaces(String near, PlaceCategory placeCategory) {
-        JSONArray searchList = searchPlaces(near, placeCategory.getId());
+        JSONArray searchList = searchPlaces(near, placeCategory.getId(), placeCategory.getLimit());
         JSONArray accumulator = new JSONArray();
         JSONArray places = new JSONArray();
         List<Callable<Boolean>> tasks = new ArrayList<>();

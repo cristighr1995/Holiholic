@@ -5,12 +5,14 @@ public class PlaceCategory {
     private String id;
     private String topic;
     private int duration;
+    private int limit;
 
-    public PlaceCategory(String name, String id, String topic, int duration) {
+    public PlaceCategory(String name, String id, String topic, int duration, int limit) {
         this.name = name;
         this.id = id;
         this.topic = topic;
         this.duration = duration;
+        this.limit = limit;
     }
 
     public String getName() {
@@ -27,5 +29,9 @@ public class PlaceCategory {
 
     public int getDuration() {
         return duration;
+    }
+
+    public int getLimit() {
+        return limit;
     }
 }
