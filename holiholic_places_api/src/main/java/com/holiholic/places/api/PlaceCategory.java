@@ -6,9 +6,6 @@ public class PlaceCategory {
     private String topic;
     private int duration;
 
-    public PlaceCategory() {
-    }
-
     public PlaceCategory(String name, String id, String topic, int duration) {
         this.name = name;
         this.id = id;

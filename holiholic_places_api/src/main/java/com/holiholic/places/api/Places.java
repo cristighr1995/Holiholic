@@ -1,5 +1,7 @@
 package com.holiholic.places.api;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -11,12 +13,18 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 
 public class Places {
+
+    private static String[] split(String string, String pattern) {
+        return Iterables.toArray(Splitter.on(pattern).omitEmptyStrings().split(string), String.class);
+    }
 
     private static String getContentFromUrl(String url) {
         HttpClient client = HttpClientBuilder.create().build();
@@ -65,46 +73,127 @@ public class Places {
         return hour;
     }
 
-    private static String decodeHour(String hour) {
-
+    private static JSONObject formatHour(String time, int day) {
+        try {
+            SimpleDateFormat displayFormat = new SimpleDateFormat("HHmm");
+            SimpleDateFormat parseFormat = new SimpleDateFormat("hh:mm a");
+            Date date;
+            switch (time) {
+                case "Noon":
+                    return buildHourObject("1200", day);
+                case "Midnight":
+                    return buildHourObject("0000", day);
+                default:
+                    date = parseFormat.parse(time);
+                    return buildHourObject(displayFormat.format(date), day);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static JSONObject buildDayObject(int day, String renderedTime) {
-        String[] hours = renderedTime.split(Pattern.quote(" -"));
-        JSONObject dayObject = new JSONObject();
-        int index = 0;
+        try {
+            String[] hours = split(renderedTime, "\u2013");
+            JSONObject dayObject = new JSONObject();
+            JSONObject open, close;
+            if (hours[0].equals("24 Hours")) {
+                open = formatHour("00:01 AM", day);
+                close = formatHour("11:59 PM", day);
+                dayObject.put("open", open);
+                dayObject.put("close", close);
+                return dayObject;
+            }
 
-        switch (hours[0]) {
-            case "Noon":
-                dayObject.put(buildHourObject("open", "1200", day));
+            open = formatHour(hours[0], day);
+            close = formatHour(hours[1], day);
 
+            if (open == null || close == null) {
+                return null;
+            }
+
+            // the close time is the next day
+            SimpleDateFormat displayFormat = new SimpleDateFormat("HHmm");
+            Date openDate = displayFormat.parse(open.getString("time"));
+            Date closeDate = displayFormat.parse(close.getString("time"));
+
+            if (closeDate.before(openDate)) {
+                close.put("day", (day % 7) + 1);
+            }
+
+            dayObject.put("open", open);
+            dayObject.put("close", close);
+
+            return dayObject;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
-    private static JSONArray buildPlaceHours(JSONArray timeframes) {
-        JSONArray hours = new JSONArray();
-        // check if is 24 hours open
-        if (timeframes.getJSONObject(0).getJSONArray("open").getJSONObject(0).getString("renderedTime").equals("24 Hours")) {
-            JSONObject hour = new JSONObject();
-            hour.put("open", buildHourObject("0000", 0));
-            hours.put(hour);
-            return hours;
+    private static String mergeRenderedTime(JSONArray open) {
+        if (open.length() == 1) {
+            return open.getJSONObject(0).getString("renderedTime");
         }
 
-        for (int i = 0; i < timeframes.length(); i++) {
-            JSONObject timeframe = timeframes.getJSONObject(i);
-            String daysInfo = timeframe.getString("days");
-            // skip today information
-            if (daysInfo.equals("Today")) {
-                continue;
+        String start = split(open.getJSONObject(0).getString("renderedTime"), "\u2013")[0];
+        String end = split(open.getJSONObject(open.length() - 1).getString("renderedTime"), "\u2013")[1];
+        return start + "\u2013" + end;
+    }
+
+    private static JSONArray buildPlaceHours(JSONArray timeFrames) {
+        JSONArray hours = new JSONArray();
+        String[] intervals;
+        try {
+            // check if is 24 hours open
+            if (timeFrames.getJSONObject(0).getJSONArray("open").getJSONObject(0)
+                          .getString("renderedTime").equals("24 Hours")) {
+                JSONObject hour = new JSONObject();
+                hour.put("open", buildHourObject("0000", 0));
+                hours.put(hour);
+                return hours;
             }
-            String renderedTime = timeframe.getJSONArray("open").getJSONObject(0).getString("renderedTime");
-            String[] days = daysInfo.split(Pattern.quote("-"));
-            // just one day information
-            if (days.length == 1) {
-                hours.put(buildDayObject(PlacesManager.getDays().get(days[0]), renderedTime));
+
+            for (int i = 0; i < timeFrames.length(); i++) {
+                JSONObject timeFrame = timeFrames.getJSONObject(i);
+                String daysInfo = timeFrame.getString("days");
+                // skip today information
+                if (daysInfo.equals("Today")) {
+                    continue;
+                }
+                String renderedTime = mergeRenderedTime(timeFrame.getJSONArray("open"));
+                intervals = split(daysInfo, ", ");
+                for (String interval : intervals) {
+                    String[] days = split(interval, "\u2013");
+                    // just one day information
+                    if (days.length == 1) {
+                        hours.put(buildDayObject(PlacesManager.getDays().get(days[0]), renderedTime));
+                    } else {
+                        int start = PlacesManager.getDays().get(days[0]);
+                        int end = PlacesManager.getDays().get(days[1]);
+
+                        if (start < end) {
+                            for (int day = start; day <= end; day++) {
+                                hours.put(buildDayObject(day, renderedTime));
+                            }
+                        } else {
+                            for (int day = start; day <= Calendar.SATURDAY; day++) {
+                                hours.put(buildDayObject(day, renderedTime));
+                            }
+                            for (int day = Calendar.SUNDAY; day <= end; day++) {
+                                hours.put(buildDayObject(day, renderedTime));
+                            }
+                        }
+                    }
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
+
+        return hours;
     }
 
     static JSONObject buildPlaceInfo(String placeId, PlaceCategory placeCategory) {
@@ -115,20 +204,22 @@ public class Places {
             JSONObject content = new JSONObject(getContentFromUrl(url));
             JSONObject venue = content.getJSONObject("response").getJSONObject("venue");
 
+            System.out.println("Build information about \"" + venue.getString("name") + "\"");
+
             if (!venue.has("hours") && !venue.has("popular")) {
                 return null;
             }
+
+            JSONArray timeFrames;
             if (venue.has("hours")) {
-                if (!venue.getJSONObject("hours").getBoolean("isOpen")) {
-                    return null;
-                }
-                place.put("timeFrames", buildPlaceHours(venue.getJSONObject("hours").getJSONArray("timeframes")));
+                timeFrames = buildPlaceHours(venue.getJSONObject("hours").getJSONArray("timeframes"));
             } else {
-                if (!venue.getJSONObject("popular").getBoolean("isOpen")) {
-                    return null;
-                }
-                place.put("timeFrames", buildPlaceHours(venue.getJSONObject("popular").getJSONArray("timeframes")));
+                timeFrames = buildPlaceHours(venue.getJSONObject("popular").getJSONArray("timeframes"));
             }
+            if (timeFrames == null) {
+                return null;
+            }
+            place.put("timeFrames", timeFrames);
 
             place.put("id", -1);
             place.put("name", venue.getString("name"));
@@ -150,9 +241,6 @@ public class Places {
             category.put("topic", placeCategory.getTopic());
             place.put("category", category);
             place.put("duration", placeCategory.getDuration());
-
-            // decode time frames
-
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -163,15 +251,22 @@ public class Places {
 
     public static JSONArray getPlaces(String near, PlaceCategory placeCategory) {
         JSONArray searchList = searchPlaces(near, placeCategory.getId());
-        JSONArray places = new JSONArray();
+        JSONArray accumulator = new JSONArray();
         List<Callable<Boolean>> tasks = new ArrayList<>();
 
         for (int i = 0; i < searchList.length(); i++) {
             String placeId = searchList.getJSONObject(i).getString("id");
-            tasks.add(new PlaceDetailsTask(placeId, i, places, placeCategory));
+            tasks.add(new PlaceDetailsTask(placeId, i, accumulator, placeCategory));
         }
 
         ThreadManager.getInstance().invokeAll(tasks);
+        JSONArray places = new JSONArray();
+        for (int i = 0; i < accumulator.length(); i++) {
+            if (accumulator.isNull(i)) {
+                continue;
+            }
+            places.put(accumulator.getJSONObject(i));
+        }
         return places;
     }
 }
