@@ -30,7 +30,7 @@ class ThreadManager {
 
     void invokeAll(List<Callable<Boolean>> tasks) {
         try {
-            executor.invokeAll(tasks);
+            executor.invokeAll(tasks, 400 * tasks.size(), TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }

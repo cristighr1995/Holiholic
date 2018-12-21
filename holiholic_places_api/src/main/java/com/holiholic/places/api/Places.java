@@ -98,6 +98,7 @@ public class Places {
             String[] hours = split(renderedTime, "\u2013");
             JSONObject dayObject = new JSONObject();
             JSONObject open, close;
+
             if (hours[0].equals("24 Hours")) {
                 open = formatHour("00:01 AM", day);
                 close = formatHour("11:59 PM", day);
@@ -144,9 +145,13 @@ public class Places {
 
     private static JSONArray buildPlaceHours(JSONArray timeFrames) {
         JSONArray hours = new JSONArray();
-        String[] intervals;
+        JSONObject timeFrame;
+        String daysInfo, renderedTime;
+        String[] intervals, days;
+        int start, end;
+
         try {
-            // check if is 24 hours open
+            // 24 hours open
             if (timeFrames.getJSONObject(0).getJSONArray("open").getJSONObject(0)
                           .getString("renderedTime").equals("24 Hours")) {
                 JSONObject hour = new JSONObject();
@@ -156,22 +161,27 @@ public class Places {
             }
 
             for (int i = 0; i < timeFrames.length(); i++) {
-                JSONObject timeFrame = timeFrames.getJSONObject(i);
-                String daysInfo = timeFrame.getString("days");
+                timeFrame = timeFrames.getJSONObject(i);
+                daysInfo = timeFrame.getString("days");
                 // skip today information
                 if (daysInfo.equals("Today")) {
                     continue;
                 }
-                String renderedTime = mergeRenderedTime(timeFrame.getJSONArray("open"));
+                renderedTime = mergeRenderedTime(timeFrame.getJSONArray("open"));
                 intervals = split(daysInfo, ", ");
+                System.out.println("Decode " + daysInfo + " interval with " + renderedTime + " time");
                 for (String interval : intervals) {
-                    String[] days = split(interval, "\u2013");
+                    days = split(interval, "\u2013");
                     // just one day information
                     if (days.length == 1) {
-                        hours.put(buildDayObject(PlacesManager.getDays().get(days[0]), renderedTime));
+                        try {
+                            hours.put(buildDayObject(PlacesManager.getDays().get(days[0]), renderedTime));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     } else {
-                        int start = PlacesManager.getDays().get(days[0]);
-                        int end = PlacesManager.getDays().get(days[1]);
+                        start = PlacesManager.getDays().get(days[0]);
+                        end = PlacesManager.getDays().get(days[1]);
 
                         if (start < end) {
                             for (int day = start; day <= end; day++) {
@@ -198,19 +208,17 @@ public class Places {
 
     static JSONObject buildPlaceInfo(String placeId, PlaceCategory placeCategory) {
         JSONObject place = new JSONObject();
-
         try {
             String url = UrlManager.getVenueDetailsUrl(placeId);
             JSONObject content = new JSONObject(getContentFromUrl(url));
             JSONObject venue = content.getJSONObject("response").getJSONObject("venue");
+            JSONArray timeFrames;
 
             System.out.println("Build information about \"" + venue.getString("name") + "\"");
 
             if (!venue.has("hours") && !venue.has("popular")) {
                 return null;
             }
-
-            JSONArray timeFrames;
             if (venue.has("hours")) {
                 timeFrames = buildPlaceHours(venue.getJSONObject("hours").getJSONArray("timeframes"));
             } else {
@@ -252,6 +260,7 @@ public class Places {
     public static JSONArray getPlaces(String near, PlaceCategory placeCategory) {
         JSONArray searchList = searchPlaces(near, placeCategory.getId());
         JSONArray accumulator = new JSONArray();
+        JSONArray places = new JSONArray();
         List<Callable<Boolean>> tasks = new ArrayList<>();
 
         for (int i = 0; i < searchList.length(); i++) {
@@ -260,13 +269,17 @@ public class Places {
         }
 
         ThreadManager.getInstance().invokeAll(tasks);
-        JSONArray places = new JSONArray();
+
+        // filter null results
         for (int i = 0; i < accumulator.length(); i++) {
             if (accumulator.isNull(i)) {
                 continue;
             }
             places.put(accumulator.getJSONObject(i));
         }
+
+        System.out.println("Gathered " + places.length() + " places from category \""
+                           + placeCategory.getName() + "\" and topic \"" + placeCategory.getTopic() + "\"");
         return places;
     }
 }
