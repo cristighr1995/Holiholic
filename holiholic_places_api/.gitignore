@@ -1,5 +1,6 @@
 /places_api_credentials.json
 /out/
+/classes/
 /src/test/
 /target/
 !.mvn/wrapper/maven-wrapper.jar
