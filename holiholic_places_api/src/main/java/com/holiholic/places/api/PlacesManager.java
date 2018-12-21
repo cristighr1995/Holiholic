@@ -40,7 +40,7 @@ class PlacesManager {
         days.put("Sun", Calendar.SUNDAY);
         days.put("Mon", Calendar.MONDAY);
         days.put("Tue", Calendar.TUESDAY);
-        days.put("wed", Calendar.WEDNESDAY);
+        days.put("Wed", Calendar.WEDNESDAY);
         days.put("Thu", Calendar.THURSDAY);
         days.put("Fri", Calendar.FRIDAY);
         days.put("Sat", Calendar.SATURDAY);
