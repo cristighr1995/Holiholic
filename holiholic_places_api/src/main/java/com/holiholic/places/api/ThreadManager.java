@@ -13,7 +13,7 @@ class ThreadManager {
     private ThreadManager() {
         int numberOfCores = Runtime.getRuntime().availableProcessors();
         executor = new ThreadPoolExecutor(numberOfCores, numberOfCores, 0L, TimeUnit.MILLISECONDS,
-                                          new LinkedBlockingQueue<Runnable>());
+                                          new LinkedBlockingQueue<>());
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
