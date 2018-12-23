@@ -31,6 +31,8 @@ public class Places {
                 try (InputStream stream = entity.getContent()) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                     String line;
+                    System.out.println("New request to \"" + url + "\"");
+                    System.out.println("Response:");
                     while ((line = reader.readLine()) != null) {
                         System.out.println(line);
                         builder.append(line);
@@ -217,6 +219,12 @@ public class Places {
             place.put("latitude", venue.getJSONObject("location").getDouble("lat"));
             place.put("longitude", venue.getJSONObject("location").getDouble("lng"));
 
+            String description = "";
+            if (venue.has("description")) {
+                description = venue.getString("description");
+            }
+            place.put("description", description);
+
             String imagePrefix = venue.getJSONObject("bestPhoto").getString("prefix");
             String imageSuffix = venue.getJSONObject("bestPhoto").getString("suffix");
             place.put("imageUrl", imagePrefix + "original" + imageSuffix);
@@ -237,6 +245,7 @@ public class Places {
             return null;
         }
 
+        System.out.println(place.toString());
         return place;
     }
 
