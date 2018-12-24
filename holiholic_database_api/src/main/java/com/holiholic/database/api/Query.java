@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class Query {
 
-    public static ResultSet select(List<String> attributes, String tableName, List<DatabasePredicate> predicates) {
+    public static SelectResult select(List<String> attributes, String tableName, List<DatabasePredicate> predicates) {
         if (tableName == null || tableName.isEmpty()) {
             return null;
         }
@@ -19,13 +19,13 @@ public class Query {
         if (attributes == null || attributes.isEmpty()) {
             query.append("*");
         } else {
-            query.append(serialize(attributes));
+            query.append(serialize(attributes, ","));
         }
 
         query.append(" FROM ").append(tableName);
 
         if (predicates != null && !predicates.isEmpty()) {
-            query.append(" WHERE ").append(serialize(predicates));
+            query.append(" WHERE ").append(serialize(predicates, "AND"));
         }
 
         query.append(";");
@@ -38,9 +38,9 @@ public class Query {
             return;
         }
 
-        String query = "INSERT INTO " + tableName + " VALUES (" + serialize(values) + ");";
+        String query = "INSERT INTO " + tableName + " VALUES (" + serialize(values, ",") + ");";
 
-        ThreadManager.getInstance().addTask(new QueryTask(query));
+        ThreadManager.getInstance().addTask(new QueryUpdateTask(query));
     }
 
     public static void update(String tableName, Map<String, String> attributes, List<DatabasePredicate> predicates) {
@@ -50,9 +50,9 @@ public class Query {
             return;
         }
 
-        String query = "UPDATE " + tableName + " SET " + serialize(attributes) + " WHERE " + serialize(predicates) + ";";
+        String query = "UPDATE " + tableName + " SET " + serialize(attributes) + " WHERE " + serialize(predicates, "AND") + ";";
 
-        ThreadManager.getInstance().addTask(new QueryTask(query));
+        ThreadManager.getInstance().addTask(new QueryUpdateTask(query));
     }
 
     public static void delete(String tableName, List<DatabasePredicate> predicates) {
@@ -60,9 +60,9 @@ public class Query {
             return;
         }
 
-        String query = "DELETE FROM " + tableName + " WHERE " + serialize(predicates) + ";";
+        String query = "DELETE FROM " + tableName + " WHERE " + serialize(predicates, "AND") + ";";
 
-        ThreadManager.getInstance().addTask(new QueryTask(query));
+        ThreadManager.getInstance().addTask(new QueryUpdateTask(query));
     }
 
     private static String serialize(Map<String, String> attributes) {
@@ -88,7 +88,7 @@ public class Query {
         return builder.toString();
     }
 
-    private static <T> String serialize(List<T> values) {
+    private static <T> String serialize(List<T> values, String separator) {
         if (values == null || values.isEmpty()) {
             return "";
         }
@@ -97,80 +97,35 @@ public class Query {
 
         builder.append(values.get(0));
         for (int i = 1; i < values.size(); i++) {
-            builder.append(", ").append(values.get(i));
+            builder.append(" ").append(separator).append(" ").append(values.get(i));
         }
 
         return builder.toString();
     }
 
-    private static ResultSet executeQuery(String query) {
+    private static SelectResult executeQuery(String query) {
         DatabaseConnection connection = new DatabaseConnection();
+        Statement statement;
+        ResultSet resultSet;
+
         connection.open();
-
-        System.out.println("Connection to database opened.");
-
+        System.out.println("Connection to database opened");
         if (connection.isClosed()) {
             return null;
         }
 
-        Statement statement = null;
-        ResultSet resultSet = null;
-
         try {
-            try {
-                statement = connection.getConnection().createStatement();
-                resultSet = statement.executeQuery(query);
-
-                System.out.println("Execute \"" + query + "\"");
-                System.out.println("Statement result set size: " + resultSet.getFetchSize());
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (statement != null) {
-                    statement.close();
-                }
-            }
+            statement = connection.getConnection().createStatement();
+            resultSet = statement.executeQuery(query);
+            System.out.println("Execute \"" + query + "\"");
+            System.out.println("Statement result set size: " + resultSet.getFetchSize());
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            connection.close();
+            return null;
         }
 
-        System.out.println("Connection to database closed.");
+        System.out.println("Return select result");
 
-        return resultSet;
-    }
-
-    static void executeUpdate(String query) {
-        DatabaseConnection connection = new DatabaseConnection();
-        connection.open();
-
-        System.out.println("Connection to database opened.");
-
-        if (connection.isClosed()) {
-            return;
-        }
-
-        Statement statement = null;
-
-        try {
-            try {
-                statement = connection.getConnection().createStatement();
-                System.out.println("Execute \"" + query + "\"");
-                System.out.println("Statement result: " + statement.executeUpdate(query));
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (statement != null) {
-                    statement.close();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            connection.close();
-        }
-
-        System.out.println("Connection to database closed.");
+        return new SelectResult(resultSet, connection, statement);
     }
 }
