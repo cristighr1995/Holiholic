@@ -293,7 +293,7 @@ public class Places {
 
     private static double[] getDistance(String origin, String destination, String type) {
         double[] distance = new double[2];
-        Arrays.fill(distance, Double.MAX_VALUE);
+        Arrays.fill(distance, Integer.MAX_VALUE);
 
         try {
             String url = UrlManager.getDistanceMatrixUrl(origin, destination, type);
