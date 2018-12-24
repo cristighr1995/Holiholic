@@ -10,10 +10,11 @@ public class PlacesCredentials {
 
     }
 
-    public PlacesCredentials(String clientId, String clientSecret, String version) {
+    public PlacesCredentials(String clientId, String clientSecret, String version, String googleApiKey) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.version = version;
+        this.googleApiKey = googleApiKey;
     }
 
     public String getClientId() {
