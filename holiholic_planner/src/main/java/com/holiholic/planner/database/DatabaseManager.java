@@ -1,24 +1,22 @@
 package com.holiholic.planner.database;
 
+import com.holiholic.database.api.DatabasePredicate;
+import com.holiholic.database.api.Query;
+import com.holiholic.database.api.SelectResult;
+import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.http.HttpStatus;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.ResultSet;
 import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -67,41 +65,46 @@ public class DatabaseManager {
     /* getPlaces - Get the places from the database making a HTTP GET and deserialize places
      *
      *  @return             : places
-     *  @url                : the url for the GET request
+     *  @cityName           : city
      */
-    static Map<Integer, Place> getPlaces(String url) {
-        try {
-            String rawPlaces = getContentFromURL(url);
-            return deserializePlaces(rawPlaces);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+    static Map<Integer, Place> getPlaces(String cityName) {
+        Map<Integer, Place> places = new HashMap<>();
+        Place place;
+        List<DatabasePredicate> predicates = new ArrayList<>();
+        predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
+        SelectResult result = Query.select(null, Constants.PLACES_TABLE_NAME, predicates);
 
-    /* deserializePlaces - Deserialize places from raw string format
-     *
-     *  @return             : places
-     *  @rawPlaces          : raw string (json) containing places information
-     */
-    private static Map<Integer, Place> deserializePlaces(String rawPlaces) {
         try {
-            JSONArray placesArray = new JSONArray(rawPlaces);
-            Map<Integer, Place> places = new HashMap<>();
+            int id, duration;
+            String name, description, imageUrl, categoryName, categoryTopic;
+            double rating, latitude, longitude;
+            JSONArray timeFrames;
+            ResultSet resultSet = result.getResultSet();
+            while (resultSet.next()) {
+                id = resultSet.getInt("id");
+                name = resultSet.getString("name");
+                description = resultSet.getString("description");
+                imageUrl = resultSet.getString("imageUrl");
+                rating = resultSet.getDouble("rating");
+                categoryName = resultSet.getString("categoryName");
+                categoryTopic = resultSet.getString("categoryTopic");
+                duration = resultSet.getInt("duration");
+                latitude = resultSet.getDouble("latitude");
+                longitude = resultSet.getDouble("longitude");
+                timeFrames = new JSONArray(resultSet.getString("timeFrames"));
 
-            for (int i = 0; i < placesArray.length(); i++) {
-                Place place = Place.deserialize(placesArray.getJSONObject(i));
-                if (place == null) {
-                    continue;
-                }
-                places.put(place.id, place);
+                place = new Place(id, name, description, imageUrl, rating, new PlaceCategory(categoryName, categoryTopic),
+                                  duration, new GeoPosition(latitude, longitude), TimeFrame.deserialize(timeFrames));
+                places.put(id, place);
             }
-
-            return places;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        } finally {
+            result.close();
         }
+
+        return places;
     }
 
     /* serializePlaces - Serialize a list of places to be sent over network
@@ -123,11 +126,11 @@ public class DatabaseManager {
      *
      *  @return             : filtered places ready to be sent over network
      *  @city               : the city instance
-     *  @tags               : desired tags
+     *  @categories         : places categories names
      *  @timeFrame          : the time frame to search for open places
      */
-    private static JSONArray filterPlaces(City city, Set<String> tags, TimeFrame timeFrame) {
-        return serializePlaces(city.getSortedPlaces(city.getOpenPlaces(city.getFilteredPlaces(tags), timeFrame)));
+    private static JSONArray filterPlaces(City city, Set<String> categories, TimeFrame timeFrame) {
+        return serializePlaces(city.getSortedPlaces(city.getOpenPlaces(city.getFilteredPlaces(categories), timeFrame)));
     }
 
     /* getPlaces - Reads the database and collects all the places from a specific city
@@ -147,10 +150,10 @@ public class DatabaseManager {
                 return "[]";
             }
 
-            Set<String> tags = new HashSet<>();
-            JSONArray bodyTags = body.getJSONArray("tags");
-            for (int t = 0; t < bodyTags.length(); t++) {
-                tags.add(bodyTags.getString(t));
+            Set<String> placeCategories = new HashSet<>();
+            JSONArray categories = body.getJSONArray("categories");
+            for (int t = 0; t < categories.length(); t++) {
+                placeCategories.add(categories.getString(t));
             }
             TimeFrame period = TimeFrame.deserialize(body.getJSONArray("timeFrame"));
 
@@ -158,17 +161,16 @@ public class DatabaseManager {
                        new Object[]{uid, cityName});
 
             if (isCityCached(cityName)) {
-                return filterPlaces(cities.get(cityName), tags, period).toString(2);
+                return filterPlaces(cities.get(cityName), placeCategories, period).toString(2);
             }
 
-            String url = Constants.GET_PLACES_URL + "?city=" + cityName;
-            Map<Integer, Place> places = getPlaces(url);
+            Map<Integer, Place> places = getPlaces(cityName);
 
             City city = City.getInstance(cityName);
             city.setPlaces(places);
             cities.put(cityName, city);
 
-            return filterPlaces(city, tags, period).toString(2);
+            return filterPlaces(city, placeCategories, period).toString(2);
         } catch (Exception e) {
             e.printStackTrace();
             return "[]";
@@ -253,31 +255,8 @@ public class DatabaseManager {
             String cityName = body.getString("city");
             String uid = body.getString("uid");
             LOGGER.log(Level.FINE, "User {0} wants to save itinerary from {1} city", new Object[]{uid, cityName});
-            return postContentToURL(body, Constants.UPDATE_HISTORY_URL);
-        } catch (Exception e) {
-            e.printStackTrace();
+            // TODO save history in database
             return false;
-        }
-    }
-
-    /* postContentToURL - Create a post request given the body and the url
-     *
-     *  @return             : success or not
-     *  @body               : the body of the HTTP POST request
-     *  @strUrl             : the url for the HTTP POST request
-     */
-    static boolean postContentToURL(JSONObject body, String strUrl) {
-        try {
-            StringEntity entity = new StringEntity(body.toString(2),
-                                                   ContentType.APPLICATION_JSON);
-
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpPost request = new HttpPost(strUrl);
-            request.setEntity(entity);
-
-            HttpResponse response = httpClient.execute(request);
-            int responseCode = response.getStatusLine().getStatusCode();
-            return responseCode == HttpStatus.OK.value();
         } catch (Exception e) {
             e.printStackTrace();
             return false;

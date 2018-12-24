@@ -96,21 +96,18 @@ public class City {
     /* getFilteredPlaces - Filter places by tags
      *
      *  @return         : filtered places
-     *  @tags           : tags
+     *  @categories     : place categories
      */
-    public Map<Integer, Place> getFilteredPlaces(Set<String> tags) {
+    public Map<Integer, Place> getFilteredPlaces(Set<String> categories) {
         Map<Integer, Place> filteredPlaces = new HashMap<>();
 
         for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
-            if (placeEntry.getValue().tags == null) {
+            if (placeEntry.getValue().placeCategory == null) {
                 continue;
             }
 
-            for (String tag : placeEntry.getValue().tags) {
-                if (tags.contains(tag)) {
-                    filteredPlaces.put(placeEntry.getKey(), placeEntry.getValue());
-                    break;
-                }
+            if (categories.contains(placeEntry.getValue().placeCategory.getTopic())) {
+                filteredPlaces.put(placeEntry.getKey(), placeEntry.getValue());
             }
         }
 
@@ -268,7 +265,8 @@ public class City {
         PriorityQueue<Place> pq = new PriorityQueue<>(Comparator.comparingDouble(p -> p.rating));
 
         for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
-            if (placeEntry.getValue().type.equals("restaurant") && placeEntry.getValue().canVisit(hour)) {
+            if (placeEntry.getValue().placeCategory.getTopic().equals("Restaurants") &&
+                placeEntry.getValue().canVisit(hour)) {
                 if (pq.size() < limit) {
                     pq.add(placeEntry.getValue());
 

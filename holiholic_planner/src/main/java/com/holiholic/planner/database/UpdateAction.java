@@ -29,12 +29,5 @@ abstract class UpdateAction {
      *  @return             : success or not
      *  @body               : the request body
      */
-    boolean execute(JSONObject body) {
-        try {
-            return DatabaseManager.postContentToURL(body, Constants.UPDATE_PLANNER_URL);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    abstract boolean execute(JSONObject body);
 }

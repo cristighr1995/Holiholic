@@ -1,12 +1,13 @@
 package com.holiholic.planner.models;
 
+import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.utils.Enums;
 import com.holiholic.planner.utils.GeoPosition;
 import com.holiholic.planner.utils.Interval;
 import com.holiholic.planner.utils.TimeFrame;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /* Place - The internal representation model for a place
@@ -15,15 +16,13 @@ import java.util.*;
 public class Place implements Comparable<Place> {
     public int id;
     public String name;
-    public GeoPosition location;
-    public int durationVisit;
-    public double rating = 0;
-    public TimeFrame timeFrame;             // When is the place open
+    public String description;
     public String imageUrl;
-    public String vicinity = "";
-    public String phone = "";
-    public Set<String> tags;
-    public String type = "attraction";      // the current place type (starting_point, attraction, restaurant)
+    public double rating = 0;
+    public PlaceCategory placeCategory;
+    public int durationVisit;
+    public GeoPosition location;
+    public TimeFrame timeFrame;             // When is the place open
 
     public Calendar plannedHour;            // When is the place scheduled
     public int durationToNext = 0;
@@ -37,8 +36,6 @@ public class Place implements Comparable<Place> {
     public String fixedAt = "anytime";      // The time when the user wants to visit a place
     public long waitTime = 0;               // how much to wait between visiting 2 places
 
-
-
     // default constructor
     private Place() {}
 
@@ -49,19 +46,17 @@ public class Place implements Comparable<Place> {
         this.location = location;
     }
 
-    private Place(int id, String name, GeoPosition location, int durationVisit, double rating, TimeFrame timeFrame,
-                  String imageUrl, String vicinity, String phone, Set<String> tags, String type) {
+    public Place(int id, String name, String description, String imageUrl, double rating, PlaceCategory placeCategory,
+                 int durationVisit, GeoPosition location, TimeFrame timeFrame) {
         this.id = id;
         this.name = name;
-        this.location = location;
-        this.durationVisit = durationVisit;
-        this.rating = rating;
-        this.timeFrame = timeFrame;
+        this.description = description;
         this.imageUrl = imageUrl;
-        this.vicinity = vicinity;
-        this.phone = phone;
-        this.tags = tags;
-        this.type = type;
+        this.rating = rating;
+        this.placeCategory = placeCategory;
+        this.durationVisit = durationVisit;
+        this.location = location;
+        this.timeFrame = timeFrame;
     }
 
     /* toString - Returns a string representation of the current object
@@ -114,10 +109,7 @@ public class Place implements Comparable<Place> {
         copy.rating = rating;
         copy.timeFrame = timeFrame != null ? timeFrame.clone() : null;
         copy.plannedHour = plannedHour != null ? (Calendar) plannedHour.clone() : null;
-        copy.tags = tags != null ? new HashSet<>(tags) : null;
         copy.imageUrl = imageUrl;
-        copy.vicinity = vicinity;
-        copy.phone = phone;
         copy.travelMode = travelMode;
         copy.durationToNext = durationToNext;
         copy.distanceToNext = distanceToNext;
@@ -126,9 +118,10 @@ public class Place implements Comparable<Place> {
         copy.parkHere = parkHere;
         copy.fixedAt = fixedAt;
         copy.waitTime = waitTime;
-        copy.type = type;
         copy.carPlaceName = carPlaceName;
         copy.mealType = mealType;
+        copy.description = description;
+        copy.placeCategory = placeCategory;
         return copy;
     }
 
@@ -138,7 +131,10 @@ public class Place implements Comparable<Place> {
      *  @return       : the order of the places (ascending based on their fixed time)
      */
     @Override
-    public int compareTo(Place other) {
+    public int compareTo(@Nullable Place other) {
+        if (other == null) {
+            return -1;
+        }
         if (this.fixedAt.equals("anytime") && other.fixedAt.equals("anytime")) {
             return 0;
         } else if (this.fixedAt.equals("anytime")) {
@@ -166,29 +162,9 @@ public class Place implements Comparable<Place> {
         serializedPlace.put("rating", rating);
         serializedPlace.put("timeFrame", timeFrame.serialize());
         serializedPlace.put("imageUrl", imageUrl);
-        serializedPlace.put("vicinity", vicinity);
-        serializedPlace.put("phone", phone);
-        serializedPlace.put("tags", serializeTags());
-        serializedPlace.put("type", type);
+        serializedPlace.put("description", description);
+        serializedPlace.put("category", placeCategory.getTopic());
         return serializedPlace;
-    }
-
-    /* serializeTags - Serialize the tags into a json format
-     *
-     *  @return       : the serialized tags
-     */
-    private JSONArray serializeTags() {
-        if (tags == null || tags.isEmpty()) {
-            return new JSONArray();
-        }
-
-        JSONArray result = new JSONArray();
-
-        for (String tag : tags) {
-            result.put(tag);
-        }
-
-        return result;
     }
 
     /* deserializeStart - Creates an internal representation of the start place that the user chose
@@ -203,38 +179,6 @@ public class Place implements Comparable<Place> {
             double latitude = place.getDouble("latitude");
             double longitude = place.getDouble("longitude");
             return new Place(id, name, new GeoPosition(latitude, longitude));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /* deserialize - Creates an internal representation of a place in json format
-     *
-     *  @return             : the place
-     *  @place              : information about the place
-     */
-    public static Place deserialize(JSONObject place) {
-        try {
-            int id = place.getInt("id");
-            String name = place.getString("name");
-            double latitude = place.getDouble("latitude");
-            double longitude = place.getDouble("longitude");
-            int durationVisit = place.getInt("duration");
-            double rating = place.getDouble("rating");
-            TimeFrame timeFrame = TimeFrame.deserialize(place.getJSONArray("timeFrame"));
-            String imageUrl = place.getString("imageUrl");
-            String vicinity = place.getString("vicinity");
-            String phone = place.getString("phone");
-            JSONArray tagsArray = place.getJSONArray("tags");
-            Set<String> tags = new HashSet<>();
-            for (int i = 0; i < tagsArray.length(); i++) {
-                tags.add(tagsArray.getString(i));
-            }
-            String type = place.getString("type");
-
-            return new Place(id, name, new GeoPosition(latitude, longitude), durationVisit, rating,
-                             timeFrame, imageUrl, vicinity, phone, tags, type);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

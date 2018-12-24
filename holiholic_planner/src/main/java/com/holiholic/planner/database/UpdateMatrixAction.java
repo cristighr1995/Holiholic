@@ -1,7 +1,13 @@
 package com.holiholic.planner.database;
 
+import com.holiholic.database.api.DatabasePredicate;
+import com.holiholic.database.api.Query;
+import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.travel.City;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /* UpdateMatrixAction - Updates the distance and duration matrix in the database
  *
@@ -15,11 +21,10 @@ class UpdateMatrixAction extends UpdateAction {
      */
     @Override
     boolean execute(JSONObject body) {
-        // make the call to update the database
-        super.execute(body);
-
-        // cache the results if applicable
         String cityName = body.getString("city");
+
+        // refresh database
+        deleteOldDistances(cityName);
 
         if (!DatabaseManager.isCityCached(cityName)) {
             return true;
@@ -34,5 +39,11 @@ class UpdateMatrixAction extends UpdateAction {
         city.setDistances();
         DatabaseManager.cacheCity(city);
         return true;
+    }
+
+    private void deleteOldDistances(String cityName) {
+        List<DatabasePredicate> predicates = new ArrayList<>();
+        predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
+        Query.delete(Constants.PLACES_TABLE_NAME, predicates);
     }
 }
