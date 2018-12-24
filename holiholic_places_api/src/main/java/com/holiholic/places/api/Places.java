@@ -14,8 +14,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 public class Places {
 
@@ -271,6 +270,7 @@ public class Places {
             String placeId = searchList.getJSONObject(i).getString("id");
             JSONObject placeDetails = getPlaceDetails(placeId, placeCategory);
             if (placeDetails != null) {
+                placeDetails.put("id", i);
                 places.put(placeDetails);
             }
         }
@@ -279,4 +279,72 @@ public class Places {
                            + placeCategory.getName() + "\" and topic \"" + placeCategory.getTopic() + "\"");
         return places;
     }
+
+    private static double getDistance(JSONObject response, String type) {
+        return response.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0)
+               .getJSONObject(type).getInt("value");
+    }
+
+    private static double[] getDistance(String origin, String destination, String type) {
+        double[] distance = new double[2];
+        Arrays.fill(distance, Double.MAX_VALUE);
+
+        try {
+            String url = UrlManager.getDistanceMatrixUrl(origin, destination, type);
+            JSONObject response = new JSONObject(getContentFromUrl(url));
+            distance[0] = getDistance(response, "distance");
+            distance[1] = getDistance(response, "duration");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return distance;
+    }
+
+    private static String getLocation(JSONObject place) {
+        return place.getDouble("latitude") + "," + place.getDouble("longitude");
+    }
+
+    public static Map<String, double[][]> getDistances(JSONArray places) {
+        Map<String, double[][]> distances = new HashMap<>();
+        try {
+            int placesLength = places.length();
+            double[][] distanceDriving = new double[placesLength][placesLength];
+            double[][] durationDriving = new double[placesLength][placesLength];
+            double[][] distanceWalking = new double[placesLength][placesLength];
+            double[][] durationWalking = new double[placesLength][placesLength];
+            double[] distanceResponse;
+            String origin, destination;
+
+            for (int i = 0; i < placesLength; i++) {
+                for (int j = 0; j < placesLength; j++) {
+                    if (i == j) {
+                        continue;
+                    }
+
+                    origin = getLocation(places.getJSONObject(i));
+                    destination = getLocation(places.getJSONObject(j));
+
+                    distanceResponse = getDistance(origin, destination, "driving");
+                    distanceDriving[i][j] = distanceResponse[0];
+                    durationDriving[i][j] = distanceResponse[1];
+
+                    distanceResponse = getDistance(origin, destination, "walking");
+                    distanceWalking[i][j] = distanceResponse[0];
+                    durationWalking[i][j] = distanceResponse[1];
+                }
+            }
+
+            distances.put("distance_driving", distanceDriving);
+            distances.put("duration_driving", durationDriving);
+            distances.put("distance_walking", distanceWalking);
+            distances.put("duration_walking", durationWalking);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return distances;
+    }
+
 }

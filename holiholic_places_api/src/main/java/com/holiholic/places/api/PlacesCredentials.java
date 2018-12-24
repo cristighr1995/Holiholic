@@ -4,6 +4,7 @@ public class PlacesCredentials {
     private String clientId;
     private String clientSecret;
     private String version;
+    private String googleApiKey;
 
     public PlacesCredentials() {
 
@@ -37,6 +38,14 @@ public class PlacesCredentials {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getGoogleApiKey() {
+        return googleApiKey;
+    }
+
+    public void setGoogleApiKey(String googleApiKey) {
+        this.googleApiKey = googleApiKey;
     }
 
     @Override

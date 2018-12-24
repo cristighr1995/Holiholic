@@ -21,4 +21,18 @@ class UrlManager {
         }
         return Constants.VENUES_URL + placeId + "?" + placesCredentials.toString();
     }
+
+    static String getDistanceMatrixUrl(String origin, String destination, String travelMode) {
+        PlacesCredentials placesCredentials = PlacesManager.getPlacesCredentials();
+        if (placesCredentials == null) {
+            return "";
+        }
+
+        return Constants.DISTANCE_MATRIX_URL
+               + "?origins=" + origin
+               + "&destinations=" + destination
+               + "&mode=" + travelMode
+               + "&language=en-EN"
+               + "&key=" + placesCredentials.getGoogleApiKey();
+    }
 }
