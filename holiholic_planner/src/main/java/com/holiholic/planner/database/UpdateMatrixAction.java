@@ -1,6 +1,5 @@
 package com.holiholic.planner.database;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.holiholic.database.api.DatabasePredicate;
 import com.holiholic.database.api.Query;
 import com.holiholic.database.api.SelectResult;

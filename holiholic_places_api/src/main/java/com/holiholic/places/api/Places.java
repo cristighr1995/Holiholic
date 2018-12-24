@@ -154,6 +154,11 @@ public class Places {
                 renderedTime = mergeRenderedTime(timeFrame.getJSONArray("open"));
                 intervals = split(daysInfo, ", ");
                 System.out.println("Decode " + daysInfo + " interval with " + renderedTime + " time");
+
+                if (renderedTime.equals("None")) {
+                    continue;
+                }
+
                 for (String interval : intervals) {
                     days = split(interval, "\u2013");
                     // just one day information
@@ -263,6 +268,7 @@ public class Places {
     }
 
     public static JSONArray getPlaces(String near, PlaceCategory placeCategory) {
+        System.out.println("Search for venues from " + placeCategory.getName() + " category");
         JSONArray searchList = searchPlaces(near, placeCategory.getId(), placeCategory.getLimit());
         JSONArray places = new JSONArray();
 

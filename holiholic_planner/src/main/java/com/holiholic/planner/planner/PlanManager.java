@@ -73,7 +73,7 @@ public class PlanManager {
      */
     public static String getPlan(JSONObject body) {
         try {
-            String cityName = body.getString("city");
+            String cityName = body.getString("city").toLowerCase();
             String uid = body.getString("uid");
 
             if (!DatabaseManager.containsUser(uid)) {

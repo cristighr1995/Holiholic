@@ -142,7 +142,7 @@ public class DatabaseManager {
     public static String getPlaces(JSONObject body) {
         try {
             String uid = body.getString("uid");
-            String cityName = body.getString("city");
+            String cityName = body.getString("city").toLowerCase();
 
             if (!containsUser(uid)) {
                 LOGGER.log(Level.FINE, "Invalid request from user {0} to get places recommendation for {1} city",
@@ -252,7 +252,7 @@ public class DatabaseManager {
      */
     public static boolean updateHistory(JSONObject body) {
         try {
-            String cityName = body.getString("city");
+            String cityName = body.getString("city").toLowerCase();
             String uid = body.getString("uid");
             LOGGER.log(Level.FINE, "User {0} wants to save itinerary from {1} city", new Object[]{uid, cityName});
             // TODO save history in database
@@ -290,7 +290,7 @@ public class DatabaseManager {
                 return false;
             }
             String type = body.getString("type");
-            String cityName = body.getString("city");
+            String cityName = body.getString("city").toLowerCase();
             LOGGER.log(Level.FINE, "New request to update {0} database for {1} city", new Object[]{type, cityName});
 
             UpdateAction action = UpdateAction.Factory.getInstance(type);

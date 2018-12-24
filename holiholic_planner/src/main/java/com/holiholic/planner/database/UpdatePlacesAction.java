@@ -1,19 +1,18 @@
 package com.holiholic.planner.database;
 
+import com.google.common.base.CharMatcher;
 import com.holiholic.database.api.DatabasePredicate;
 import com.holiholic.database.api.Query;
 import com.holiholic.database.api.SelectResult;
 import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.places.api.Places;
 import com.holiholic.planner.constant.Constants;
-import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /* UpdatePlacesAction - Updates the places in the database
  *
@@ -33,12 +32,16 @@ class UpdatePlacesAction extends UpdateAction {
         deleteOldPlaces(cityName);
 
         List<PlaceCategory> categories = getPlacesCategories();
+        int placesCount = 0;
 
         for (PlaceCategory category : categories) {
             JSONArray places = Places.getPlaces(cityName, category);
 
             for (int i = 0; i < places.length(); i++) {
                 JSONObject place = places.getJSONObject(i);
+                // really important to set the correct id
+                place.put("id", placesCount++);
+
                 List<String> values = getValueList(place, cityName);
                 if (values == null) {
                     continue;
@@ -93,6 +96,7 @@ class UpdatePlacesAction extends UpdateAction {
     }
 
     private String escape(String string) {
+        string = CharMatcher.is('\'').replaceFrom(string, "\\\'");
         return "\'" + string + "\'";
     }
 
@@ -111,7 +115,7 @@ class UpdatePlacesAction extends UpdateAction {
             values.add("" + place.getInt("duration"));
             values.add("" + place.getDouble("latitude"));
             values.add("" + place.getDouble("longitude"));
-            values.add(escape(place.getJSONObject("timeFrames").toString()));
+            values.add(escape(place.getJSONArray("timeFrames").toString()));
         } catch (Exception e) {
             e.printStackTrace();
             return null;
