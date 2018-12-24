@@ -569,7 +569,6 @@ class Planner {
             startPlaceCopy.durationToNext = durationToNext / 60;
             startPlaceCopy.distanceToNext = getDistanceFromStart(next);
             startPlaceCopy.travelMode = travelMode;
-            startPlaceCopy.type = "starting_point";
 
             // place can be visited immediately
             if (next.canVisit(userStartHour)) {
@@ -819,15 +818,10 @@ class Planner {
             Interval range = new Interval(minus, plus);
 
             if (range.isBetween(Interval.getHour(current.fixedAt))) {
-                switch (current.type) {
-                    case "attraction":
-                        reward += Constants.FIXED_ATTRACTION_REWARD;
-                        break;
-                    case "restaurant":
-                        reward += Constants.FIXED_RESTAURANT_REWARD;
-                        break;
-                    default:
-                        break;
+                if (current.placeCategory.getTopic().equals("Restaurants")) {
+                    reward += Constants.FIXED_RESTAURANT_REWARD;
+                } else {
+                    reward += Constants.FIXED_ATTRACTION_REWARD;
                 }
             }
         }
@@ -1049,7 +1043,7 @@ class Planner {
         response.put("name", place.name);
         response.put("rating", place.rating);
         response.put("duration", place.durationVisit);
-        response.put("type", place.type);
+        response.put("category", place.placeCategory.getTopic());
         response.put("travelMode", Enums.TravelMode.serialize(place.travelMode));
         response.put("durationToNext", place.durationToNext);
         response.put("distanceToNext", place.distanceToNext);

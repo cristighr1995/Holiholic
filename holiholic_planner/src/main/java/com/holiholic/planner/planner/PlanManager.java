@@ -95,6 +95,10 @@ public class PlanManager {
                        new Object[]{uid, cityName});
 
             City city = DatabaseManager.getCity(cityName);
+            if (city == null) {
+                LOGGER.log(Level.FINE, "Server error: city instance is null");
+                return "[]";
+            }
             Enums.TravelMode travelMode = Enums.TravelMode.deserialize(preferences.getString("travelMode"));
             double heuristicValue = preferences.getDouble("heuristicValue");
             boolean dinner = preferences.getBoolean("dinner");

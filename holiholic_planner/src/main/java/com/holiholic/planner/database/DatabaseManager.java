@@ -314,26 +314,43 @@ public class DatabaseManager {
      *  @travelInfo         : duration or distance
      */
     public static double[][] getMatrix(String cityName, Enums.TravelMode travelMode, Enums.TravelInfo travelInfo) {
-        String url = Constants.GET_MATRIX_URL
-                     + "?city=" + cityName
-                     + "&travelMode=" + Enums.TravelMode.serialize(travelMode)
-                     + "&travelInfo=" + Enums.TravelInfo.serialize(travelInfo);
-
+        int dimension = 0;
+        List<DatabasePredicate> predicates = new ArrayList<>();
+        predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
+        SelectResult resultCount = Query.select(Collections.singletonList("count(*)"), Constants.PLACES_TABLE_NAME, predicates);
         try {
-            JSONObject response = new JSONObject(getContentFromURL(url));
-            int N = response.getInt("dimension");
-            double[][] matrix = new double[N][N];
-            JSONArray responseMatrix = response.getJSONArray("matrix");
-
-            for (int i = 0; i < responseMatrix.length(); i++) {
-                JSONObject edge = responseMatrix.getJSONObject(i);
-                matrix[edge.getInt("from")][edge.getInt("to")] = edge.getDouble("value");
+            if (resultCount.getResultSet().next()) {
+                dimension = resultCount.getResultSet().getInt(1);
             }
-
-            return matrix;
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            resultCount.close();
+        }
+
+        if (dimension == 0) {
             return null;
         }
+
+        double[][] matrix = new double[dimension][dimension];
+        predicates.add(new DatabasePredicate("travelMode", "=", "\'" + Enums.TravelMode.serialize(travelMode) + "\'"));
+        SelectResult result = Query.select(null, Constants.PLACES_DISTANCES_TABLE_NAME, predicates);
+        try {
+            ResultSet resultSet = result.getResultSet();
+            int from, to;
+            double value;
+            while (resultSet.next()) {
+                from = resultSet.getInt("from");
+                to = resultSet.getInt("to");
+                value = resultSet.getDouble(Enums.TravelInfo.serialize(travelInfo));
+                matrix[from][to] = value;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            matrix = null;
+        } finally {
+            result.close();
+        }
+        return matrix;
     }
 }

@@ -22,6 +22,7 @@ public class Constants {
     private final static String DATABASE_INSTANCE_NAME = "holiholicdb";
     public final static String PLACES_TABLE_NAME = DATABASE_INSTANCE_NAME + ".Places";
     public final static String PLACES_CATEGORIES_TABLE_NAME = DATABASE_INSTANCE_NAME + ".PlacesCategories";
+    public final static String PLACES_DISTANCES_TABLE_NAME = DATABASE_INSTANCE_NAME + ".PlacesDistances";
 
     public final static Calendar DEFAULT_LUNCH_HOUR = Interval.getHour(13, 0, 0);
     public final static Calendar DEFAULT_DINNER_HOUR = Interval.getHour(19, 0, 0);
