@@ -301,7 +301,7 @@ public class Places {
             distance[0] = getDistance(response, "distance");
             distance[1] = getDistance(response, "duration");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Got ZERO_RESULTS");
         }
 
         return distance;
