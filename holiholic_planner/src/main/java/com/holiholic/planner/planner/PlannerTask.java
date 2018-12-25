@@ -6,11 +6,12 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-/* VisitTask - This is used for the load balancing module which starts looking for a solution from a different thread
+/* PlannerTask - This is used for the load balancing module which starts looking for a solution from a different thread
  *
  */
-public class VisitTask implements Runnable {
+public class PlannerTask implements Callable<Boolean> {
     private int id;
     private Set<Integer> open;
     private List<Place> solution;
@@ -21,8 +22,8 @@ public class VisitTask implements Runnable {
     private PriorityQueue<Place> fixed;
     private Planner planner;
 
-    VisitTask(int id, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
-              int returnDurationToCar, PriorityQueue<Place> fixed, Planner planner) {
+    PlannerTask(int id, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
+                int returnDurationToCar, PriorityQueue<Place> fixed, Planner planner) {
         this.id = id;
         this.open = open;
         this.solution = solution;
@@ -35,11 +36,13 @@ public class VisitTask implements Runnable {
     }
 
     @Override
-    public void run() {
+    public Boolean call() {
         try {
             planner.visit(id, open, solution, hour, score, carPlaceId, returnDurationToCar, fixed);
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 }

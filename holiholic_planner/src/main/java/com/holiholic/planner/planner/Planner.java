@@ -101,9 +101,8 @@ class Planner {
             return true;
         }
 
-        int durationMinutes = currentPlace.durationVisit;
         Calendar afterVisiting = CloneFactory.clone(hour);
-        afterVisiting.add(Calendar.MINUTE, durationMinutes);
+        afterVisiting.add(Calendar.SECOND, currentPlace.durationVisit);
 
         return !timeFrame.canVisit(afterVisiting);
     }
@@ -176,7 +175,7 @@ class Planner {
 
         for (Place place : places) {
             if (place.canVisit(movingHour)) {
-                movingHour.add(Calendar.MINUTE, place.durationVisit);
+                movingHour.add(Calendar.SECOND, place.durationVisit);
 
                 if (travelMode == Enums.TravelMode.DRIVING) {
                     durationToNext = Math.min(durationWalking[last.id][place.id], durationDriving[last.id][place.id]);
@@ -288,7 +287,7 @@ class Planner {
             int[] duration = getDuration(current, fixed.peek(), carPlaceId);
             int durationToFixed = duration[0];
             int returnDurationWalking = duration[1];
-            hourAtCurrent.add(Calendar.MINUTE, current.durationVisit);
+            hourAtCurrent.add(Calendar.SECOND, current.durationVisit);
             hourAtCurrent.add(Calendar.SECOND, durationToFixed);
             hourAtCurrent.add(Calendar.SECOND, -returnDurationToCar);
             hourAtCurrent.add(Calendar.SECOND, returnDurationWalking);
@@ -302,7 +301,7 @@ class Planner {
                 if (!solution.isEmpty()) {
                     Place lastPlace = solution.get(solution.size() - 1);
                     Calendar lastHour = CloneFactory.clone(lastPlace.plannedHour);
-                    lastHour.add(Calendar.MINUTE, lastPlace.durationVisit);
+                    lastHour.add(Calendar.SECOND, lastPlace.durationVisit);
 
                     if (lastPlace.carPlaceId == -1) {
                         carPlaceId = lastPlace.id;
@@ -316,7 +315,7 @@ class Planner {
                     carPlaceId = duration[2];
                     int distanceToNext = duration[3];
 
-                    lastPlace.durationToNext = durationToNext / 60;
+                    lastPlace.durationToNext = durationToNext;
                     lastPlace.distanceToNext = distanceToNext;
                     lastHour.add(Calendar.SECOND, durationToNext);
                     peekHour = lastHour;
@@ -392,7 +391,7 @@ class Planner {
         carPlaceId = duration[2];
         int distanceToNext = duration[3];
 
-        current.durationToNext = durationToNext / 60;
+        current.durationToNext = durationToNext;
         current.distanceToNext = distanceToNext;
         solution.add(current);
 
@@ -431,11 +430,13 @@ class Planner {
             if (travelMode == Enums.TravelMode.DRIVING) {
                 if (carPlaceId == current.id) {
                     current.parkHere = true;
+                    current.travelMode = Enums.TravelMode.UNKNOWN;
                 } else {
                     current.getCarBack = true;
+                    current.travelMode = Enums.TravelMode.WALKING;
                     current.carPlaceId = carPlaceId;
                     current.carPlaceName = city.getPlaces().get(carPlaceId).name;
-                    current.durationToNext = (int) durationWalking[current.id][carPlaceId] / 60;
+                    current.durationToNext = (int) durationWalking[current.id][carPlaceId];
                     current.distanceToNext = (int) distanceWalking[current.id][carPlaceId];
                 }
             }
@@ -453,7 +454,7 @@ class Planner {
             currentHour.add(Calendar.SECOND, durationToNext);
             currentHour.add(Calendar.SECOND, -returnDurationToCar);
             currentHour.add(Calendar.SECOND, returnDurationWalking);
-            current.durationToNext = durationToNext / 60;
+            current.durationToNext = durationToNext;
             current.distanceToNext = distanceToNext;
         }
 
@@ -521,7 +522,7 @@ class Planner {
         // visit the current place
         openCopy.remove(id);
         currentPlace.plannedHour = CloneFactory.clone(currentHour);
-        currentHour.add(Calendar.MINUTE, currentPlace.durationVisit);
+        currentHour.add(Calendar.SECOND, currentPlace.durationVisit);
 
         if (openCopy.isEmpty()) {
             triggerSolution(currentPlace, openCopy, solutionCopy, score, currentHour,
@@ -550,11 +551,11 @@ class Planner {
      *  @currentSolution        : the current solution (like an accumulator)
      *  @fixedPlaces            : a priority queue which contains the fixed places
      */
-    private void createTask(Place next, Set<Integer> open, List<Place> solution, PriorityQueue<Place> fixed) {
+    private PlannerTask createTask(Place next, Set<Integer> open, List<Place> solution, PriorityQueue<Place> fixed) {
         try {
             int dayOfWeek = timeFrame.getOpenDays().get(0);
             if (!next.timeFrame.isNonStop() && next.timeFrame.isClosed(dayOfWeek)) {
-                return;
+                return null;
             }
 
             List<Place> solutionCopy = CloneFactory.clone(solution);
@@ -566,7 +567,7 @@ class Planner {
 
             startPlaceCopy.plannedHour = CloneFactory.clone(userStartHour);
             userStartHour.add(Calendar.SECOND, durationToNext);
-            startPlaceCopy.durationToNext = durationToNext / 60;
+            startPlaceCopy.durationToNext = durationToNext;
             startPlaceCopy.distanceToNext = getDistanceFromStart(next);
             startPlaceCopy.travelMode = travelMode;
 
@@ -583,41 +584,14 @@ class Planner {
 
             if (currentHour != null) {
                 solutionCopy.add(startPlaceCopy);
-                Runnable worker = new VisitTask(next.id, CloneFactory.clone(open), solutionCopy, currentHour, 0.0,
-                                                next.id, 0, fixedCopy, this);
-                ThreadManager.getInstance().addTask(worker);
+                return new PlannerTask(next.id, CloneFactory.clone(open), solutionCopy, currentHour, 0.0,
+                                       next.id, 0, fixedCopy, this);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
 
-    /* awaitTermination - Wait for executor to finish tasks considering the number of places in the plan
-     *
-     *  @return                 : void
-     *  @nrPlacesToPlan         : number of places in the plan
-     */
-    private void awaitTermination(int nrPlacesToPlan) {
-        Thread waiter = new Thread(() -> {
-            try {
-                int timeToWait = 10 * (nrPlacesToPlan / 5);
-                LOGGER.log( Level.FINE, "Accepting tasks for {0} seconds", timeToWait);
-                // wait a time frame
-                Thread.sleep(timeToWait * 1000);
-                LOGGER.log( Level.FINE, "No longer accepting tasks for the city ({0})", city.getName());
-                // no longer accept tasks
-                acceptNewTasks = false;
-                LOGGER.log( Level.FINE, "Wait for finishing remaining tasks for the city ({0})", city.getName());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        try {
-            waiter.start();
-            waiter.join();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        return null;
     }
 
     /* initMaxScores - Initialize max score map for each place, this is the score considering the solution starts
@@ -710,6 +684,7 @@ class Planner {
         init(places);
 
         Set<Integer> open = new HashSet<>();
+        List<PlannerTask> plannerTasks = new ArrayList<>();
         PriorityQueue<Place> fixed = new PriorityQueue<>((p1, p2) -> {
             Calendar p1Hour = Interval.getHour(p1.fixedAt);
             Calendar p2Hour = Interval.getHour(p2.fixedAt);
@@ -726,7 +701,10 @@ class Planner {
 
         // only fixed places
         if (open.isEmpty() && !fixed.isEmpty()) {
-            createTask(CloneFactory.clone(fixed.poll()), open, new ArrayList<>(), fixed);
+            PlannerTask task = createTask(CloneFactory.clone(fixed.poll()), open, new ArrayList<>(), fixed);
+            if (task != null) {
+                plannerTasks.add(task);
+            }
         }
         else {
             // sort descending by rating and by the remaining time for visiting
@@ -751,15 +729,14 @@ class Planner {
                 if (!open.contains(place.id)) {
                     continue;
                 }
-                createTask(place, open, new ArrayList<>(), fixed);
+                PlannerTask task = createTask(place, open, new ArrayList<>(), fixed);
+                if (task != null) {
+                    plannerTasks.add(task);
+                }
             }
         }
 
-        try {
-            awaitTermination(places.size());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ThreadManager.getInstance().invokeAll(plannerTasks, 3, TimeUnit.SECONDS);
 
         LOGGER.log(Level.FINE, "Finished planning for the city ({0}). Number of solutions found: {1}",
                    new Object[]{city.getName(), solutionsCount});
@@ -840,7 +817,7 @@ class Planner {
         rewards = new HashMap<>();
 
         for (int hour = 0; hour < 24; hour++) {
-            movingHour.add(Calendar.HOUR_OF_DAY, hour);
+            movingHour.add(Calendar.HOUR_OF_DAY, 1);
             rewards.put(movingHour.get(Calendar.HOUR_OF_DAY), new HashMap<>());
 
             for (int i = 0; i < places.size(); i++) {
@@ -868,6 +845,9 @@ class Planner {
      *  @hour                   : the current hour
      */
     private double getReward(Place current, Place next, Calendar hour) {
+        if (current.id == next.id) {
+            return 0;
+        }
         return rewards.get(hour.get(Calendar.HOUR_OF_DAY)).get(current.id).get(next.id);
     }
 
@@ -1043,7 +1023,11 @@ class Planner {
         response.put("name", place.name);
         response.put("rating", place.rating);
         response.put("duration", place.durationVisit);
-        response.put("category", place.placeCategory.getTopic());
+        if (place.placeCategory == null) {
+            response.put("category", "starting_point");
+        } else {
+            response.put("category", place.placeCategory.getTopic());
+        }
         response.put("travelMode", Enums.TravelMode.serialize(place.travelMode));
         response.put("durationToNext", place.durationToNext);
         response.put("distanceToNext", place.distanceToNext);

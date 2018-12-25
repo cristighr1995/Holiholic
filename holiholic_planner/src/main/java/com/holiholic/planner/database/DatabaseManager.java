@@ -53,13 +53,7 @@ public class DatabaseManager {
      *  @uid                : the current user id
      */
     public static boolean containsUser(String uid) {
-        String url = Constants.CONTAINS_USER_URL + "?uid=" + uid;
-        try {
-            return Boolean.parseBoolean(getContentFromURL(url));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return true;
     }
 
     /* getPlaces - Get the places from the database making a HTTP GET and deserialize places
@@ -155,13 +149,13 @@ public class DatabaseManager {
             for (int t = 0; t < categories.length(); t++) {
                 placeCategories.add(categories.getString(t));
             }
-            TimeFrame period = TimeFrame.deserialize(body.getJSONArray("timeFrame"));
+            TimeFrame timeFrame = TimeFrame.deserialize(body.getJSONArray("timeFrame"));
 
             LOGGER.log(Level.FINE, "New request from user {0} to get places recommendation for {1} city",
                        new Object[]{uid, cityName});
 
             if (isCityCached(cityName)) {
-                return filterPlaces(cities.get(cityName), placeCategories, period).toString(2);
+                return filterPlaces(cities.get(cityName), placeCategories, timeFrame).toString(2);
             }
 
             Map<Integer, Place> places = getPlaces(cityName);
@@ -170,7 +164,7 @@ public class DatabaseManager {
             city.setPlaces(places);
             cities.put(cityName, city);
 
-            return filterPlaces(city, placeCategories, period).toString(2);
+            return filterPlaces(city, placeCategories, timeFrame).toString(2);
         } catch (Exception e) {
             e.printStackTrace();
             return "[]";
@@ -205,44 +199,6 @@ public class DatabaseManager {
      */
     static boolean isCityCached(String cityName) {
         return cities.containsKey(cityName);
-    }
-
-    /* getContentFromURL - Returns the content from a http get request
-     *
-     *  @return             : the content
-     *  @strUrl             : the url with the get request
-     */
-    private static String getContentFromURL(String strUrl) throws IOException {
-        String data = null;
-        InputStream iStream = null;
-        HttpURLConnection urlConnection = null;
-        String line;
-        try {
-            URL url = new URL(strUrl);
-            // Creating an http connection to communicate with url
-            urlConnection = (HttpURLConnection) url.openConnection();
-            // Connecting to url
-            urlConnection.connect();
-            // Reading data from url
-            iStream = urlConnection.getInputStream();
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
-            StringBuilder sb = new StringBuilder();
-
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-            data = sb.toString();
-            br.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            assert iStream != null;
-            iStream.close();
-            urlConnection.disconnect();
-        }
-        return data;
     }
 
     /* updateHistory - Save a plan into a specific user history
