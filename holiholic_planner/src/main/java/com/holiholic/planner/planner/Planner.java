@@ -41,7 +41,6 @@ class Planner {
     private double[][] durationWalking;
     private double[][] distanceDriving;
     private double[][] distanceWalking;
-    private boolean acceptNewTasks = true;
     private int solutionsCount = 0;
     private long startTimeMeasure = 0;
 
@@ -477,11 +476,6 @@ class Planner {
      */
     void visit(int id, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
                int returnDurationToCar, PriorityQueue<Place> fixed) {
-        // early out if the allocated time frame expired
-        if (!acceptNewTasks) {
-            return;
-        }
-
         // deep-copy used to load-balance
         Set<Integer> openCopy = CloneFactory.clone(open);
         List<Place> solutionCopy = CloneFactory.clone(solution);
