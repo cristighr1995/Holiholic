@@ -31,9 +31,7 @@ public class Places {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                     String line;
                     System.out.println("New request to \"" + url + "\"");
-                    System.out.println("Response:");
                     while ((line = reader.readLine()) != null) {
-                        System.out.println(line);
                         builder.append(line);
                     }
                 }
@@ -43,6 +41,8 @@ public class Places {
             return "";
         }
 
+        System.out.println("Response:");
+        System.out.println(builder.toString());
         return builder.toString();
     }
 
@@ -338,6 +338,8 @@ public class Places {
                     distanceResponse = getDistance(origin, destination, "walking");
                     distanceWalking[i][j] = distanceResponse[0];
                     durationWalking[i][j] = distanceResponse[1];
+
+                    System.out.println("Got distance from: " + i + " to: " + j);
                 }
             }
 
