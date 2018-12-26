@@ -268,8 +268,9 @@ public class Places {
     }
 
     public static JSONArray getPlaces(String near, PlaceCategory placeCategory) {
-        System.out.println("Search for venues from " + placeCategory.getName() + " category");
         JSONArray searchList = searchPlaces(near, placeCategory.getId(), placeCategory.getLimit());
+        System.out.println("Search for venues from " + placeCategory.getName() + " category -> found " + searchList.length());
+
         JSONArray places = new JSONArray();
 
         for (int i = 0; i < searchList.length(); i++) {

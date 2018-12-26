@@ -629,16 +629,17 @@ class Planner {
         Calendar hour;
 
         if (dinner) {
-            hour = Constants.DEFAULT_DINNER_HOUR;
+            hour = Interval.getHour(Constants.DEFAULT_DINNER_HOUR);
             hour.set(Calendar.DAY_OF_WEEK, timeFrame.getOpenDays().get(0));
             topRestaurants = city.getTopRestaurants(5, hour);
             if (topRestaurants != null && !topRestaurants.isEmpty()) {
-                topDinner = topRestaurants.get(0);
+                topDinner = CloneFactory.clone(topRestaurants.get(0));
+                topDinner.fixedAt = Constants.DEFAULT_DINNER_HOUR;
                 places.add(topDinner);
             }
         }
         if (lunch) {
-            hour = Constants.DEFAULT_LUNCH_HOUR;
+            hour = Interval.getHour(Constants.DEFAULT_LUNCH_HOUR);
             hour.set(Calendar.DAY_OF_WEEK, timeFrame.getOpenDays().get(0));
             topRestaurants = city.getTopRestaurants(5, hour);
             if (topRestaurants != null && !topRestaurants.isEmpty()) {
@@ -650,6 +651,8 @@ class Planner {
                         return;
                     }
                 }
+                topLunch = CloneFactory.clone(topLunch);
+                topLunch.fixedAt = Constants.DEFAULT_LUNCH_HOUR;
                 places.add(topLunch);
             }
         }
@@ -730,7 +733,7 @@ class Planner {
             }
         }
 
-        ThreadManager.getInstance().invokeAll(plannerTasks, 3, TimeUnit.SECONDS);
+        ThreadManager.getInstance().invokeAll(plannerTasks, 5, TimeUnit.SECONDS);
 
         LOGGER.log(Level.FINE, "Finished planning for the city ({0}). Number of solutions found: {1}",
                    new Object[]{city.getName(), solutionsCount});
