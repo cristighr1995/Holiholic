@@ -27,6 +27,7 @@ class Planner {
     private City city;
     private TimeFrame timeFrame;
     private Place start;
+    private boolean breakfast = false;
     private boolean lunch = false;
     private boolean dinner = false;
     private Enums.TravelMode travelMode;
@@ -613,50 +614,72 @@ class Planner {
         distanceWalking = city.getDistances(Enums.TravelMode.WALKING);
     }
 
+    private Place getBestRestaurant(Set<Integer> placesIds, Enums.MealType type) {
+        Calendar hour;
+        String hourAsString;
+        List<Place> topRestaurants;
+        Place bestRestaurant = null;
+
+        switch (type) {
+            case DINNER:
+                hourAsString = Constants.DEFAULT_DINNER_HOUR;
+                break;
+            case LUNCH:
+                hourAsString = Constants.DEFAULT_LUNCH_HOUR;
+                break;
+            case BREAKFAST:
+                hourAsString = Constants.DEFAULT_BREAKFAST_HOUR;
+                break;
+            default:
+                return null;
+        }
+
+        hour = Interval.getHour(hourAsString);
+        hour.set(Calendar.DAY_OF_WEEK, timeFrame.getOpenDays().get(0));
+        topRestaurants = city.getTopRestaurants(5, hour);
+
+        if (topRestaurants != null && !topRestaurants.isEmpty()) {
+            for (Place restaurant : topRestaurants) {
+                if (!placesIds.contains(restaurant.id)) {
+                    bestRestaurant = CloneFactory.clone(restaurant);
+                    bestRestaurant.fixedAt = hourAsString;
+                    bestRestaurant.mealType = type;
+                    break;
+                }
+            }
+        }
+
+        return bestRestaurant;
+    }
+
     /* initRestaurants - Check if need to include meals and get the best restaurants and fix them accordingly
      *
      *  @return                 : void
      *  @places                 : restaurants will be added to the list of places which will be used by the planner
      */
     private void initRestaurants(List<Place> places) {
-        if (!lunch && !dinner) {
+        if (!breakfast && !lunch && !dinner) {
             return;
         }
 
-        Place topDinner = null;
-        Place topLunch;
-        List<Place> topRestaurants;
-        Calendar hour;
-
-        if (dinner) {
-            hour = Interval.getHour(Constants.DEFAULT_DINNER_HOUR);
-            hour.set(Calendar.DAY_OF_WEEK, timeFrame.getOpenDays().get(0));
-            topRestaurants = city.getTopRestaurants(5, hour);
-            if (topRestaurants != null && !topRestaurants.isEmpty()) {
-                topDinner = CloneFactory.clone(topRestaurants.get(0));
-                topDinner.fixedAt = Constants.DEFAULT_DINNER_HOUR;
-                places.add(topDinner);
-            }
+        boolean[] mealsIncluded = new boolean[]{dinner, lunch, breakfast};
+        Enums.MealType[] meals = new Enums.MealType[]{Enums.MealType.DINNER, Enums.MealType.LUNCH, Enums.MealType.BREAKFAST};
+        Set<Integer> placesIds = new HashSet<>();
+        Place bestRestaurant;
+        for (Place place : places) {
+            placesIds.add(place.id);
         }
-        if (lunch) {
-            hour = Interval.getHour(Constants.DEFAULT_LUNCH_HOUR);
-            hour.set(Calendar.DAY_OF_WEEK, timeFrame.getOpenDays().get(0));
-            topRestaurants = city.getTopRestaurants(5, hour);
-            if (topRestaurants != null && !topRestaurants.isEmpty()) {
-                topLunch = topRestaurants.get(0);
-                if (topDinner != null && topDinner.id == topLunch.id) {
-                    if (topRestaurants.size() >= 2) {
-                        topLunch = city.getTopRestaurants(5, hour).get(1);
-                    } else {
-                        return;
-                    }
+
+        for (int i = 0; i < mealsIncluded.length; i++) {
+            if (mealsIncluded[i]) {
+                bestRestaurant = getBestRestaurant(placesIds, meals[i]);
+                if (bestRestaurant == null) {
+                    continue;
                 }
-                topLunch = CloneFactory.clone(topLunch);
-                topLunch.fixedAt = Constants.DEFAULT_LUNCH_HOUR;
-                places.add(topLunch);
+                places.add(bestRestaurant);
+                placesIds.add(bestRestaurant.id);
             }
         }
-
     }
 
     /* init - Initialize the planner only when the getPlan method is called
@@ -855,6 +878,14 @@ class Planner {
      */
     void setHeuristicValue(double heuristicValue) {
         this.heuristicValue = heuristicValue;
+    }
+
+    /* setBreakfast - Set the breakfast for the current plan
+     *
+     *  @return                 : void
+     */
+    void setBreakfast(boolean breakfast) {
+        this.breakfast = breakfast;
     }
 
     /* setLunch - Set the lunch for the current plan

@@ -46,7 +46,7 @@ public class Enums {
      *
      */
     public enum MealType {
-        LUNCH, DINNER, UNKNOWN;
+        BREAKFAST, LUNCH, DINNER, UNKNOWN;
 
         /* serialize - Serialize the meal type in a string format
          *
@@ -54,6 +54,8 @@ public class Enums {
          */
         public static String serialize(MealType mealType) {
             switch (mealType) {
+                case BREAKFAST:
+                    return "breakfast";
                 case LUNCH:
                     return "lunch";
                 case DINNER:
@@ -69,6 +71,8 @@ public class Enums {
          */
         public static MealType deserialize(String meal) {
             switch (meal) {
+                case "breakfast":
+                    return BREAKFAST;
                 case "lunch":
                     return LUNCH;
                 case "dinner":

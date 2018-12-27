@@ -101,8 +101,9 @@ public class PlanManager {
             }
             Enums.TravelMode travelMode = Enums.TravelMode.deserialize(preferences.getString("travelMode"));
             double heuristicValue = preferences.getDouble("heuristicValue");
-            boolean dinner = preferences.getBoolean("dinner");
+            boolean breakfast = preferences.getBoolean("breakfast");
             boolean lunch = preferences.getBoolean("lunch");
+            boolean dinner = preferences.getBoolean("dinner");
             Place start = Place.deserializeStart(body.getJSONObject("start"));
             List<Place> places = getPlaces(city, body.getJSONArray("places"));
 
@@ -117,6 +118,7 @@ public class PlanManager {
             Planner planner = new Planner(city, timeFrame, travelMode);
             planner.setHeuristicValue(heuristicValue);
             planner.setStart(start);
+            planner.setBreakfast(breakfast);
             planner.setLunch(lunch);
             planner.setDinner(dinner);
 
