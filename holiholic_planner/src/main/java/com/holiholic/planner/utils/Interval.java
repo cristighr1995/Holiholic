@@ -2,6 +2,7 @@ package com.holiholic.planner.utils;
 
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
@@ -213,11 +214,11 @@ public class Interval implements Comparator<Interval> {
      *  @minute             : the current minute
      *  @second             : the current second
      */
-    public static Calendar getHour(int hourOfDay, int minute, int second) {
+    private static Calendar getHour(int hourOfDay, int minute) {
         Calendar c = Calendar.getInstance();
         c.set(Calendar.HOUR_OF_DAY, hourOfDay);
         c.set(Calendar.MINUTE, minute);
-        c.set(Calendar.SECOND, second);
+        c.set(Calendar.SECOND, 0);
         return c;
     }
 
@@ -226,10 +227,12 @@ public class Interval implements Comparator<Interval> {
      *  @return             : a corresponding calendar instance
      *  @str                : a string format of the hour (example 21:35)
      */
-    public static Calendar getHour(String hour) {
+    public static Calendar getHour(String hour, int dayOfWeek) {
         int hourOfDay = Integer.parseInt(hour.substring(0, 2));
         int minutes = Integer.parseInt(hour.substring(2));
-        return getHour(hourOfDay, minutes, 0);
+        Calendar result = getHour(hourOfDay, minutes);
+        result.set(Calendar.DAY_OF_WEEK, dayOfWeek);
+        return result;
     }
 
     /* getDiff - Returns the difference between two calendar instance expressed in the given time unit
@@ -298,5 +301,9 @@ public class Interval implements Comparator<Interval> {
         result.put("open", serialize(getStart(), day));
         result.put("close", serialize(getEnd(), day));
         return result;
+    }
+
+    public static String toString(Calendar hour) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hour.getTime());
     }
 }

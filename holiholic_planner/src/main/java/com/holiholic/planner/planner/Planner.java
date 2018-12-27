@@ -144,7 +144,12 @@ class Planner {
         }
 
         if (!fixed.isEmpty()) {
-            return false;
+            Iterator<Place> iterator = fixed.iterator();
+            while (iterator.hasNext()) {
+                if (iterator.next().canVisit(hour)) {
+                    return false;
+                }
+            }
         }
 
         return contains(solution, current) || !current.canVisit(hour);
@@ -283,7 +288,7 @@ class Planner {
     private boolean scheduleFixed(Place current, Set<Integer> open, List<Place> solution, Calendar hourAtCurrent,
                                   double score, int carPlaceId, int returnDurationToCar,PriorityQueue<Place> fixed) {
         if (!fixed.isEmpty()) {
-            Calendar peekHour = Interval.getHour(fixed.peek().fixedAt);
+            Calendar peekHour = Interval.getHour(fixed.peek().fixedAt, timeFrame.getOpenDays().get(0));
             int[] duration = getDuration(current, fixed.peek(), carPlaceId);
             int durationToFixed = duration[0];
             int returnDurationWalking = duration[1];
@@ -322,7 +327,7 @@ class Planner {
                 }
 
                 assert next != null;
-                visit(next.id, open, solution, peekHour, score, carPlaceId, returnDurationToCar, fixed);
+                visit(next, open, solution, peekHour, score, carPlaceId, returnDurationToCar, fixed);
                 return true;
             }
         }
@@ -400,7 +405,7 @@ class Planner {
         temporaryHour.add(Calendar.SECOND, -returnDurationToCar);
         temporaryHour.add(Calendar.SECOND, returnDurationWalking);
 
-        visit(neighbor.id, open, solution, temporaryHour, score + reward, carPlaceId, returnDurationWalking, fixed);
+        visit(neighbor, open, solution, temporaryHour, score + reward, carPlaceId, returnDurationWalking, fixed);
     }
 
     /* triggerSolution - A hack function to trigger the solution checking when could include in an itinerary all places
@@ -420,7 +425,7 @@ class Planner {
     private void triggerSolution(Place current, Set<Integer> open, List<Place> solution, double score, Calendar hour,
                                  int carPlaceId, int returnDurationToCar, PriorityQueue<Place> fixed) {
         Calendar currentHour = CloneFactory.clone(hour);
-        int nextId = current.id;
+        Place next = current;
         int nextCarPlaceId = carPlaceId;
         int returnDurationWalking = returnDurationToCar;
 
@@ -443,7 +448,7 @@ class Planner {
         }
         else {
             Place neighbor = CloneFactory.clone(fixed.poll());
-            nextId = neighbor.id;
+            next = neighbor;
 
             int[] duration = getDuration(current, neighbor, carPlaceId);
             int durationToNext = duration[0];
@@ -459,14 +464,14 @@ class Planner {
         }
 
         // A hack to trigger the solution checking
-        visit(nextId, open, solution, currentHour, score, nextCarPlaceId, returnDurationWalking, fixed);
+        visit(next, open, solution, currentHour, score, nextCarPlaceId, returnDurationWalking, fixed);
     }
 
     /* visit - This is the brain function which is called recursively to construct a working solution
      *         It uses heuristics to prune solutions that are impossible to be better than the current best
      *
      *  @return                 : void
-     *  @id                     : id of the current place
+     *  @current                : current place
      *  @open                   : a set of ids of unvisited places
      *  @solution               : current solution
      *  @hour                   : the current hour
@@ -475,13 +480,13 @@ class Planner {
      *  @returnDurationToCar    : duration to walk after the car
      *  @fixed                  : fixed places
      */
-    void visit(int id, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
+    void visit(Place current, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
                int returnDurationToCar, PriorityQueue<Place> fixed) {
         // deep-copy used to load-balance
         Set<Integer> openCopy = CloneFactory.clone(open);
         List<Place> solutionCopy = CloneFactory.clone(solution);
         PriorityQueue<Place> fixedCopy = CloneFactory.clone(fixed);
-        Place currentPlace = CloneFactory.clone(city.getPlaces().get(id));
+        Place currentPlace = CloneFactory.clone(current);
         Calendar currentHour = CloneFactory.clone(hour);
 
         if (scheduleFixed(currentPlace, openCopy, solutionCopy, CloneFactory.clone(hour), score,
@@ -491,10 +496,11 @@ class Planner {
 
         // check if we need to wait some time to plan this place when the user wants
         if (!currentPlace.fixedAt.equals("anytime") && currentPlace.plannedHour == null) {
-            Calendar fixedAt = Interval.getHour(currentPlace.fixedAt);
+            Calendar fixedAt = Interval.getHour(currentPlace.fixedAt, timeFrame.getOpenDays().get(0));
             // if true, it means the user should wait some time to visit the next place when desired
             if (fixedAt.after(currentHour) && currentPlace.canVisit(fixedAt)) {
-                currentPlace.waitTime = Interval.getDiff(currentHour, fixedAt, TimeUnit.MINUTES);
+                // TODO here we can suggest another places to visit in the meantime ...
+                currentPlace.waitTime = Interval.getDiff(currentHour, fixedAt, TimeUnit.SECONDS);
                 currentHour = fixedAt;
             }
         }
@@ -515,7 +521,7 @@ class Planner {
         }
 
         // visit the current place
-        openCopy.remove(id);
+        openCopy.remove(current.id);
         currentPlace.plannedHour = CloneFactory.clone(currentHour);
         currentHour.add(Calendar.SECOND, currentPlace.durationVisit);
 
@@ -579,7 +585,7 @@ class Planner {
 
             if (currentHour != null) {
                 solutionCopy.add(startPlaceCopy);
-                return new PlannerTask(next.id, CloneFactory.clone(open), solutionCopy, currentHour, 0.0,
+                return new PlannerTask(next, CloneFactory.clone(open), solutionCopy, currentHour, 0.0,
                                        next.id, 0, fixedCopy, this);
             }
         } catch (Exception e) {
@@ -634,8 +640,7 @@ class Planner {
                 return null;
         }
 
-        hour = Interval.getHour(hourAsString);
-        hour.set(Calendar.DAY_OF_WEEK, timeFrame.getOpenDays().get(0));
+        hour = Interval.getHour(hourAsString, timeFrame.getOpenDays().get(0));
         topRestaurants = city.getTopRestaurants(5, hour);
 
         if (topRestaurants != null && !topRestaurants.isEmpty()) {
@@ -706,8 +711,8 @@ class Planner {
         Set<Integer> open = new HashSet<>();
         List<PlannerTask> plannerTasks = new ArrayList<>();
         PriorityQueue<Place> fixed = new PriorityQueue<>((p1, p2) -> {
-            Calendar p1Hour = Interval.getHour(p1.fixedAt);
-            Calendar p2Hour = Interval.getHour(p2.fixedAt);
+            Calendar p1Hour = Interval.getHour(p1.fixedAt, timeFrame.getOpenDays().get(0));
+            Calendar p2Hour = Interval.getHour(p2.fixedAt, timeFrame.getOpenDays().get(0));
             return p1Hour.compareTo(p2Hour);
         });
 
@@ -814,7 +819,7 @@ class Planner {
             plus.add(Calendar.MINUTE, Constants.FIXED_RANGE_ACCEPTANCE);
             Interval range = new Interval(minus, plus);
 
-            if (range.isBetween(Interval.getHour(current.fixedAt))) {
+            if (range.isBetween(Interval.getHour(current.fixedAt, timeFrame.getOpenDays().get(0)))) {
                 if (current.placeCategory.getTopic().equals("Restaurants")) {
                     reward += Constants.FIXED_RESTAURANT_REWARD;
                 } else {
@@ -1067,6 +1072,7 @@ class Planner {
         response.put("mealType", Enums.MealType.serialize(place.mealType));
         response.put("latitude", place.location.latitude);
         response.put("longitude", place.location.longitude);
+        response.put("waitTime", place.waitTime);
         return response;
     }
 }

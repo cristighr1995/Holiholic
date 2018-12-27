@@ -104,24 +104,24 @@ public class Place implements Comparable<Place> {
         Place copy = new Place();
         copy.id = id;
         copy.name = name;
-        copy.location = location.clone();
-        copy.durationVisit = durationVisit;
+        copy.description = description;
+        copy.imageUrl = imageUrl;
         copy.rating = rating;
+        copy.placeCategory = placeCategory;
+        copy.durationVisit = durationVisit;
+        copy.location = location.clone();
         copy.timeFrame = timeFrame != null ? timeFrame.clone() : null;
         copy.plannedHour = plannedHour != null ? (Calendar) plannedHour.clone() : null;
-        copy.imageUrl = imageUrl;
-        copy.travelMode = travelMode;
         copy.durationToNext = durationToNext;
         copy.distanceToNext = distanceToNext;
+        copy.travelMode = travelMode;
         copy.getCarBack = getCarBack;
         copy.carPlaceId = carPlaceId;
+        copy.carPlaceName = carPlaceName;
         copy.parkHere = parkHere;
+        copy.mealType = mealType;
         copy.fixedAt = fixedAt;
         copy.waitTime = waitTime;
-        copy.carPlaceName = carPlaceName;
-        copy.mealType = mealType;
-        copy.description = description;
-        copy.placeCategory = placeCategory;
         return copy;
     }
 
@@ -142,8 +142,8 @@ public class Place implements Comparable<Place> {
         } else if (other.fixedAt.equals("anytime")) {
             return -1;
         }
-        Calendar p1Hour = Interval.getHour(this.fixedAt);
-        Calendar p2Hour = Interval.getHour(other.fixedAt);
+        Calendar p1Hour = Interval.getHour(this.fixedAt, 1);
+        Calendar p2Hour = Interval.getHour(other.fixedAt, 1);
         return p1Hour.compareTo(p2Hour);
     }
 

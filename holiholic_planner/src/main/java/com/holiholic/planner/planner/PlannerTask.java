@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
  *
  */
 public class PlannerTask implements Callable<Boolean> {
-    private int id;
+    private Place current;
     private Set<Integer> open;
     private List<Place> solution;
     private Calendar hour;
@@ -22,9 +22,9 @@ public class PlannerTask implements Callable<Boolean> {
     private PriorityQueue<Place> fixed;
     private Planner planner;
 
-    PlannerTask(int id, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
+    PlannerTask(Place current, Set<Integer> open, List<Place> solution, Calendar hour, double score, int carPlaceId,
                 int returnDurationToCar, PriorityQueue<Place> fixed, Planner planner) {
-        this.id = id;
+        this.current = current;
         this.open = open;
         this.solution = solution;
         this.hour = hour;
@@ -38,7 +38,7 @@ public class PlannerTask implements Callable<Boolean> {
     @Override
     public Boolean call() {
         try {
-            planner.visit(id, open, solution, hour, score, carPlaceId, returnDurationToCar, fixed);
+            planner.visit(current, open, solution, hour, score, carPlaceId, returnDurationToCar, fixed);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

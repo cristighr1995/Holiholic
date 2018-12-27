@@ -182,8 +182,8 @@ public class TimeFrame {
      *  @return             : the calendar instance of the given hour
      *  @hour               : the serialized hour
      */
-    private static Calendar deserializeHour(String hour) {
-        return Interval.getHour(hour);
+    private static Calendar deserializeHour(String hour, int dayOfWeek) {
+        return Interval.getHour(hour, dayOfWeek);
     }
 
     /* deserialize - Creates an OpeningPeriod instance from a json period
@@ -207,13 +207,10 @@ public class TimeFrame {
             JSONObject dayPeriod = timeFrame.getJSONObject(i);
             JSONObject open = dayPeriod.getJSONObject("open");
             JSONObject close = dayPeriod.getJSONObject("close");
-            Calendar start = deserializeHour(open.getString("time"));
-            Calendar end = deserializeHour(close.getString("time"));
             int dayOpen = open.getInt("day");
             int dayClose = close.getInt("day");
-            // set the correct day
-            start.set(Calendar.DAY_OF_WEEK, dayOpen);
-            end.set(Calendar.DAY_OF_WEEK, dayClose);
+            Calendar start = deserializeHour(open.getString("time"), dayOpen);
+            Calendar end = deserializeHour(close.getString("time"), dayClose);
 
             // this means the bar is closing after midnight
             if (dayClose != dayOpen) {
