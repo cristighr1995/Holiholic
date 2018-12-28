@@ -230,12 +230,12 @@ public class City {
      */
     public void setDurations() {
         if (!hasDuration(Enums.TravelMode.DRIVING)) {
-            setDuration(Enums.TravelMode.DRIVING,
-                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.DRIVING, Enums.TravelInfo.DURATION));
+            setDuration(Enums.TravelMode.DRIVING, DatabaseManager.getMatrix(this.name, Enums.TravelMode.DRIVING,
+                    Enums.TravelInfo.DURATION, places.size()));
         }
         if (!hasDuration(Enums.TravelMode.WALKING)) {
-            setDuration(Enums.TravelMode.WALKING,
-                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.WALKING, Enums.TravelInfo.DURATION));
+            setDuration(Enums.TravelMode.WALKING, DatabaseManager.getMatrix(this.name, Enums.TravelMode.WALKING,
+                    Enums.TravelInfo.DURATION, places.size()));
         }
     }
 
@@ -245,12 +245,12 @@ public class City {
      */
     public void setDistances() {
         if (!hasDistance(Enums.TravelMode.DRIVING)) {
-            setDistance(Enums.TravelMode.DRIVING,
-                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.DRIVING, Enums.TravelInfo.DISTANCE));
+            setDistance(Enums.TravelMode.DRIVING, DatabaseManager.getMatrix(this.name, Enums.TravelMode.DRIVING,
+                    Enums.TravelInfo.DISTANCE, places.size()));
         }
         if (!hasDistance(Enums.TravelMode.WALKING)) {
-            setDistance(Enums.TravelMode.WALKING,
-                        DatabaseManager.getMatrix(this.name, Enums.TravelMode.WALKING, Enums.TravelInfo.DISTANCE));
+            setDistance(Enums.TravelMode.WALKING, DatabaseManager.getMatrix(this.name, Enums.TravelMode.WALKING,
+                    Enums.TravelInfo.DISTANCE, places.size()));
         }
     }
 

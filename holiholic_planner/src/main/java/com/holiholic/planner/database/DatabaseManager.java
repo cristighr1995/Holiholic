@@ -14,8 +14,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.ResultSet;
 import java.util.*;
 import java.util.logging.ConsoleHandler;
@@ -269,28 +267,14 @@ public class DatabaseManager {
      *  @travelMode         : driving or walking
      *  @travelInfo         : duration or distance
      */
-    public static double[][] getMatrix(String cityName, Enums.TravelMode travelMode, Enums.TravelInfo travelInfo) {
-        int dimension = 0;
+    public static double[][] getMatrix(String cityName, Enums.TravelMode travelMode, Enums.TravelInfo travelInfo,
+                                       int dimention) {
+        double[][] matrix = new double[dimention][dimention];
         List<DatabasePredicate> predicates = new ArrayList<>();
         predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
-        SelectResult resultCount = Query.select(Collections.singletonList("count(*)"), Constants.PLACES_TABLE_NAME, predicates);
-        try {
-            if (resultCount.getResultSet().next()) {
-                dimension = resultCount.getResultSet().getInt(1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            resultCount.close();
-        }
-
-        if (dimension == 0) {
-            return null;
-        }
-
-        double[][] matrix = new double[dimension][dimension];
         predicates.add(new DatabasePredicate("travelMode", "=", "\'" + Enums.TravelMode.serialize(travelMode) + "\'"));
         SelectResult result = Query.select(null, Constants.PLACES_DISTANCES_TABLE_NAME, predicates);
+        
         try {
             ResultSet resultSet = result.getResultSet();
             int from, to;
