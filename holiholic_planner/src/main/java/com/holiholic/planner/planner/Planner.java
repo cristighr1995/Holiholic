@@ -144,9 +144,8 @@ class Planner {
         }
 
         if (!fixed.isEmpty()) {
-            Iterator<Place> iterator = fixed.iterator();
-            while (iterator.hasNext()) {
-                if (iterator.next().canVisit(hour)) {
+            for (Place place : fixed) {
+                if (place.canVisit(hour)) {
                     return false;
                 }
             }
@@ -180,14 +179,13 @@ class Planner {
 
         for (Place place : places) {
             if (place.canVisit(movingHour)) {
-                movingHour.add(Calendar.SECOND, place.durationVisit);
-
                 if (travelMode == Enums.TravelMode.DRIVING) {
                     durationToNext = Math.min(durationWalking[last.id][place.id], durationDriving[last.id][place.id]);
                 } else {
                     durationToNext = (int) durationWalking[last.id][place.id];
                 }
 
+                movingHour.add(Calendar.SECOND, place.durationVisit);
                 maxReward = Math.max(maxReward, getReward(last, place, movingHour));
                 movingHour.add(Calendar.SECOND, (int) durationToNext);
 
@@ -292,10 +290,10 @@ class Planner {
             int[] duration = getDuration(current, fixed.peek(), carPlaceId);
             int durationToFixed = duration[0];
             int returnDurationWalking = duration[1];
-            hourAtCurrent.add(Calendar.SECOND, current.durationVisit);
-            hourAtCurrent.add(Calendar.SECOND, durationToFixed);
-            hourAtCurrent.add(Calendar.SECOND, -returnDurationToCar);
-            hourAtCurrent.add(Calendar.SECOND, returnDurationWalking);
+            hourAtCurrent.add(Calendar.SECOND, current.durationVisit
+                                               + durationToFixed
+                                               - returnDurationToCar
+                                               + returnDurationWalking);
 
             // if we can visit the next fixed place it means that the current place can be added to the solution
             // otherwise we need to add the fixed place to the solution because we can not select other node
@@ -306,7 +304,6 @@ class Planner {
                 if (!solution.isEmpty()) {
                     Place lastPlace = solution.get(solution.size() - 1);
                     Calendar lastHour = CloneFactory.clone(lastPlace.plannedHour);
-                    lastHour.add(Calendar.SECOND, lastPlace.durationVisit);
 
                     if (lastPlace.carPlaceId == -1) {
                         carPlaceId = lastPlace.id;
@@ -322,7 +319,7 @@ class Planner {
 
                     lastPlace.durationToNext = durationToNext;
                     lastPlace.distanceToNext = distanceToNext;
-                    lastHour.add(Calendar.SECOND, durationToNext);
+                    lastHour.add(Calendar.SECOND, lastPlace.durationVisit + durationToNext);
                     peekHour = lastHour;
                 }
 
@@ -401,9 +398,7 @@ class Planner {
         solution.add(current);
 
         Calendar temporaryHour = CloneFactory.clone(hour);
-        temporaryHour.add(Calendar.SECOND, durationToNext);
-        temporaryHour.add(Calendar.SECOND, -returnDurationToCar);
-        temporaryHour.add(Calendar.SECOND, returnDurationWalking);
+        temporaryHour.add(Calendar.SECOND, durationToNext - returnDurationToCar + returnDurationWalking);
 
         visit(neighbor, open, solution, temporaryHour, score + reward, carPlaceId, returnDurationWalking, fixed);
     }
@@ -456,9 +451,7 @@ class Planner {
             nextCarPlaceId = duration[2];
             int distanceToNext = duration[3];
 
-            currentHour.add(Calendar.SECOND, durationToNext);
-            currentHour.add(Calendar.SECOND, -returnDurationToCar);
-            currentHour.add(Calendar.SECOND, returnDurationWalking);
+            currentHour.add(Calendar.SECOND, durationToNext - returnDurationToCar + returnDurationWalking);
             current.durationToNext = durationToNext;
             current.distanceToNext = distanceToNext;
         }

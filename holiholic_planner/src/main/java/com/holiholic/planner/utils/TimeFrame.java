@@ -126,22 +126,6 @@ public class TimeFrame {
         return intervals.get(dayOfWeek);
     }
 
-    /* clone - Deep copy of the current object
-     *
-     *  @return             : clone of the current object
-     */
-    @Override
-    public TimeFrame clone() {
-        if (isNonStop()) {
-            return new TimeFrame();
-        }
-        Map<Integer, Interval> intervalsClone = new HashMap<>();
-        for (Map.Entry<Integer, Interval> interval : intervals.entrySet()) {
-            intervalsClone.put(interval.getKey(), (Interval) interval.getValue().clone());
-        }
-        return new TimeFrame(intervalsClone);
-    }
-
     /* serializeNonStopPeriod - Returns a json format representation for a non stop place
      *
      *  @return             : serialization

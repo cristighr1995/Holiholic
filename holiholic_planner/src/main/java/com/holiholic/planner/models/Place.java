@@ -13,7 +13,7 @@ import java.util.*;
 /* Place - The internal representation model for a place
  *
  */
-public class Place implements Comparable<Place> {
+public class Place implements Comparable<Place>, Cloneable {
     public int id;
     public String name;
     public String description;
@@ -35,9 +35,6 @@ public class Place implements Comparable<Place> {
     public Enums.MealType mealType = Enums.MealType.UNKNOWN;
     public String fixedAt = "anytime";      // The time when the user wants to visit a place
     public long waitTime = 0;               // how much to wait between visiting 2 places
-
-    // default constructor
-    private Place() {}
 
     // constructor
     private Place(int id, String name, GeoPosition location) {
@@ -101,27 +98,13 @@ public class Place implements Comparable<Place> {
      */
     @Override
     public Place clone() {
-        Place copy = new Place();
-        copy.id = id;
-        copy.name = name;
-        copy.description = description;
-        copy.imageUrl = imageUrl;
-        copy.rating = rating;
-        copy.placeCategory = placeCategory;
-        copy.durationVisit = durationVisit;
-        copy.location = location.clone();
-        copy.timeFrame = timeFrame != null ? timeFrame.clone() : null;
-        copy.plannedHour = plannedHour != null ? (Calendar) plannedHour.clone() : null;
-        copy.durationToNext = durationToNext;
-        copy.distanceToNext = distanceToNext;
-        copy.travelMode = travelMode;
-        copy.getCarBack = getCarBack;
-        copy.carPlaceId = carPlaceId;
-        copy.carPlaceName = carPlaceName;
-        copy.parkHere = parkHere;
-        copy.mealType = mealType;
-        copy.fixedAt = fixedAt;
-        copy.waitTime = waitTime;
+        Place copy = null;
+        try{
+            copy = (Place) super.clone();
+            copy.plannedHour = plannedHour != null ? (Calendar) plannedHour.clone() : null;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
         return copy;
     }
 
