@@ -104,15 +104,6 @@ public class Interval implements Comparator<Interval> {
         return serialize(start) + " " + serialize(end);
     }
 
-    /* getTotalMinutes - Returns the total minutes until the given hour
-     *
-     *  @return             : hourOfDay * 60 + minutes
-     *  @hour               : the given hour
-     */
-    private int getTotalMinutes(Calendar hour) {
-        return hour.get(Calendar.HOUR_OF_DAY) * 60 + hour.get(Calendar.MINUTE);
-    }
-
     /* compare - Compares two intervals
      *           The non stop places are the greatest and the closed places are the weakest
      *           If neither is non stop or closed, just compare their total minutes
@@ -246,7 +237,12 @@ public class Interval implements Comparator<Interval> {
         return result;
     }
 
-    public static String toString(Calendar hour) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hour.getTime());
+    /* toString - Returns a "yyyy-MM-dd HH:mm:ss" calendar format
+     *
+     *  @return             : serialization
+     *  @time               : time instance
+     */
+    public static String toString(Calendar time) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(time.getTime());
     }
 }

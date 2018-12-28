@@ -1,6 +1,5 @@
 package com.holiholic.planner.database;
 
-import com.holiholic.planner.constant.Constants;
 import org.json.JSONObject;
 
 /* UpdateAction - Handle the update planner database operations
@@ -16,8 +15,8 @@ abstract class UpdateAction {
             switch (type) {
                 case "places":
                     return new UpdatePlacesAction();
-                case "matrix":
-                    return new UpdateMatrixAction();
+                case "distanceTimeMatrix":
+                    return new UpdateDistanceTimeMatrixAction();
                 default:
                     return null;
             }

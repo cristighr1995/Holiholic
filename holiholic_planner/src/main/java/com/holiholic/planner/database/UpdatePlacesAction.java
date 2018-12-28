@@ -65,12 +65,21 @@ class UpdatePlacesAction extends UpdateAction {
         return true;
     }
 
+    /* deleteOldDistances - Clear old values from database
+     *
+     *  @return             : void
+     *  @cityName           : city name
+     */
     private void deleteOldPlaces(String cityName) {
         List<DatabasePredicate> predicates = new ArrayList<>();
         predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
         Query.delete(Constants.PLACES_TABLE_NAME, predicates);
     }
 
+    /* getPlacesCategories - Return a list of place categories
+     *
+     *  @return             : a list of place categories
+     */
     private List<PlaceCategory> getPlacesCategories() {
         List<PlaceCategory> categories = new ArrayList<>();
         SelectResult result = Query.select(null, Constants.PLACES_CATEGORIES_TABLE_NAME, null);
@@ -95,11 +104,22 @@ class UpdatePlacesAction extends UpdateAction {
         return categories;
     }
 
+    /* escape - Escape a string into database format
+     *
+     *  @return             : the escaped string
+     *  @string             : string to escape
+     */
     private String escape(String string) {
         string = CharMatcher.is('\'').replaceFrom(string, "\\\'");
         return "\'" + string + "\'";
     }
 
+    /* getValuesList - Return a list of string values to insert into database INSERT query
+     *
+     *  @return             : list of values to insert
+     *  @place              : place in network format
+     *  @cityName           : city name
+     */
     private List<String> getValueList(JSONObject place, String cityName) {
         List<String> values = new ArrayList<>();
 

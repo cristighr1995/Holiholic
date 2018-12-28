@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/* UpdateMatrixAction - Updates the distance and duration matrix in the database
+/* UpdateDistanceTimeMatrixAction - Updates the distance and duration matrix in the database
  *
  */
-class UpdateMatrixAction extends UpdateAction {
+class UpdateDistanceTimeMatrixAction extends UpdateAction {
 
     /* execute - Make the request to the database module and cache the results if applicable
      *
@@ -67,10 +67,25 @@ class UpdateMatrixAction extends UpdateAction {
         return true;
     }
 
+    /* escape - Escape a string into database format
+     *
+     *  @return             : the escaped string
+     *  @string             : string to escape
+     */
     private String escape(String string) {
         return "\'" + string + "\'";
     }
 
+    /* getValuesList - Return a list of string values to insert into database INSERT query
+     *
+     *  @return             : list of values to insert
+     *  @cityName           : city name
+     *  @travelMode         : travel mode
+     *  @duration           : duration to get between from and to
+     *  @distance           : distance to get between from and to
+     *  @from               : start
+     *  @to                 : destination
+     */
     private List<String> getValuesList(String cityName, String travelMode,
                                        double duration, double distance, int from, int to) {
         List<String> values = new ArrayList<>();
@@ -83,12 +98,22 @@ class UpdateMatrixAction extends UpdateAction {
         return values;
     }
 
+    /* deleteOldDistances - Clear old values from database
+     *
+     *  @return             : void
+     *  @cityName           : city name
+     */
     private void deleteOldDistances(String cityName) {
         List<DatabasePredicate> predicates = new ArrayList<>();
         predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
         Query.delete(Constants.PLACES_DISTANCES_TABLE_NAME, predicates);
     }
 
+    /* getPlaces - Get a list of places only with latitude and longitude fields used to make requests
+     *
+     *  @return             : void
+     *  @cityName           : city name
+     */
     private JSONArray getPlaces(String cityName) {
         JSONArray places = new JSONArray();
         try {

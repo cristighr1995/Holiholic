@@ -64,27 +64,10 @@ public class Enums {
                     return "unknown";
             }
         }
-
-        /* deserialize - Deserialize a string into a meal type
-         *
-         *  @return       : the corresponding instance
-         */
-        public static MealType deserialize(String meal) {
-            switch (meal) {
-                case "breakfast":
-                    return BREAKFAST;
-                case "lunch":
-                    return LUNCH;
-                case "dinner":
-                    return DINNER;
-                default:
-                    return UNKNOWN;
-            }
-        }
     }
 
     public enum TravelInfo {
-        DURATION, DISTANCE, UNKNOWN;
+        DURATION, DISTANCE;
 
         /* serialize - Serialize the travel info in a string format
          *
@@ -99,21 +82,6 @@ public class Enums {
                     return "distance";
                 default:
                     return "unknown";
-            }
-        }
-
-        /* deserialize - Deserialize a string into a travel info
-         *
-         *  @return       : the corresponding instance
-         */
-        public static TravelInfo deserialize(String travelInfo) {
-            switch (travelInfo) {
-                case "duration":
-                    return DURATION;
-                case "distance":
-                    return DISTANCE;
-                default:
-                    return UNKNOWN;
             }
         }
     }
