@@ -93,8 +93,8 @@ class Planner {
     /* isTourOver - Checks if the tour is over
      *
      *  @return             : true/false
-     *  @hour               : the hour when we want to check
-     *  @currentPlace       : after visiting the current place, check if the tour is over
+     *  @hour               : current hour
+     *  @currentPlace       : current place
      */
     private boolean isTourOver(Calendar hour, Place currentPlace) {
         if (!timeFrame.canVisit(hour)) {
@@ -110,8 +110,8 @@ class Planner {
     /* contains - Checks if a solution contains a place
      *
      *  @return             : true/false
-     *  @solution           : the solution where we want to search
-     *  @place              : the place we want to find
+     *  @solution           : where to search
+     *  @place              : what to search
      */
     private boolean contains(List<Place> solution, Place place) {
         for (Place p : solution) {
@@ -542,8 +542,8 @@ class Planner {
      *  @return                 : void
      *  @next                   : the place we want to submit
      *  @open                   : a set of ids of unvisited places
-     *  @currentSolution        : the current solution (like an accumulator)
-     *  @fixedPlaces            : a priority queue which contains the fixed places
+     *  @solution               : the current solution (like an accumulator)
+     *  @fixed                  : a priority queue which contains the fixed places
      */
     private PlannerTask createTask(Place next, Set<Integer> open, List<Place> solution, PriorityQueue<Place> fixed) {
         try {
@@ -613,6 +613,12 @@ class Planner {
         distanceWalking = city.getDistances(Enums.TravelMode.WALKING);
     }
 
+    /* getBestRestaurant - Returns the best restaurant for a specific meal
+     *
+     *  @return                 : best restaurant
+     *  @placesIds              : places already chosen
+     *  @type                   : meal type
+     */
     private Place getBestRestaurant(Set<Integer> placesIds, Enums.MealType type) {
         Calendar hour;
         String hourAsString;
@@ -1057,7 +1063,7 @@ class Planner {
         response.put("travelMode", Enums.TravelMode.serialize(place.travelMode));
         response.put("durationToNext", place.durationToNext);
         response.put("distanceToNext", place.distanceToNext);
-        response.put("plannedHour", Interval.serializeHour(place.plannedHour));
+        response.put("plannedHour", Interval.serialize(place.plannedHour));
         response.put("getCarBack", place.getCarBack);
         response.put("parkHere", place.parkHere);
         response.put("carPlaceId", place.carPlaceId);

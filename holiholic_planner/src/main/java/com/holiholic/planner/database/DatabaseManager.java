@@ -266,6 +266,7 @@ public class DatabaseManager {
      *  @cityName           : city instance
      *  @travelMode         : driving or walking
      *  @travelInfo         : duration or distance
+     *  @dimension          : dimension of matrix
      */
     public static double[][] getMatrix(String cityName, Enums.TravelMode travelMode, Enums.TravelInfo travelInfo,
                                        int dimention) {
@@ -274,7 +275,7 @@ public class DatabaseManager {
         predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
         predicates.add(new DatabasePredicate("travelMode", "=", "\'" + Enums.TravelMode.serialize(travelMode) + "\'"));
         SelectResult result = Query.select(null, Constants.PLACES_DISTANCES_TABLE_NAME, predicates);
-        
+
         try {
             ResultSet resultSet = result.getResultSet();
             int from, to;

@@ -5,6 +5,8 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /* Interval - Holds information about the place opening hours for a specific day
@@ -15,6 +17,7 @@ public class Interval implements Comparator<Interval> {
     private Calendar end;
     private boolean nonStop;
     private boolean closed;
+    private static Map<String, Calendar> hours = new HashMap<>();
 
     // default constructor creates a non stop place
     Interval() {
@@ -81,28 +84,8 @@ public class Interval implements Comparator<Interval> {
             return true;
         }
 
-        assert (start != null && hour != null);
-
-        int startHour = start.get(Calendar.HOUR_OF_DAY);
-        int startMinute = start.get(Calendar.MINUTE);
-        int currentHour = hour.get(Calendar.HOUR_OF_DAY);
-        int currentMinute = hour.get(Calendar.MINUTE);
-
-        int startTotalMinutes = startHour * 60 + startMinute;
-        int currentTotalMinutes = currentHour * 60 + currentMinute;
-
-        int startDay = start.get(Calendar.DAY_OF_YEAR);
-        int currentDay = hour.get(Calendar.DAY_OF_YEAR);
-
-        if (end == null) {
-            return startTotalMinutes <= currentTotalMinutes || startDay < currentDay;
-        }
-
-        int endHour = end.get(Calendar.HOUR_OF_DAY);
-        int endMinute = end.get(Calendar.MINUTE);
-        int endTotalMinutes = endHour * 60 + endMinute;
-
-        return startTotalMinutes <= currentTotalMinutes && currentTotalMinutes <= endTotalMinutes;
+        assert (start != null && hour != null && end != null);
+        return start.before(hour) && end.after(hour);
     }
 
     /* toString - Returns a string representation of the current interval
@@ -118,7 +101,7 @@ public class Interval implements Comparator<Interval> {
         }
         assert (start != null && end != null);
         // the place is opened
-        return serializeHour(start) + " " + serializeHour(end);
+        return serialize(start) + " " + serialize(end);
     }
 
     /* getTotalMinutes - Returns the total minutes until the given hour
@@ -156,43 +139,17 @@ public class Interval implements Comparator<Interval> {
             return 1;
         }
 
-        assert (first.getEnd() != null && second.getEnd() != null);
-
-        Calendar firstStart = first.getStart();
-        Calendar firstEnd = first.getEnd();
-
-        Calendar secondStart = second.getStart();
-        Calendar secondEnd = second.getEnd();
-
-        int fsTotal = getTotalMinutes(firstStart);
-        int feTotal = getTotalMinutes(firstEnd);
-
-        int ssTotal = getTotalMinutes(secondStart);
-        int seTotal = getTotalMinutes(secondEnd);
-
-        int firstEndDay = firstEnd.get(Calendar.DAY_OF_YEAR);
-        int secondEndDay = secondEnd.get(Calendar.DAY_OF_YEAR);
-
-        int minutesForEntireDay = 23 * 60 + 59;
-
-        // Add an entire day to the one who is closing in the night (example at 3AM in the night)
-        if (firstEndDay > secondEndDay) {
-            feTotal += minutesForEntireDay;
-        }
-        if (firstEndDay < secondEndDay) {
-            seTotal += minutesForEntireDay;
+        if (first.getEnd().get(Calendar.DAY_OF_WEEK) == second.getEnd().get(Calendar.DAY_OF_WEEK)) {
+           // most late
+           int compareResult = second.getEnd().compareTo(first.getEnd());
+           if (compareResult != 0) {
+               return compareResult;
+           }
+           // most early
+            return first.getStart().compareTo(second.getStart());
         }
 
-        // Chose the most late
-        if (feTotal > seTotal) {
-            return -1;
-        }
-        if (feTotal < seTotal) {
-            return 1;
-        }
-
-        // Chose the most early
-        return Integer.compare(ssTotal, fsTotal);
+        return Integer.compare(second.getEnd().get(Calendar.DAY_OF_WEEK), first.getEnd().get(Calendar.DAY_OF_WEEK));
 
     }
 
@@ -228,15 +185,22 @@ public class Interval implements Comparator<Interval> {
      *  @str                : a string format of the hour (example 21:35)
      */
     public static Calendar getHour(String hour, int dayOfWeek) {
+        String key = hour + "-" + dayOfWeek;
+        if (hours.containsKey(key)) {
+            return CloneFactory.clone(hours.get(key));
+        }
+
         int hourOfDay = Integer.parseInt(hour.substring(0, 2));
         int minutes = Integer.parseInt(hour.substring(2));
         Calendar result = getHour(hourOfDay, minutes);
         result.set(Calendar.DAY_OF_WEEK, dayOfWeek);
+
+        hours.put(key, result);
         return result;
     }
 
     /* getDiff - Returns the difference between two calendar instance expressed in the given time unit
-     *           Internally the difference is expresed in milli seconds
+     *           Internally the difference is expressed in milli seconds
      *
      *  @return             : the difference
      *  @date1              : the first date
@@ -248,12 +212,12 @@ public class Interval implements Comparator<Interval> {
         return timeUnit.convert(diffInMilliSeconds, TimeUnit.MILLISECONDS);
     }
 
-    /* serializeHour - Returns a string representation of the given hour
+    /* serialize - Returns a string representation of the given hour
      *
      *  @return             : the string representation
      *  @hour               : the hour we want to format
      */
-    public static String serializeHour(Calendar hour) {
+    public static String serialize(Calendar hour) {
         return String.format("%02d%02d", hour.get(Calendar.HOUR_OF_DAY), hour.get(Calendar.MINUTE));
     }
 
@@ -265,30 +229,9 @@ public class Interval implements Comparator<Interval> {
      */
     private static JSONObject serialize(Calendar hour, int day) {
         JSONObject result = new JSONObject();
-        result.put("time", serializeHour(hour));
+        result.put("time", serialize(hour));
         result.put("day", day);
         return result;
-    }
-
-    /* clone - Deep copy of the current object
-     *
-     *  @return             : clone of the current object
-     */
-    @Override
-    public Object clone() {
-        if (isNonStop()) {
-            return new Interval();
-        }
-        if (isClosed()) {
-            Interval closedInterval = new Interval();
-            closedInterval.setClosed();
-            return closedInterval;
-        }
-        assert (start != null && end != null);
-        Interval intervalClone = new Interval((Calendar) start.clone(), (Calendar) end.clone());
-        intervalClone.nonStop = this.nonStop;
-        intervalClone.closed = this.closed;
-        return intervalClone;
     }
 
     /* serialize - Returns a json format representation of the current interval given the day

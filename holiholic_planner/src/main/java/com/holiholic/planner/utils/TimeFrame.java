@@ -22,7 +22,7 @@ public class TimeFrame {
         this.intervals = intervals;
     }
 
-    /* setDayMappings - Makes the current opening period closed for all seven days
+    /* setClosedAllDays - Makes the current opening period closed for all seven days
      *
      *  @return             : void
      */
@@ -160,13 +160,13 @@ public class TimeFrame {
         return result;
     }
 
-    /* deserializeHour - Creates a Calendar instance from a coded hour
-     *                   Example 0930 means the time 09:30
+    /* deserialize - Creates a Calendar instance from a coded hour
+     *               Example 0930 means the time 09:30
      *
      *  @return             : the calendar instance of the given hour
      *  @hour               : the serialized hour
      */
-    private static Calendar deserializeHour(String hour, int dayOfWeek) {
+    private static Calendar deserialize(String hour, int dayOfWeek) {
         return Interval.getHour(hour, dayOfWeek);
     }
 
@@ -193,8 +193,8 @@ public class TimeFrame {
             JSONObject close = dayPeriod.getJSONObject("close");
             int dayOpen = open.getInt("day");
             int dayClose = close.getInt("day");
-            Calendar start = deserializeHour(open.getString("time"), dayOpen);
-            Calendar end = deserializeHour(close.getString("time"), dayClose);
+            Calendar start = deserialize(open.getString("time"), dayOpen);
+            Calendar end = deserialize(close.getString("time"), dayClose);
 
             // this means the bar is closing after midnight
             if (dayClose != dayOpen) {
