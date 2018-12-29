@@ -427,10 +427,9 @@ class Planner {
             }
         }
         else {
-            Place neighbor = CloneFactory.clone(fixed.poll());
-            next = neighbor;
+            next = fixed.poll();
 
-            int[] duration = getDuration(current, neighbor, carPlaceId);
+            int[] duration = getDuration(current, next, carPlaceId);
             int durationToNext = duration[0];
             returnDurationWalking = duration[1];
             nextCarPlaceId = duration[2];
@@ -464,46 +463,45 @@ class Planner {
         Set<Integer> openCopy = CloneFactory.clone(open);
         List<Place> solutionCopy = CloneFactory.clone(solution);
         PriorityQueue<Place> fixedCopy = CloneFactory.clone(fixed);
-        Place currentPlace = CloneFactory.clone(current);
 
-        if (scheduleFixed(currentPlace, openCopy, solutionCopy, time, score,
+        if (scheduleFixed(current, openCopy, solutionCopy, time, score,
                 carPlaceId, returnDurationToCar, fixedCopy)) {
             return;
         }
 
         // check if we need to wait some time to plan this place when the user wants
-        if (!currentPlace.fixedAt.equals("anytime") && currentPlace.plannedHour == null) {
-            LocalDateTime fixedAt = Interval.getDateTime(currentPlace.fixedAt, timeFrame.getOpenDays().get(0));
+        if (!current.fixedAt.equals("anytime") && current.plannedHour == null) {
+            LocalDateTime fixedAt = Interval.getDateTime(current.fixedAt, timeFrame.getOpenDays().get(0));
             // if true, it means the user should wait some time to visit the next place when desired
-            if (fixedAt.isAfter(time) && currentPlace.canVisit(fixedAt)) {
+            if (fixedAt.isAfter(time) && current.canVisit(fixedAt)) {
                 // TODO here we can suggest another places to visit in the meantime ...
-                currentPlace.waitTime = Interval.getDiff(time, fixedAt, TimeUnit.SECONDS);
+                current.waitTime = Interval.getDiff(time, fixedAt, TimeUnit.SECONDS);
                 time = fixedAt;
             }
         }
 
-        if (isSolution(openCopy, time, currentPlace, fixedCopy, solutionCopy)) {
+        if (isSolution(openCopy, time, current, fixedCopy, solutionCopy)) {
             generateItinerary(score, solutionCopy);
             return;
         }
 
         // predict the score for the current solution
-        double prediction = predictScore(currentPlace, openCopy, time, fixedCopy);
+        double prediction = predictScore(current, openCopy, time, fixedCopy);
         if (score + prediction <= globalMaxScore) {
             return;
         }
 
-        if (!currentPlace.canVisit(time)) {
+        if (!current.canVisit(time)) {
             return;
         }
 
         // visit the current place
         openCopy.remove(current.id);
-        currentPlace.plannedHour = time;
-        time = time.plusSeconds(currentPlace.durationVisit);
+        current.plannedHour = time;
+        time = time.plusSeconds(current.durationVisit);
 
         if (openCopy.isEmpty()) {
-            triggerSolution(currentPlace, openCopy, solutionCopy, score, time, carPlaceId, returnDurationToCar, fixed);
+            triggerSolution(current, openCopy, solutionCopy, score, time, carPlaceId, returnDurationToCar, fixed);
             return;
         }
 
@@ -512,10 +510,10 @@ class Planner {
             neighbors.add(city.getPlaces().get(neighborId));
         }
         // sort based rewards
-        neighbors.sort(new PlaceComparator(currentPlace, time));
+        neighbors.sort(new PlaceComparator(current, time));
         for (Place neighbor : neighbors) {
-            visitNeighbor(CloneFactory.clone(currentPlace), neighbor, openCopy, CloneFactory.clone(solutionCopy),
-                          score, time, carPlaceId, returnDurationToCar, fixedCopy);
+            visitNeighbor(current, neighbor, openCopy, CloneFactory.clone(solutionCopy), score, time,
+                    carPlaceId, returnDurationToCar, fixedCopy);
         }
     }
 
@@ -537,14 +535,13 @@ class Planner {
 
             LocalDateTime userStartHour = timeFrame.getInterval(dayOfWeek).getStart();
             LocalDateTime currentHour = null;
-            Place startPlaceCopy = CloneFactory.clone(start);
             int durationToNext = getDurationFromStart(next);
 
-            startPlaceCopy.plannedHour = userStartHour;
+            start.plannedHour = userStartHour;
             userStartHour = userStartHour.plusSeconds(durationToNext);
-            startPlaceCopy.durationToNext = durationToNext;
-            startPlaceCopy.distanceToNext = getDistanceFromStart(next);
-            startPlaceCopy.travelMode = travelMode;
+            start.durationToNext = durationToNext;
+            start.distanceToNext = getDistanceFromStart(next);
+            start.travelMode = travelMode;
 
             // place can be visited immediately
             if (next.canVisit(userStartHour)) {
@@ -558,7 +555,7 @@ class Planner {
             }
 
             if (currentHour != null) {
-                solution.add(startPlaceCopy);
+                solution.add(start);
                 return new PlannerTask(next, open, solution, currentHour, 0.0, next.id, 0, fixed, this);
             }
         } catch (Exception e) {
@@ -625,9 +622,9 @@ class Planner {
         if (topRestaurants != null && !topRestaurants.isEmpty()) {
             for (Place restaurant : topRestaurants) {
                 if (!placesIds.contains(restaurant.id)) {
-                    bestRestaurant = CloneFactory.clone(restaurant);
-                    bestRestaurant.fixedAt = timeAsString;
-                    bestRestaurant.mealType = type;
+                    restaurant.fixedAt = timeAsString;
+                    restaurant.mealType = type;
+                    bestRestaurant = restaurant;
                     break;
                 }
             }
@@ -705,7 +702,7 @@ class Planner {
 
         // only fixed places
         if (open.isEmpty() && !fixed.isEmpty()) {
-            PlannerTask task = createTask(CloneFactory.clone(fixed.poll()), open, new ArrayList<>(), fixed);
+            PlannerTask task = createTask(fixed.poll(), open, new ArrayList<>(), fixed);
             if (task != null) {
                 plannerTasks.add(task);
             }
