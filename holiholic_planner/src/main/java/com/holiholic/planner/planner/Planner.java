@@ -61,11 +61,8 @@ class Planner {
 
         // Descending order based on reward
         @Override
-        public int compare(Place first, Place second) {
-            double firstScore = getReward(current, first, time);
-            double secondScore = getReward(current, second, time);
-            int epsilonError = 100000000;
-            return (int)((secondScore - firstScore) * epsilonError);
+        public int compare(Place p1, Place p2) {
+            return Double.compare(getReward(current, p2, time), getReward(current, p1, time));
         }
     }
 
