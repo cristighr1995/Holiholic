@@ -3,7 +3,6 @@ package com.holiholic.planner.models;
 import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.utils.Enums;
 import com.holiholic.planner.utils.GeoPosition;
-import com.holiholic.planner.utils.Interval;
 import com.holiholic.planner.utils.TimeFrame;
 import org.json.JSONObject;
 
@@ -34,6 +33,7 @@ public class Place implements Comparable<Place>, Cloneable {
     public boolean parkHere = false;
     public Enums.MealType mealType = Enums.MealType.UNKNOWN;
     public String fixedAt = "anytime";      // The time when the user wants to visit a place
+    public LocalDateTime fixedTime;
     public long waitTime = 0;               // how much to wait between visiting 2 places
 
     private Place(int id, String name, GeoPosition location) {
@@ -122,9 +122,7 @@ public class Place implements Comparable<Place>, Cloneable {
         } else if (other.fixedAt.equals("anytime")) {
             return -1;
         }
-        LocalDateTime p1Hour = Interval.getDateTime(this.fixedAt, 1);
-        LocalDateTime p2Hour = Interval.getDateTime(other.fixedAt, 1);
-        return p1Hour.compareTo(p2Hour);
+        return this.fixedTime.compareTo(other.fixedTime);
     }
 
     /* serialize - Serialize the place into a json object format

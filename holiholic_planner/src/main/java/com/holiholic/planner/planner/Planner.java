@@ -279,7 +279,7 @@ class Planner {
     private boolean scheduleFixed(Place current, Set<Integer> open, List<Place> solution, LocalDateTime time,
                                   double score, int carPlaceId, int returnDurationToCar,PriorityQueue<Place> fixed) {
         if (!fixed.isEmpty()) {
-            LocalDateTime peekTime = Interval.getDateTime(fixed.peek().fixedAt, timeFrame.getOpenDays().get(0));
+            LocalDateTime peekTime = fixed.peek().fixedTime;
             int[] duration = getDuration(current, fixed.peek(), carPlaceId);
             int durationToFixed = duration[0];
             int returnDurationWalking = duration[1];
@@ -468,12 +468,11 @@ class Planner {
 
         // check if we need to wait some time to plan this place when the user wants
         if (!current.fixedAt.equals("anytime") && current.plannedHour == null) {
-            LocalDateTime fixedAt = Interval.getDateTime(current.fixedAt, timeFrame.getOpenDays().get(0));
             // if true, it means the user should wait some time to visit the next place when desired
-            if (fixedAt.isAfter(time) && current.canVisit(fixedAt)) {
+            if (current.fixedTime.isAfter(time) && current.canVisit(current.fixedTime)) {
                 // TODO here we can suggest another places to visit in the meantime ...
-                current.waitTime = Interval.getDiff(time, fixedAt, TimeUnit.SECONDS);
-                time = fixedAt;
+                current.waitTime = Interval.getDiff(time, current.fixedTime, TimeUnit.SECONDS);
+                time = current.fixedTime;
             }
         }
 
@@ -620,6 +619,7 @@ class Planner {
             for (Place restaurant : topRestaurants) {
                 if (!placesIds.contains(restaurant.id)) {
                     restaurant.fixedAt = timeAsString;
+                    restaurant.fixedTime = time;
                     restaurant.mealType = type;
                     bestRestaurant = restaurant;
                     break;
@@ -660,6 +660,19 @@ class Planner {
         }
     }
 
+    /* initFixedTime - Transform fixed time from string to LocalDateTime to avoid duplicate work
+     *
+     *  @return                 : void
+     *  @places                 : places to be visited
+     */
+    private void initFixedTime(List<Place> places) {
+        for (Place place : places) {
+            if (!place.fixedAt.equals("anytime")) {
+                place.fixedTime = Interval.getDateTime(place.fixedAt, timeFrame.getOpenDays().get(0));
+            }
+        }
+    }
+
     /* init - Initialize the planner only when the getPlan method is called
      *
      *  @return                 : void
@@ -668,6 +681,7 @@ class Planner {
     private void init(List<Place> places) {
         initMatrix();
         initRestaurants(places);
+        initFixedTime(places);
         generateRewards(places);
         initMaxScores(places);
         startTimeMeasure = System.nanoTime();
@@ -683,11 +697,7 @@ class Planner {
 
         Set<Integer> open = new HashSet<>();
         List<PlannerTask> plannerTasks = new ArrayList<>();
-        PriorityQueue<Place> fixed = new PriorityQueue<>((p1, p2) -> {
-            LocalDateTime p1Hour = Interval.getDateTime(p1.fixedAt, timeFrame.getOpenDays().get(0));
-            LocalDateTime p2Hour = Interval.getDateTime(p2.fixedAt, timeFrame.getOpenDays().get(0));
-            return p1Hour.compareTo(p2Hour);
-        });
+        PriorityQueue<Place> fixed = new PriorityQueue<>(Comparator.comparing(p -> p.fixedTime));
 
         for (Place place : places) {
             if (!place.fixedAt.equals("anytime")) {
@@ -787,11 +797,7 @@ class Planner {
         reward = (1 / distance) * heuristicValue + next.rating * (1 - heuristicValue);
 
         if (!current.fixedAt.equals("anytime")) {
-            LocalDateTime minus = time.minusSeconds(Constants.FIXED_RANGE_ACCEPTANCE);
-            LocalDateTime plus = time.plusSeconds(Constants.FIXED_RANGE_ACCEPTANCE);
-            Interval range = new Interval(minus, plus);
-
-            if (range.isBetween(Interval.getDateTime(current.fixedAt, timeFrame.getOpenDays().get(0)))) {
+            if (Interval.isInRange(time, current.fixedTime, Constants.FIXED_RANGE_ACCEPTANCE)) {
                 if (current.placeCategory.getTopic().equals("Restaurants")) {
                     reward += Constants.FIXED_RESTAURANT_REWARD;
                 } else {

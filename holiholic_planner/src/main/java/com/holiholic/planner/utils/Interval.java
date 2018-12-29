@@ -229,4 +229,17 @@ public class Interval implements Comparator<Interval> {
         result.put("close", serialize(getEnd(), day));
         return result;
     }
+
+    /* isInRange - Check if the time is between [reference - range, reference + range]
+     *
+     *  @return             : true / false
+     *  @reference          : reference point
+     *  @time               : time to check
+     *  @range              : range for interval
+     */
+    public static boolean isInRange(LocalDateTime reference, LocalDateTime time, int range) {
+        LocalDateTime minus = reference.minusSeconds(range);
+        LocalDateTime plus = reference.plusSeconds(range);
+        return minus.isBefore(time) && plus.isAfter(time);
+    }
 }
