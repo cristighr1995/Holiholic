@@ -8,7 +8,7 @@ import com.holiholic.planner.utils.TimeFrame;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.time.LocalDateTime;
 
 /* Place - The internal representation model for a place
  *
@@ -16,15 +16,15 @@ import java.util.*;
 public class Place implements Comparable<Place>, Cloneable {
     public int id;
     public String name;
-    public String description;
-    public String imageUrl;
+    private String description;
+    private String imageUrl;
     public double rating = 0;
     public PlaceCategory placeCategory;
     public int durationVisit;
     public GeoPosition location;
     public TimeFrame timeFrame;             // When is the place open
 
-    public Calendar plannedHour;            // When is the place scheduled
+    public LocalDateTime plannedHour;       // When is the place scheduled
     public int durationToNext = 0;
     public int distanceToNext = 0;
     public Enums.TravelMode travelMode;
@@ -36,7 +36,6 @@ public class Place implements Comparable<Place>, Cloneable {
     public String fixedAt = "anytime";      // The time when the user wants to visit a place
     public long waitTime = 0;               // how much to wait between visiting 2 places
 
-    // constructor
     private Place(int id, String name, GeoPosition location) {
         this.id = id;
         this.name = name;
@@ -65,13 +64,13 @@ public class Place implements Comparable<Place>, Cloneable {
         return serialize().toString();
     }
 
-    /* canVisit - Checks if the place can be visited an the specified hour
+    /* canVisit - Checks if the place can be visited an the given time
      *
      *  @return       : true/false
-     *  @hour         : the hour the we want to visit the place
+     *  @time         : time to check if the place can be visited
      */
-    public boolean canVisit(Calendar hour) {
-        return timeFrame.canVisit(hour);
+    public boolean canVisit(LocalDateTime time) {
+        return timeFrame.canVisit(time);
     }
 
     /* canVisit - Checks if the place can be visited given multiple days interval with each day other constraints
@@ -91,8 +90,7 @@ public class Place implements Comparable<Place>, Cloneable {
         return timeFrame.isNonStop();
     }
 
-    /* clone - Clone the current object and returns a new copy of it
-     *         Need to be very careful when we add a new property because we also need to modify this method !!!!
+    /* clone - Returns a shallow copy of the current object
      *
      *  @return       : a clone of the current object
      */
@@ -101,7 +99,6 @@ public class Place implements Comparable<Place>, Cloneable {
         Place copy = null;
         try{
             copy = (Place) super.clone();
-            copy.plannedHour = plannedHour != null ? (Calendar) plannedHour.clone() : null;
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -125,8 +122,8 @@ public class Place implements Comparable<Place>, Cloneable {
         } else if (other.fixedAt.equals("anytime")) {
             return -1;
         }
-        Calendar p1Hour = Interval.getHour(this.fixedAt, 1);
-        Calendar p2Hour = Interval.getHour(other.fixedAt, 1);
+        LocalDateTime p1Hour = Interval.getDateTime(this.fixedAt, 1);
+        LocalDateTime p2Hour = Interval.getDateTime(other.fixedAt, 1);
         return p1Hour.compareTo(p2Hour);
     }
 

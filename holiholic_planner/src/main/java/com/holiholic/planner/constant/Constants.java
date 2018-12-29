@@ -1,5 +1,9 @@
 package com.holiholic.planner.constant;
 
+import java.time.temporal.TemporalField;
+import java.time.temporal.WeekFields;
+import java.util.Locale;
+
 /* Constants - All constants will be declared here
  *
  */
@@ -24,4 +28,6 @@ public class Constants {
     public final static double WALKING_ADJUST_COEFFICIENT = 2.0;
     public final static double ESTIMATED_DRIVING_VELOCITY = 20;     // in kilometers / hour
     public final static double ESTIMATED_WALKING_VELOCITY = 6;
+
+    public final static TemporalField US_FIELD_DAY_OF_WEEK = WeekFields.of(Locale.US).dayOfWeek();
 }

@@ -3,29 +3,13 @@ package com.holiholic.planner.utils;
 /* GeoPosition - Holds information about the place location (latitude,, longitude)
  *
  */
-public class GeoPosition implements Cloneable {
+public class GeoPosition {
     public double latitude;
     public double longitude;
 
-    // constructor
     public GeoPosition(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
-    }
-
-    /* clone - Deep copy of the current object
-     *
-     *  @return             : clone of the current object
-     */
-    @Override
-    public GeoPosition clone() {
-        GeoPosition copy = null;
-        try {
-            copy = (GeoPosition) super.clone();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return copy;
     }
 
     /* distanceBetweenGeoCoordinates - Calculates the mathematical distance between two geo points

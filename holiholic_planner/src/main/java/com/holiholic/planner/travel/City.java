@@ -5,6 +5,7 @@ import com.holiholic.planner.models.Place;
 import com.holiholic.planner.utils.Enums;
 import com.holiholic.planner.utils.TimeFrame;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /* City - Singleton class to provide fast access to places from that city
@@ -12,14 +13,12 @@ import java.util.*;
  *
  */
 public class City {
-    // because we have a singleton we will need this instance which will be created only once
     private static City instance;
     private String name;
     private Map<Integer, Place> places;
     private Map<Enums.TravelMode, double[][]> distance;
     private Map<Enums.TravelMode, double[][]> duration;
 
-    // private constructor !!!
     private City(String name) {
         this.name = name;
         this.distance = new HashMap<>();
@@ -258,15 +257,15 @@ public class City {
      *
      *  @return             : list with restaurants, already sorted
      *  @limit              : the limit for the restaurants count
-     *  @hour               : what hour to check if they are open
+     *  @time               : restaurants open at this time
      */
-    public List<Place> getTopRestaurants(int limit, Calendar hour) {
+    public List<Place> getTopRestaurants(int limit, LocalDateTime time) {
         // min heap
         PriorityQueue<Place> pq = new PriorityQueue<>(Comparator.comparingDouble(p -> p.rating));
 
         for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
             if (placeEntry.getValue().placeCategory.getTopic().equals("Restaurants") &&
-                placeEntry.getValue().canVisit(hour)) {
+                placeEntry.getValue().canVisit(time)) {
                 if (pq.size() < limit) {
                     pq.add(placeEntry.getValue());
 

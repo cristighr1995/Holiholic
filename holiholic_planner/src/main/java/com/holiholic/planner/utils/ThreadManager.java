@@ -14,11 +14,8 @@ public class ThreadManager {
     private static ThreadManager instance;
     private static ThreadPoolExecutor executor;
 
-    // private constructor !!!
     private ThreadManager() {
-        // get the number of cores
         int numberOfCores = Runtime.getRuntime().availableProcessors();
-        // instantiate the thread pool
         executor = new ThreadPoolExecutor(
                 numberOfCores,
                 numberOfCores,
@@ -37,7 +34,6 @@ public class ThreadManager {
             //synchronized block to remove overhead
             synchronized (ThreadManager.class) {
                 if(instance == null) {
-                    // if instance is null, initialize
                     instance = new ThreadManager();
                 }
             }
@@ -46,6 +42,13 @@ public class ThreadManager {
         return instance;
     }
 
+    /* invokeAll - Execute a list of tasks and wait for their execution
+     *
+     *  @return         : void
+     *  @tasks          : tasks to execute
+     *  @limit          : duration limit
+     *  @timeUnit       : time unit for duration limit
+     */
     public void invokeAll(List<? extends Callable<Boolean>> tasks, int limit, TimeUnit timeUnit) {
         try {
             executor.invokeAll(tasks, limit, timeUnit);

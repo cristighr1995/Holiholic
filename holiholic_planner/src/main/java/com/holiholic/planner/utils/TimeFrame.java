@@ -1,8 +1,10 @@
 package com.holiholic.planner.utils;
 
+import com.holiholic.planner.constant.Constants;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /* TimeFrame - Holds information about the place opening hours
@@ -12,12 +14,11 @@ public class TimeFrame {
     private Map<Integer, Interval> intervals;
     private boolean nonStop = false;
 
-    // default constructor creates a non stop place
+    // Create a non stop place
     private TimeFrame() {
         this.nonStop = true;
     }
 
-    // constructor
     private TimeFrame(Map<Integer, Interval> intervals) {
         this.intervals = intervals;
     }
@@ -28,33 +29,34 @@ public class TimeFrame {
      */
     public void setClosedAllDays() {
         this.intervals = new HashMap<>();
-        for (int dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-            Interval closeInterval = new Interval();
-            closeInterval.setClosed();
-            this.intervals.put(dayOfWeek, closeInterval);
+        for (int dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
+            Interval closedInterval = new Interval();
+            closedInterval.setClosed();
+            this.intervals.put(dayOfWeek, closedInterval);
         }
     }
 
     /* isClosed - Checks if the place is closed in the given day of the week
      *
      *  @return             : true / false
-     *  @dayOfWeek          : the calendar day of the week when to check
+     *  @dayOfWeek          : the LocalDateTime day of the week when to check
      */
     public boolean isClosed(int dayOfWeek) {
         return intervals.get(dayOfWeek).isClosed();
     }
 
-    /* canVisit - Checks if the place can be visited at the given hour
+    /* canVisit - Checks if the place can be visited at the given time
      *
      *  @return             : true / false
-     *  @hour               : the hour we want to check
+     *  @time               : time to check
      */
-    public boolean canVisit(Calendar hour) {
+    public boolean canVisit(LocalDateTime time) {
         if (isNonStop()) {
             return true;
         }
-        int dayOfWeek = hour.get(Calendar.DAY_OF_WEEK);
-        return !intervals.get(dayOfWeek).isClosed() && intervals.get(dayOfWeek).isBetween(hour);
+
+        int dayOfWeek = time.getDayOfWeek().get(Constants.US_FIELD_DAY_OF_WEEK);
+        return !intervals.get(dayOfWeek).isClosed() && intervals.get(dayOfWeek).isBetween(time);
     }
 
     /* getOpenDays - Get a list of open days
@@ -63,49 +65,46 @@ public class TimeFrame {
      */
     public List<Integer> getOpenDays() {
         List<Integer> openDays = new ArrayList<>();
+
         for (int dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
             if (isNonStop() || !isClosed(dayOfWeek)) {
                 openDays.add(dayOfWeek);
             }
         }
+
         return openDays;
     }
 
     /* canVisit - Check if the current period (visiting interval) can be visited in the given period
      *            For example each place has an opening period which consist of daily visiting Interval
-     *            The period parameter can be the day(s) the user wants to visit
+     *            The timeFrame parameter can be the day(s) the user wants to visit
      *            So an use case would be when the user wants to check the availability of a place for Monday and Friday
      *
      *  @return             : true or false
-     *  @period             : the period we want to check if it is between the current opening period
+     *  @timeFrame          : user time frame
      */
     public boolean canVisit(TimeFrame timeFrame) {
         if (isNonStop()) {
             return true;
         }
 
-        List<Integer> openDays = timeFrame.getOpenDays();
+        Interval placeInterval, userInterval;
 
-        for (int dayOfWeek : openDays) {
+        for (int dayOfWeek : timeFrame.getOpenDays()) {
             if (isClosed(dayOfWeek)) {
                 continue;
             }
-            Interval placeInterval = getInterval(dayOfWeek);
-            Interval periodInterval = timeFrame.getInterval(dayOfWeek);
 
-            if (placeInterval.getStart().before(periodInterval.getStart())
-                && periodInterval.getStart().before(placeInterval.getEnd())) {
-                return true;
-            }
-            if (placeInterval.getStart().before(periodInterval.getEnd())
-                && periodInterval.getEnd().before(placeInterval.getEnd())) {
-                return true;
-            }
-            if (periodInterval.getStart().before(placeInterval.getStart())
-                && placeInterval.getStart().before(periodInterval.getEnd())) {
+            placeInterval = getInterval(dayOfWeek);
+            userInterval = timeFrame.getInterval(dayOfWeek);
+
+            if (placeInterval.isBetween(userInterval.getStart()) ||
+                placeInterval.isBetween(userInterval.getEnd()) ||
+                userInterval.isBetween(placeInterval.getStart())) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -119,8 +118,8 @@ public class TimeFrame {
 
     /* getInterval - Get the interval instance for a specific day
      *
-     *  @return             : the interval instance for the given day
-     *  @dayOfWeek          : the calendar day of the week
+     *  @return             : interval instance for the given day
+     *  @dayOfWeek          : day of week
      */
     public Interval getInterval(int dayOfWeek) {
         return intervals.get(dayOfWeek);
@@ -160,14 +159,14 @@ public class TimeFrame {
         return result;
     }
 
-    /* deserialize - Creates a Calendar instance from a coded hour
+    /* deserialize - Creates a LocalDateTime instance from a coded hour
      *               Example 0930 means the time 09:30
      *
-     *  @return             : the calendar instance of the given hour
+     *  @return             : the LocalDateTime instance of the given hour
      *  @hour               : the serialized hour
      */
-    private static Calendar deserialize(String hour, int dayOfWeek) {
-        return Interval.getHour(hour, dayOfWeek);
+    private static LocalDateTime deserialize(String hour, int dayOfWeek) {
+        return Interval.getDateTime(hour, dayOfWeek);
     }
 
     /* deserialize - Creates an OpeningPeriod instance from a json period
@@ -193,13 +192,9 @@ public class TimeFrame {
             JSONObject close = dayPeriod.getJSONObject("close");
             int dayOpen = open.getInt("day");
             int dayClose = close.getInt("day");
-            Calendar start = deserialize(open.getString("time"), dayOpen);
-            Calendar end = deserialize(close.getString("time"), dayClose);
+            LocalDateTime start = deserialize(open.getString("time"), dayOpen);
+            LocalDateTime end = deserialize(close.getString("time"), dayClose);
 
-            // this means the bar is closing after midnight
-            if (dayClose != dayOpen) {
-                end.add(Calendar.DAY_OF_WEEK, 1);
-            }
             intervals.put(dayOpen, new Interval(start, end));
             // erase from closed days
             closed.remove(dayOpen);

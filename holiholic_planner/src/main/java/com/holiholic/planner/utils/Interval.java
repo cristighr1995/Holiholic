@@ -1,9 +1,10 @@
 package com.holiholic.planner.utils;
 
+import com.holiholic.planner.constant.Constants;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,19 +14,17 @@ import java.util.concurrent.TimeUnit;
  *
  */
 public class Interval implements Comparator<Interval> {
-    private Calendar start;
-    private Calendar end;
+    private LocalDateTime start;
+    private LocalDateTime end;
     private boolean nonStop;
     private boolean closed;
-    private static Map<String, Calendar> hours = new HashMap<>();
+    private static Map<String, LocalDateTime> hours = new HashMap<>();
 
-    // default constructor creates a non stop place
     Interval() {
         this.nonStop = true;
     }
 
-    // constructor
-    public Interval(Calendar start, Calendar end) {
+    public Interval(LocalDateTime start, LocalDateTime end) {
         this.start = start;
         this.end = end;
         if (start == null && end == null) {
@@ -35,17 +34,17 @@ public class Interval implements Comparator<Interval> {
 
     /* getStart - Get the start hour for the current interval
      *
-     *  @return             : the start calendar (hour)
+     *  @return             : the start LocalDateTime (hour)
      */
-    public Calendar getStart() {
+    public LocalDateTime getStart() {
         return start;
     }
 
     /* getEnd - Get the end hour for the current interval
      *
-     *  @return             : the end calendar (hour)
+     *  @return             : the end LocalDateTime (hour)
      */
-    Calendar getEnd() {
+    LocalDateTime getEnd() {
         return end;
     }
 
@@ -74,18 +73,18 @@ public class Interval implements Comparator<Interval> {
         this.nonStop = false;
     }
 
-    /* isBetween - Checks if the given hour is between the current interval
+    /* isBetween - Checks if the given date time is between the current interval
      *
      *  @return             : true / false
-     *  @hour               : the hour we want to check
+     *  @time               : time to check
      */
-    public boolean isBetween(Calendar hour) {
+    public boolean isBetween(LocalDateTime time) {
         if (isNonStop()) {
             return true;
         }
 
-        assert (start != null && hour != null && end != null);
-        return start.before(hour) && end.after(hour);
+        assert (start != null && time != null && end != null);
+        return start.isBefore(time) && end.isAfter(time);
     }
 
     /* toString - Returns a string representation of the current interval
@@ -95,12 +94,11 @@ public class Interval implements Comparator<Interval> {
     @Override
     public String toString() {
         if (isNonStop()) {
-            return "Non stop";
+            return "24 Hours";
         } else if (isClosed()) {
             return "Closed";
         }
         assert (start != null && end != null);
-        // the place is opened
         return serialize(start) + " " + serialize(end);
     }
 
@@ -109,38 +107,38 @@ public class Interval implements Comparator<Interval> {
      *           If neither is non stop or closed, just compare their total minutes
      *
      *  @return             : which one is greater
-     *  @first              : the first interval to compare
-     *  @second             : the second interval to compare
+     *  @i1                 : the first interval to compare
+     *  @i2                 : the second interval to compare
      */
     @Override
-    public int compare(Interval first, Interval second) {
-        if ((first.isNonStop() && second.isNonStop()) || (first.isClosed() && second.isClosed())) {
+    public int compare(Interval i1, Interval i2) {
+        if ((i1.isNonStop() && i2.isNonStop()) || (i1.isClosed() && i2.isClosed())) {
             return 0;
         }
-        if (first.isNonStop()) {
+        if (i1.isNonStop()) {
             return 1;
         }
-        if (second.isNonStop()) {
+        if (i2.isNonStop()) {
             return -1;
         }
-        if (first.isClosed()) {
+        if (i1.isClosed()) {
             return -1;
         }
-        if (second.isClosed()) {
+        if (i2.isClosed()) {
             return 1;
         }
 
-        if (first.getEnd().get(Calendar.DAY_OF_WEEK) == second.getEnd().get(Calendar.DAY_OF_WEEK)) {
+        if (i1.getEnd().getDayOfWeek().equals(i2.getEnd().getDayOfWeek())) {
            // most late
-           int compareResult = second.getEnd().compareTo(first.getEnd());
+           int compareResult = i2.getEnd().compareTo(i1.getEnd());
            if (compareResult != 0) {
                return compareResult;
            }
            // most early
-            return first.getStart().compareTo(second.getStart());
+            return i1.getStart().compareTo(i2.getStart());
         }
 
-        return Integer.compare(second.getEnd().get(Calendar.DAY_OF_WEEK), first.getEnd().get(Calendar.DAY_OF_WEEK));
+        return Integer.compare(i2.getEnd().getDayOfWeek().getValue(), i1.getEnd().getDayOfWeek().getValue());
 
     }
 
@@ -148,79 +146,74 @@ public class Interval implements Comparator<Interval> {
      *                    Uses compare function
      *
      *  @return             : which one is greater
-     *  @first              : the first interval to compare
-     *  @second             : the second interval to compare
+     *  @i1                 : the first interval to compare
+     *  @i2                 : the second interval to compare
      */
-    public static int compareIntervals(Interval first, Interval second) {
-        return new Interval().compare(first, second);
+    public static int compareIntervals(Interval i1, Interval i2) {
+        return new Interval().compare(i1, i2);
     }
 
-    /* getHour - Returns a calendar instance for the given parameters
+    /* getDateTimeFromHour - Returns a LocalDateTime instance
      *
-     *  @return             : a corresponding calendar instance
+     *  @return             : a corresponding LocalDateTime instance
      *  @hourOfDay          : the hour of the day
      *  @minute             : the current minute
      *  @second             : the current second
      */
-    private static Calendar getHour(int hourOfDay, int minute) {
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-        c.set(Calendar.MINUTE, minute);
-        c.set(Calendar.SECOND, 0);
-        return c;
+    private static LocalDateTime getDateTimeFromHour(int hourOfDay, int minute) {
+        return LocalDateTime.now().withHour(hourOfDay).withMinute(minute);
     }
 
-    /* getHour - Returns a calendar instance for the given parameter
+    /* getDateTime - Returns a LocalDateTime using US conventions
      *
-     *  @return             : a corresponding calendar instance
-     *  @str                : a string format of the hour (example 21:35)
+     *  @return             : a corresponding LocalDateTime instance
+     *  @hour               : hour in format "HHmm""
+     *  @dayOfWeek          : day of week in US convention (SUN = 1 ... SAT = 7)
      */
-    public static Calendar getHour(String hour, int dayOfWeek) {
+    public static LocalDateTime getDateTime(String hour, int dayOfWeek) {
         String key = hour + "-" + dayOfWeek;
         if (hours.containsKey(key)) {
-            return CloneFactory.clone(hours.get(key));
+            return hours.get(key);
         }
 
         int hourOfDay = Integer.parseInt(hour.substring(0, 2));
         int minutes = Integer.parseInt(hour.substring(2));
-        Calendar result = getHour(hourOfDay, minutes);
-        result.set(Calendar.DAY_OF_WEEK, dayOfWeek);
+        LocalDateTime dateTime = getDateTimeFromHour(hourOfDay, minutes).with(Constants.US_FIELD_DAY_OF_WEEK, dayOfWeek);
 
-        hours.put(key, result);
-        return result;
+        hours.put(key, dateTime);
+        return dateTime;
     }
 
-    /* getDiff - Returns the difference between two calendar instance expressed in the given time unit
+    /* getDiff - Returns the difference between two LocalDateTime instance expressed in the given time unit
      *           Internally the difference is expressed in milli seconds
      *
      *  @return             : the difference
-     *  @date1              : the first date
-     *  @date2              : the second date
+     *  @d1                 : the first date
+     *  @d2                 : the second date
      *  @timeUnit           : the time unit we want the result converted
      */
-    public static long getDiff(Calendar date1, Calendar date2, TimeUnit timeUnit) {
-        long diffInMilliSeconds = date2.getTime().getTime() - date1.getTime().getTime();
-        return timeUnit.convert(diffInMilliSeconds, TimeUnit.MILLISECONDS);
+    public static long getDiff(LocalDateTime d1, LocalDateTime d2, TimeUnit timeUnit) {
+        return timeUnit.convert(Duration.between(d1, d2).getSeconds(), TimeUnit.SECONDS);
     }
 
-    /* serialize - Returns a string representation of the given hour
+    /* serialize - Returns a string representation of the given date time with only hour and minute
      *
      *  @return             : the string representation
-     *  @hour               : the hour we want to format
+     *  @time               : date time to format
      */
-    public static String serialize(Calendar hour) {
-        return String.format("%02d%02d", hour.get(Calendar.HOUR_OF_DAY), hour.get(Calendar.MINUTE));
+    public static String serialize(LocalDateTime time) {
+        return String.format("%02d%02d", time.getHour(), time.getMinute());
     }
 
-    /* serialize - Returns a json object representation of the given hour and day of the week
+    /* serialize - Returns a json object representation of the given time and day of week
      *
      *  @return             : the json object representation
-     *  @hour               : the hour
+     *  @time               : the time
      *  @day                : the day for the interval
      */
-    private static JSONObject serialize(Calendar hour, int day) {
+    private static JSONObject serialize(LocalDateTime time, int day) {
         JSONObject result = new JSONObject();
-        result.put("time", serialize(hour));
+        result.put("time", serialize(time));
         result.put("day", day);
         return result;
     }
@@ -235,14 +228,5 @@ public class Interval implements Comparator<Interval> {
         result.put("open", serialize(getStart(), day));
         result.put("close", serialize(getEnd(), day));
         return result;
-    }
-
-    /* toString - Returns a "yyyy-MM-dd HH:mm:ss" calendar format
-     *
-     *  @return             : serialization
-     *  @time               : time instance
-     */
-    public static String toString(Calendar time) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(time.getTime());
     }
 }
