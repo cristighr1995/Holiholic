@@ -35,6 +35,6 @@ public class CloneFactory {
     }
 
     public static Place clone(Place place) {
-        return place.clone();
+        return place.deepClone();
     }
 }

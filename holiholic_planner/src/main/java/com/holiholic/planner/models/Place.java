@@ -23,11 +23,12 @@ public class Place implements Comparable<Place>, Cloneable {
     public GeoPosition location;
     public TimeFrame timeFrame;             // When is the place open
 
+    // default values before planning
     public LocalDateTime plannedHour;       // When is the place scheduled
     public int durationToNext = 0;
     public int distanceToNext = 0;
-    public Enums.TravelMode travelMode;
-    public boolean getCarBack;              // True when driving and parked to visit places nearby
+    public Enums.TravelMode travelMode = Enums.TravelMode.UNKNOWN;
+    public boolean getCarBack = false;      // True when driving and parked to visit places nearby
     public int carPlaceId = -1;             // The id of the place where parked
     public String carPlaceName = "";        // The name of the place where parked
     public boolean parkHere = false;
@@ -99,6 +100,41 @@ public class Place implements Comparable<Place>, Cloneable {
         Place copy = null;
         try{
             copy = (Place) super.clone();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return copy;
+    }
+
+    /* reset - Reset to default values the place before planning
+     *
+     *  @return         : void
+     *  @place          : place to reset
+     */
+    private void reset(Place place) {
+        place.plannedHour = null;
+        place.durationToNext = 0;
+        place.distanceToNext = 0;
+        place.travelMode = Enums.TravelMode.UNKNOWN;
+        place.getCarBack = false;
+        place.carPlaceId = -1;
+        place.carPlaceName = "";
+        place.parkHere = false;
+        place.mealType = Enums.MealType.UNKNOWN;
+        place.fixedAt = "anytime";
+        place.fixedTime = null;
+        place.waitTime = 0;
+    }
+
+    /* clone - Returns a copy of the current object making deep copy of fields used in planning
+     *
+     *  @return       : a clone of the current object
+     */
+    public Place deepClone() {
+        Place copy = null;
+        try{
+            copy = (Place) super.clone();
+            reset(copy);
         } catch (Exception e){
             e.printStackTrace();
         }
