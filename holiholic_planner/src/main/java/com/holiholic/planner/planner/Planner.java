@@ -333,27 +333,28 @@ class Planner {
         }
 
         if (score > globalMaxScore) {
+            int firstPlaceId = solution.get(1).id;
+            List<Place> itinerary = CloneFactory.clone(solution);
+
             synchronized (Planner.class) {
                 if (score > globalMaxScore) {
-                    int firstPlaceId = solution.get(1).id;
-                    List<Place> itinerary = CloneFactory.clone(solution);
                     maxScores.put(firstPlaceId, score);
                     globalMaxScore = score;
                     plans.put(firstPlaceId, itinerary);
                     solutionsCount++;
-
-                    long estimatedTime = System.nanoTime() - startTimeMeasure;
-                    double seconds = (double) estimatedTime / 1000000000.0;
-                    StringBuilder logMessage = new StringBuilder();
-                    logMessage.append("New solution found in ").append(seconds).append(" seconds having ")
-                              .append(score).append(" score\n");
-                    logMessage.append("Itinerary:\n");
-                    for (Place place : itinerary) {
-                        logMessage.append(serialize(place).toString()).append("\n");
-                    }
-                    LOGGER.log(Level.FINE, logMessage.toString());
                 }
             }
+
+            long estimatedTime = System.nanoTime() - startTimeMeasure;
+            double seconds = (double) estimatedTime / 1000000000.0;
+            StringBuilder logMessage = new StringBuilder();
+            logMessage.append("New solution found in ").append(seconds).append(" seconds having ")
+                    .append(score).append(" score\n");
+            logMessage.append("Itinerary:\n");
+            for (Place place : itinerary) {
+                logMessage.append(serialize(place).toString()).append("\n");
+            }
+            LOGGER.log(Level.FINE, logMessage.toString());
         }
     }
 
