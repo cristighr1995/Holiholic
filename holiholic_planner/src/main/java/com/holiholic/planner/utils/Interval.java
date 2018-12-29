@@ -24,7 +24,7 @@ public class Interval implements Comparator<Interval> {
         this.nonStop = true;
     }
 
-    public Interval(LocalDateTime start, LocalDateTime end) {
+    Interval(LocalDateTime start, LocalDateTime end) {
         this.start = start;
         this.end = end;
         if (start == null && end == null) {
@@ -78,7 +78,7 @@ public class Interval implements Comparator<Interval> {
      *  @return             : true / false
      *  @time               : time to check
      */
-    public boolean isBetween(LocalDateTime time) {
+    boolean isBetween(LocalDateTime time) {
         if (isNonStop()) {
             return true;
         }
