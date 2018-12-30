@@ -46,20 +46,18 @@ class Planner {
     private int solutionsCount = 0;
     private long startTimeMeasure = 0;
 
-    /* PlaceComparator - Comparator for sorting the places by their reward (descending)
+    /* NeighborRewardComparator - Sort (descending) places by their reward by getting from current to neighbor
      *
-     *  @Class type
      */
-    private class PlaceComparator implements Comparator<Place> {
+    private class NeighborRewardComparator implements Comparator<Place> {
         private Place current;
         private LocalDateTime time;
 
-        private PlaceComparator(Place current, LocalDateTime time) {
+        private NeighborRewardComparator(Place current, LocalDateTime time) {
             this.current = current;
             this.time = time;
         }
 
-        // Descending order based on reward
         @Override
         public int compare(Place p1, Place p2) {
             return Double.compare(getReward(current, p2, time), getReward(current, p1, time));
@@ -168,14 +166,14 @@ class Planner {
         }
 
         Collections.addAll(places, fixed.toArray(new Place[0]));
-        places.sort(new PlaceComparator(current, time));
+        places.sort(new NeighborRewardComparator(current, time));
 
         for (Place place : places) {
             if (place.canVisit(time)) {
                 if (travelMode == Enums.TravelMode.DRIVING) {
                     durationToNext = Math.min(durationWalking[last.id][place.id], durationDriving[last.id][place.id]);
                 } else {
-                    durationToNext = (int) durationWalking[last.id][place.id];
+                    durationToNext = durationWalking[last.id][place.id];
                 }
 
                 time = time.plusSeconds(place.durationVisit);
@@ -505,8 +503,8 @@ class Planner {
         for (int neighborId : openCopy) {
             neighbors.add(city.getPlaces().get(neighborId));
         }
-        // sort based rewards
-        neighbors.sort(new PlaceComparator(current, time));
+        neighbors.sort(new NeighborRewardComparator(current, time));
+
         for (Place neighbor : neighbors) {
             visitNeighbor(current, neighbor, openCopy, CloneFactory.clone(solutionCopy), score, time,
                     carPlaceId, returnDurationToCar, fixedCopy);
@@ -530,7 +528,7 @@ class Planner {
             }
 
             LocalDateTime userStartHour = timeFrame.getInterval(dayOfWeek).getStart();
-            LocalDateTime currentHour = null;
+            LocalDateTime currentTime = null;
             int durationToNext = getDurationFromStart(next);
 
             start.plannedHour = userStartHour;
@@ -541,18 +539,18 @@ class Planner {
 
             // place can be visited immediately
             if (next.canVisit(userStartHour)) {
-                currentHour = userStartHour;
+                currentTime = userStartHour;
             } else {
-                LocalDateTime placeStartHour = next.timeFrame.getInterval(dayOfWeek).getStart();
-                if (timeFrame.canVisit(placeStartHour)) {
+                LocalDateTime placeOpeningHour = next.timeFrame.getInterval(dayOfWeek).getStart();
+                if (timeFrame.canVisit(placeOpeningHour)) {
                     // start as soon as the place opens
-                    currentHour = placeStartHour;
+                    currentTime = placeOpeningHour;
                 }
             }
 
-            if (currentHour != null) {
+            if (currentTime != null) {
                 solution.add(start);
-                return new PlannerTask(next, open, solution, currentHour, 0.0, next.id, 0, fixed, this);
+                return new PlannerTask(next, open, solution, currentTime, 0.0, next.id, 0, fixed, this);
             }
         } catch (Exception e) {
             e.printStackTrace();

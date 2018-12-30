@@ -112,18 +112,20 @@ public class Place implements Comparable<Place>, Cloneable {
      *  @place          : place to reset
      */
     private void reset(Place place) {
-        place.plannedHour = null;
-        place.durationToNext = 0;
-        place.distanceToNext = 0;
-        place.travelMode = Enums.TravelMode.UNKNOWN;
-        place.getCarBack = false;
-        place.carPlaceId = -1;
-        place.carPlaceName = "";
-        place.parkHere = false;
-        place.mealType = Enums.MealType.UNKNOWN;
-        place.fixedAt = "anytime";
-        place.fixedTime = null;
-        place.waitTime = 0;
+        if (place != null) {
+            place.plannedHour = null;
+            place.durationToNext = 0;
+            place.distanceToNext = 0;
+            place.travelMode = Enums.TravelMode.UNKNOWN;
+            place.getCarBack = false;
+            place.carPlaceId = -1;
+            place.carPlaceName = "";
+            place.parkHere = false;
+            place.mealType = Enums.MealType.UNKNOWN;
+            place.fixedAt = "anytime";
+            place.fixedTime = null;
+            place.waitTime = 0;
+        }
     }
 
     /* clone - Returns a copy of the current object making deep copy of fields used in planning
@@ -131,13 +133,8 @@ public class Place implements Comparable<Place>, Cloneable {
      *  @return       : a clone of the current object
      */
     public Place deepClone() {
-        Place copy = null;
-        try{
-            copy = (Place) super.clone();
-            reset(copy);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        Place copy = clone();
+        reset(copy);
         return copy;
     }
 
