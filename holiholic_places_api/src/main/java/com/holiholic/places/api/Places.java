@@ -31,9 +31,7 @@ public class Places {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                     String line;
                     System.out.println("New request to \"" + url + "\"");
-                    System.out.println("Response:");
                     while ((line = reader.readLine()) != null) {
-                        System.out.println(line);
                         builder.append(line);
                     }
                 }
@@ -43,6 +41,8 @@ public class Places {
             return "";
         }
 
+        System.out.println("Response:");
+        System.out.println(builder.toString());
         return builder.toString();
     }
 
@@ -154,6 +154,11 @@ public class Places {
                 renderedTime = mergeRenderedTime(timeFrame.getJSONArray("open"));
                 intervals = split(daysInfo, ", ");
                 System.out.println("Decode " + daysInfo + " interval with " + renderedTime + " time");
+
+                if (renderedTime.equals("None")) {
+                    continue;
+                }
+
                 for (String interval : intervals) {
                     days = split(interval, "\u2013");
                     // just one day information
@@ -264,6 +269,8 @@ public class Places {
 
     public static JSONArray getPlaces(String near, PlaceCategory placeCategory) {
         JSONArray searchList = searchPlaces(near, placeCategory.getId(), placeCategory.getLimit());
+        System.out.println("Search for venues from " + placeCategory.getName() + " category -> found " + searchList.length());
+
         JSONArray places = new JSONArray();
 
         for (int i = 0; i < searchList.length(); i++) {
@@ -287,7 +294,7 @@ public class Places {
 
     private static double[] getDistance(String origin, String destination, String type) {
         double[] distance = new double[2];
-        Arrays.fill(distance, Double.MAX_VALUE);
+        Arrays.fill(distance, Integer.MAX_VALUE);
 
         try {
             String url = UrlManager.getDistanceMatrixUrl(origin, destination, type);
@@ -295,7 +302,7 @@ public class Places {
             distance[0] = getDistance(response, "distance");
             distance[1] = getDistance(response, "duration");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Got ZERO_RESULTS");
         }
 
         return distance;
@@ -332,6 +339,8 @@ public class Places {
                     distanceResponse = getDistance(origin, destination, "walking");
                     distanceWalking[i][j] = distanceResponse[0];
                     durationWalking[i][j] = distanceResponse[1];
+
+                    System.out.println("Got distance from: " + i + " to: " + j);
                 }
             }
 

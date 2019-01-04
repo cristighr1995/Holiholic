@@ -1,5 +1,7 @@
 package com.holiholic.planner.utils;
 
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -12,11 +14,8 @@ public class ThreadManager {
     private static ThreadManager instance;
     private static ThreadPoolExecutor executor;
 
-    // private constructor !!!
     private ThreadManager() {
-        // get the number of cores
         int numberOfCores = Runtime.getRuntime().availableProcessors();
-        // instantiate the thread pool
         executor = new ThreadPoolExecutor(
                 numberOfCores,
                 numberOfCores,
@@ -35,7 +34,6 @@ public class ThreadManager {
             //synchronized block to remove overhead
             synchronized (ThreadManager.class) {
                 if(instance == null) {
-                    // if instance is null, initialize
                     instance = new ThreadManager();
                 }
             }
@@ -44,11 +42,18 @@ public class ThreadManager {
         return instance;
     }
 
-    /* addTask - Add a new task to be executed by the thread manager
+    /* invokeAll - Execute a list of tasks and wait for their execution
      *
-     *  @return       : the thread manager instance
+     *  @return         : void
+     *  @tasks          : tasks to execute
+     *  @limit          : duration limit
+     *  @timeUnit       : time unit for duration limit
      */
-    public static void addTask(Runnable task) {
-        executor.execute(task);
+    public void invokeAll(List<? extends Callable<Boolean>> tasks, int limit, TimeUnit timeUnit) {
+        try {
+            executor.invokeAll(tasks, limit, timeUnit);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

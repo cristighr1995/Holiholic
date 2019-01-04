@@ -7,6 +7,11 @@ public class PlaceCategory {
     private int duration;
     private int limit;
 
+    public PlaceCategory(String name, String topic) {
+        this.name = name;
+        this.topic = topic;
+    }
+
     public PlaceCategory(String name, String id, String topic, int duration, int limit) {
         this.name = name;
         this.id = id;

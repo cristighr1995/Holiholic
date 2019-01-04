@@ -1,29 +1,15 @@
 package com.holiholic.planner.utils;
 
-import java.io.Serializable;
-
 /* GeoPosition - Holds information about the place location (latitude,, longitude)
  *
  */
-public class GeoPosition implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class GeoPosition {
     public double latitude;
     public double longitude;
 
-    // constructor
     public GeoPosition(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
-    }
-
-    /* clone - Deep copy of the current object
-     *
-     *  @return             : clone of the current object
-     */
-    @Override
-    public GeoPosition clone() {
-        return new GeoPosition(this.latitude, this.longitude);
     }
 
     /* distanceBetweenGeoCoordinates - Calculates the mathematical distance between two geo points

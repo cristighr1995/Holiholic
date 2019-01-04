@@ -35,10 +35,6 @@ public class CloneFactory {
     }
 
     public static Place clone(Place place) {
-        return place.clone();
-    }
-
-    public static Calendar clone(Calendar calendar) {
-        return (Calendar) calendar.clone();
+        return place.deepClone();
     }
 }

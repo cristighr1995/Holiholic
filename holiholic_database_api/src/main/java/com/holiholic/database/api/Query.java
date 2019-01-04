@@ -118,7 +118,6 @@ public class Query {
             statement = connection.getConnection().createStatement();
             resultSet = statement.executeQuery(query);
             System.out.println("Execute \"" + query + "\"");
-            System.out.println("Statement result set size: " + resultSet.getFetchSize());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
