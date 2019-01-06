@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import static com.holiholic.feed.constant.Constants.*;
 
-/* FeedItemHandler - Handle operations for a feedItem item
+/* FeedItemHandler - Handle operations for post and question items
  *
  */
 public class FeedItemHandler extends Feed {
@@ -22,21 +22,12 @@ public class FeedItemHandler extends Feed {
 
     public FeedItemHandler() {
         setLogger();
-        switch (feedItem.getType()) {
-            case "post":
-                TABLE_NAME = POSTS_TABLE_NAME;
-                break;
-            case "question":
-                TABLE_NAME = QUESTIONS_TABLE_NAME;
-            default:
-                break;
-        }
     }
 
     @Override
     public boolean add() {
         try {
-            Query.insert(TABLE_NAME, getValuesList());
+            Query.insert(feedItem.getTableName(), getValuesList());
         } catch (Exception e) {
             return false;
         }
@@ -46,7 +37,7 @@ public class FeedItemHandler extends Feed {
     @Override
     public boolean remove(String id) {
         try {
-            Query.delete(TABLE_NAME, Arrays.asList(new DatabasePredicate("id", "=", "\"" + id + "\"")));
+            Query.delete(feedItem.getTableName(), Arrays.asList(new DatabasePredicate("id", "=", "\"" + id + "\"")));
         } catch (Exception e) {
             return false;
         }
@@ -57,7 +48,7 @@ public class FeedItemHandler extends Feed {
     public boolean edit(String id) {
         try {
             Map<String, String> attributes = getAttributesMap();
-            Query.update(TABLE_NAME, attributes, Arrays.asList(new DatabasePredicate("id", "=", "\"" + id + "\"")));
+            Query.update(feedItem.getTableName(), attributes, Arrays.asList(new DatabasePredicate("id", "=", "\"" + id + "\"")));
         } catch (Exception e) {
             return false;
         }

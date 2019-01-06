@@ -7,21 +7,23 @@ import java.text.ParseException;
 import java.util.*;
 
 import static com.holiholic.feed.constant.Constants.DATE_FORMAT;
+import static com.holiholic.feed.constant.Constants.POSTS_TABLE_NAME;
+import static com.holiholic.feed.constant.Constants.QUESTIONS_TABLE_NAME;
 
 /* FeedItem - Model for the post object
  *
  */
 public class FeedItem {
     private String id;
-    private String type;
+    private String tableName;
     private Date timestamp;
     private String city;
     private String uidAuthor;
     private Content content;
 
-    public FeedItem(String id, String type, Date timestamp, String city, String uidAuthor, Content content) {
+    public FeedItem(String id, String tableName, Date timestamp, String city, String uidAuthor, Content content) {
         this.id = id;
-        this.type = type;
+        this.tableName = tableName;
         this.timestamp = timestamp;
         this.city = city;
         this.uidAuthor = uidAuthor;
@@ -36,12 +38,12 @@ public class FeedItem {
         this.id = id;
     }
 
-    public String getType() {
-        return type;
+    public String getTableName() {
+        return tableName;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     public Date getTimestamp() {
@@ -79,7 +81,6 @@ public class FeedItem {
     public JSONObject serialize() {
         JSONObject feedItem = new JSONObject();
         feedItem.put("id",this.id);
-        feedItem.put("type",this.type);
         feedItem.put("timestamp", DATE_FORMAT.format(this.timestamp));
         feedItem.put("city", this.city);
         feedItem.put("uidAuthor", this.uidAuthor);
@@ -89,9 +90,21 @@ public class FeedItem {
 
     public static FeedItem deserialize(JSONObject feedItemJson) {
         FeedItem feedItem = null;
+        String tableName = "";
+        switch (feedItemJson.getString("type")) {
+            case "post":
+                tableName = POSTS_TABLE_NAME;
+                break;
+            case "question":
+                tableName = QUESTIONS_TABLE_NAME;
+                break;
+            default:
+                break;
+        }
+
         try {
             feedItem = new FeedItem(DatabaseManager.generateMD5(feedItemJson.toString()),
-                            feedItemJson.getString("type"),
+                            tableName,
                             DATE_FORMAT.parse(feedItemJson.getString("timestamp")),
                             feedItemJson.getString("city"),
                             feedItemJson.getString("uidAuthor"),
