@@ -18,10 +18,8 @@ public abstract class Feed {
          */
         public static Feed getInstance(String type) {
             switch (type) {
-                case "post":
-                    return new PostHandler();
-                case "question":
-                    return new QuestionHandler();
+                case "feedItem":
+                    return new FeedItemHandler();
                 case "guideAd":
                     return new GuideAdHandler();
                 case "guideReview":
