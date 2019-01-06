@@ -42,12 +42,10 @@ class DatabaseConnection {
     }
 
     void close() {
-        if (connection == null) {
-            return;
-        }
-
         try {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
