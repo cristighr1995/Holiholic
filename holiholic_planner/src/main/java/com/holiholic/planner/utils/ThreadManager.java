@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
  *
  */
 public class ThreadManager {
-    private static ThreadManager instance;
     private static ThreadPoolExecutor executor;
 
     private ThreadManager() {
@@ -30,16 +29,7 @@ public class ThreadManager {
      *  @return       : the thread manager instance
      */
     public static ThreadManager getInstance() {
-        if (instance == null) {
-            //synchronized block to remove overhead
-            synchronized (ThreadManager.class) {
-                if(instance == null) {
-                    instance = new ThreadManager();
-                }
-            }
-        }
-
-        return instance;
+        return new ThreadManager();
     }
 
     /* invokeAll - Execute a list of tasks and wait for their execution

@@ -117,20 +117,20 @@ class Planner {
     /* isSolution - Checks if the current state is a solution
      *
      *  @return             : true/false
-     *  @open               : a set of ids that we didn't visit yet
+     *  @open               : a set of unvisited places
      *  @time               : the current time
      *  @current            : the current place
      *  @fixed              : priority queue which contains the fixed places
      *  @solution           : the current solution
      */
-    private boolean isSolution(Set<Integer> open, LocalDateTime time, Place current,
+    private boolean isSolution(Set<Place> open, LocalDateTime time, Place current,
                                PriorityQueue<Place> fixed, List<Place> solution) {
         if (isTourOver(time, current)) {
             return true;
         }
 
-        for (int id : open) {
-            if (city.getPlaces().get(id).canVisit(time)) {
+        for (Place place : open) {
+            if (place.canVisit(time)) {
                 return false;
             }
         }
@@ -150,20 +150,16 @@ class Planner {
      *
      *  @return             : the predicted score for the current solution
      *  @current            : the current place
-     *  @open               : a set of ids of the unvisited place
+     *  @open               : a set of unvisited place
      *  @time               : the time of visiting the current place
      *  @fixed              : a priority queue which contains the fixed places
      */
-    private double predictScore(Place current, Set<Integer> open, LocalDateTime time, PriorityQueue<Place> fixed) {
+    private double predictScore(Place current, Set<Place> open, LocalDateTime time, PriorityQueue<Place> fixed) {
         double maxReward = 0;
         double durationToNext;
         int count = 0;
-        List<Place> places = new ArrayList<>();
+        List<Place> places = new ArrayList<>(open);
         Place last = current;
-
-        for (int i : open) {
-            places.add(city.getPlaces().get(i));
-        }
 
         Collections.addAll(places, fixed.toArray(new Place[0]));
         places.sort(new NeighborRewardComparator(current, time));
@@ -266,7 +262,7 @@ class Planner {
      *
      *  @return                 : true if can visit the current place before the first fixed place otherwise false
      *  @current                : the current place
-     *  @open                   : ids of unvisited places
+     *  @open                   : set of unvisited places
      *  @solution               : current solution
      *  @time                   : time at the current place
      *  @score                  : current score
@@ -274,7 +270,7 @@ class Planner {
      *  @returnDurationToCar    : duration to walk after the car
      *  @fixed                  : fixed places
      */
-    private boolean scheduleFixed(Place current, Set<Integer> open, List<Place> solution, LocalDateTime time,
+    private boolean scheduleFixed(Place current, Set<Place> open, List<Place> solution, LocalDateTime time,
                                   double score, int carPlaceId, int returnDurationToCar,PriorityQueue<Place> fixed) {
         if (!fixed.isEmpty()) {
             LocalDateTime peekTime = fixed.peek().fixedTime;
@@ -358,7 +354,7 @@ class Planner {
      *  @return                 : void
      *  @current                : the current place
      *  @neighbor               : the next place where can go from here
-     *  @open                   : ids of unvisited places
+     *  @open                   : set of unvisited places
      *  @solution               : current solution
      *  @score                  : current score
      *  @time                   : time at the current place
@@ -366,7 +362,7 @@ class Planner {
      *  @returnDurationToCar    : duration to walk after the car
      *  @fixed                  : fixed places
      */
-    private void visitNeighbor(Place current, Place neighbor, Set<Integer> open, List<Place> solution, double score,
+    private void visitNeighbor(Place current, Place neighbor, Set<Place> open, List<Place> solution, double score,
                                LocalDateTime time, int carPlaceId, int returnDurationToCar, PriorityQueue<Place> fixed) {
         double reward = getReward(current, neighbor, time);
         // get the duration to neighbor
@@ -390,7 +386,7 @@ class Planner {
      *
      *  @return                 : void
      *  @current                : the current place
-     *  @open                   : ids of unvisited places
+     *  @open                   : set of unvisited places
      *  @solution               : current solution
      *  @score                  : current score
      *  @time                   : time at the current place
@@ -398,7 +394,7 @@ class Planner {
      *  @returnDurationToCar    : duration to walk after the car
      *  @fixed                  : fixed places
      */
-    private void triggerSolution(Place current, Set<Integer> open, List<Place> solution, double score, LocalDateTime time,
+    private void triggerSolution(Place current, Set<Place> open, List<Place> solution, double score, LocalDateTime time,
                                  int carPlaceId, int returnDurationToCar, PriorityQueue<Place> fixed) {
         Place next = current;
         int nextCarPlaceId = carPlaceId;
@@ -444,7 +440,7 @@ class Planner {
      *
      *  @return                 : void
      *  @current                : current place
-     *  @open                   : a set of ids of unvisited places
+     *  @open                   : set of unvisited places
      *  @solution               : current solution
      *  @time                   : the current time
      *  @cScore                 : current score
@@ -452,10 +448,10 @@ class Planner {
      *  @returnDurationToCar    : duration to walk after the car
      *  @fixed                  : fixed places
      */
-    void visit(Place current, Set<Integer> open, List<Place> solution, LocalDateTime time, double score, int carPlaceId,
+    void visit(Place current, Set<Place> open, List<Place> solution, LocalDateTime time, double score, int carPlaceId,
                int returnDurationToCar, PriorityQueue<Place> fixed) {
         // these object are mutable, therefore not thread-safe, so make deep copies of them
-        Set<Integer> openCopy = CloneFactory.clone(open);
+        Set<Place> openCopy = CloneFactory.clone(open);
         List<Place> solutionCopy = CloneFactory.clone(solution);
         PriorityQueue<Place> fixedCopy = CloneFactory.clone(fixed);
 
@@ -490,7 +486,7 @@ class Planner {
         }
 
         // visit the current place
-        openCopy.remove(current.id);
+        openCopy.remove(current);
         current.plannedHour = time;
         time = time.plusSeconds(current.durationVisit);
 
@@ -499,10 +495,7 @@ class Planner {
             return;
         }
 
-        List<Place> neighbors = new ArrayList<>();
-        for (int neighborId : openCopy) {
-            neighbors.add(city.getPlaces().get(neighborId));
-        }
+        List<Place> neighbors = new ArrayList<>(openCopy);
         neighbors.sort(new NeighborRewardComparator(current, time));
 
         for (Place neighbor : neighbors) {
@@ -516,11 +509,11 @@ class Planner {
      *
      *  @return                 : void
      *  @next                   : the place we want to submit
-     *  @open                   : a set of ids of unvisited places
+     *  @open                   : set of unvisited places
      *  @solution               : the current solution (like an accumulator)
      *  @fixed                  : a priority queue which contains the fixed places
      */
-    private PlannerTask createTask(Place next, Set<Integer> open, List<Place> solution, PriorityQueue<Place> fixed) {
+    private PlannerTask createTask(Place next, Set<Place> open, List<Place> solution, PriorityQueue<Place> fixed) {
         try {
             int dayOfWeek = timeFrame.getOpenDays().get(0);
             if (!next.timeFrame.isNonStop() && next.timeFrame.isClosed(dayOfWeek)) {
@@ -693,7 +686,7 @@ class Planner {
     List<List<Place>> getPlan(List<Place> places) {
         init(places);
 
-        Set<Integer> open = new HashSet<>();
+        Set<Place> open = new HashSet<>();
         List<PlannerTask> plannerTasks = new ArrayList<>();
         PriorityQueue<Place> fixed = new PriorityQueue<>(Comparator.comparing(p -> p.fixedTime));
 
@@ -701,7 +694,7 @@ class Planner {
             if (!place.fixedAt.equals("anytime")) {
                 fixed.add(place);
             } else {
-                open.add(place.id);
+                open.add(place);
             }
         }
 
@@ -732,7 +725,7 @@ class Planner {
             });
 
             for (Place place : places) {
-                if (!open.contains(place.id)) {
+                if (!open.contains(place)) {
                     continue;
                 }
                 PlannerTask task = createTask(place, CloneFactory.clone(open), new ArrayList<>(),

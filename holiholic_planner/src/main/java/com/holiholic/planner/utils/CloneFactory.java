@@ -14,14 +14,18 @@ import java.util.*;
  *
  */
 public class CloneFactory {
-    public static Set<Integer> clone(Set<Integer> set) {
-        return new HashSet<>(set);
+    public static Set<Place> clone(Set<Place> set) {
+        Set<Place> cloneSet = new HashSet<>();
+        for (Place place : set) {
+            cloneSet.add(place.copy());
+        }
+        return cloneSet;
     }
 
     public static List<Place> clone(List<Place> list) {
         List<Place> cloneList = new ArrayList<>();
         for (Place place : list) {
-            cloneList.add(place.clone());
+            cloneList.add(place.copy());
         }
         return cloneList;
     }
@@ -29,12 +33,8 @@ public class CloneFactory {
     public static PriorityQueue<Place> clone(PriorityQueue<Place> pq) {
         PriorityQueue<Place> pqClone = new PriorityQueue<>();
         for (Place place : pq) {
-            pqClone.add(place.clone());
+            pqClone.add(place.copy());
         }
         return pqClone;
-    }
-
-    public static Place clone(Place place) {
-        return place.deepClone();
     }
 }

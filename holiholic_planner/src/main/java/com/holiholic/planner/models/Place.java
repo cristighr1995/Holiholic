@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 /* Place - The internal representation model for a place
  *
  */
-public class Place implements Comparable<Place>, Cloneable {
+public class Place implements Comparable<Place> {
     public int id;
     public String name;
     private String description;
@@ -37,6 +37,10 @@ public class Place implements Comparable<Place>, Cloneable {
     public LocalDateTime fixedTime;
     public long waitTime = 0;               // how much to wait between visiting 2 places
     public boolean interior = false;        // specify if user wants to enter place
+
+    private Place() {
+
+    }
 
     private Place(int id, String name, GeoPosition location) {
         this.id = id;
@@ -92,52 +96,35 @@ public class Place implements Comparable<Place>, Cloneable {
         return timeFrame.isNonStop();
     }
 
-    /* clone - Returns a shallow copy of the current object
+    /* copy - Returns a new reference making a deep copy of the current object
      *
-     *  @return       : a clone of the current object
+     *  @return       : copy of the current object
      */
-    @Override
-    public Place clone() {
-        Place copy = null;
-        try{
-            copy = (Place) super.clone();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return copy;
-    }
-
-    /* reset - Reset to default values the place before planning
-     *
-     *  @return         : void
-     *  @place          : place to reset
-     */
-    private void reset(Place place) {
-        if (place != null) {
-            place.plannedHour = null;
-            place.durationToNext = 0;
-            place.distanceToNext = 0;
-            place.travelMode = Enums.TravelMode.UNKNOWN;
-            place.getCarBack = false;
-            place.carPlaceId = -1;
-            place.carPlaceName = "";
-            place.parkHere = false;
-            place.mealType = Enums.MealType.UNKNOWN;
-            place.fixedAt = "anytime";
-            place.fixedTime = null;
-            place.waitTime = 0;
-            place.interior = false;
-        }
-    }
-
-    /* clone - Returns a copy of the current object making deep copy of fields used in planning
-     *
-     *  @return       : a clone of the current object
-     */
-    public Place deepClone() {
-        Place copy = clone();
-        reset(copy);
-        return copy;
+    public Place copy() {
+        Place other = new Place();
+        other.id = id;
+        other.name = name;
+        other.description = description;
+        other.imageUrl = imageUrl;
+        other.rating = rating;
+        other.placeCategory = placeCategory;
+        other.durationVisit = durationVisit;
+        other.location = location;
+        other.timeFrame = timeFrame;
+        other.plannedHour = plannedHour;
+        other.durationToNext = durationToNext;
+        other.distanceToNext = distanceToNext;
+        other.travelMode = travelMode;
+        other.getCarBack = getCarBack;
+        other.carPlaceId = carPlaceId;
+        other.carPlaceName = carPlaceName;
+        other.parkHere = parkHere;
+        other.mealType = mealType;
+        other.fixedAt = fixedAt;
+        other.fixedTime = fixedTime;
+        other.waitTime = waitTime;
+        other.interior = interior;
+        return other;
     }
 
     /* compareTo - Compares two places based on their fixed time
@@ -196,5 +183,25 @@ public class Place implements Comparable<Place>, Cloneable {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        if (getClass() != o.getClass()) {
+            return false;
+        }
+        Place other = (Place) o;
+        return this.id == other.id;
     }
 }
