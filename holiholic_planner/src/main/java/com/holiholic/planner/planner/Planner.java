@@ -1049,6 +1049,7 @@ class Planner {
         response.put("latitude", place.location.latitude);
         response.put("longitude", place.location.longitude);
         response.put("waitTime", place.waitTime);
+        response.put("interior", place.interior);
         return response;
     }
 }

@@ -36,6 +36,7 @@ public class Place implements Comparable<Place>, Cloneable {
     public String fixedAt = "anytime";      // The time when the user wants to visit a place
     public LocalDateTime fixedTime;
     public long waitTime = 0;               // how much to wait between visiting 2 places
+    public boolean interior = false;        // specify if user wants to enter place
 
     private Place(int id, String name, GeoPosition location) {
         this.id = id;
@@ -71,7 +72,7 @@ public class Place implements Comparable<Place>, Cloneable {
      *  @time         : time to check if the place can be visited
      */
     public boolean canVisit(LocalDateTime time) {
-        return timeFrame.canVisit(time);
+        return !interior || timeFrame.canVisit(time);
     }
 
     /* canVisit - Checks if the place can be visited given multiple days interval with each day other constraints
@@ -125,6 +126,7 @@ public class Place implements Comparable<Place>, Cloneable {
             place.fixedAt = "anytime";
             place.fixedTime = null;
             place.waitTime = 0;
+            place.interior = false;
         }
     }
 
