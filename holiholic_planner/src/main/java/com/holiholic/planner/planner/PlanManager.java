@@ -51,7 +51,7 @@ public class PlanManager {
             if (placeInfo.getBoolean("isFixed")) {
                 place.fixedAt = placeInfo.getString("fixedAt");
             }
-            place.interior = placeInfo.getBoolean("interior");
+            place.visitInside = placeInfo.getBoolean("visitInside");
             place.durationVisit = placeInfo.getInt("duration");
             // update the time in the city place
             int oldTime = city.getPlaces().get(id).durationVisit;

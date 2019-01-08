@@ -36,7 +36,7 @@ public class Place implements Comparable<Place> {
     public String fixedAt = "anytime";      // The time when the user wants to visit a place
     public LocalDateTime fixedTime;
     public long waitTime = 0;               // how much to wait between visiting 2 places
-    public boolean interior = false;        // specify if user wants to enter place
+    public boolean visitInside = false;     // specify if user wants to enter place
 
     private Place() {
 
@@ -76,7 +76,7 @@ public class Place implements Comparable<Place> {
      *  @time         : time to check if the place can be visited
      */
     public boolean canVisit(LocalDateTime time) {
-        return !interior || timeFrame.canVisit(time);
+        return !visitInside || timeFrame.canVisit(time);
     }
 
     /* canVisit - Checks if the place can be visited given multiple days interval with each day other constraints
@@ -123,7 +123,7 @@ public class Place implements Comparable<Place> {
         other.fixedAt = fixedAt;
         other.fixedTime = fixedTime;
         other.waitTime = waitTime;
-        other.interior = interior;
+        other.visitInside = visitInside;
         return other;
     }
 
