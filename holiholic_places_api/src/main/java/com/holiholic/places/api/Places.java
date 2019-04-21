@@ -17,6 +17,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Places {
+    private static Set<String> cafesCategories = new HashSet<>(Arrays.asList("Bagel Shop", "Bakery", "Bistro",
+            "Breakfast Spot", "Bubble Tea Shop", "Cafeteria", "Caf\\u00e9", "Coffee Shop", "Dessert Shop", "Donut Shop",
+            "Juice Bar", "Pet Caf\\u00e9", "Snack Place", "Tea Room"));
 
     private static String getContentFromUrl(String url) {
         HttpClient client = HttpClientBuilder.create().build();
@@ -229,9 +232,13 @@ public class Places {
             }
             place.put("description", description);
 
-            String imagePrefix = venue.getJSONObject("bestPhoto").getString("prefix");
-            String imageSuffix = venue.getJSONObject("bestPhoto").getString("suffix");
-            place.put("imageUrl", imagePrefix + "original" + imageSuffix);
+            String imageUrl = "";
+            if (venue.has("bestPhoto")) {
+                String imagePrefix = venue.getJSONObject("bestPhoto").getString("prefix");
+                String imageSuffix = venue.getJSONObject("bestPhoto").getString("suffix");
+                imageUrl = imagePrefix + "original" + imageSuffix;
+            }
+            place.put("imageUrl", imageUrl);
 
             double rating = 0;
             if (venue.has("rating")) {
@@ -240,8 +247,17 @@ public class Places {
             place.put("rating", rating);
 
             JSONObject category = new JSONObject();
+            String venueCategory = placeCategory.getTopic();
+            if (placeCategory.getName().equals("Food")) {
+                venueCategory = venue.getJSONArray("categories").getJSONObject(0).getString("name");
+                if (cafesCategories.contains(venueCategory)) {
+                    venueCategory = "Cafes";
+                } else {
+                    venueCategory = "Restaurants";
+                }
+            }
             category.put("name", placeCategory.getName());
-            category.put("topic", placeCategory.getTopic());
+            category.put("topic", venueCategory);
             place.put("category", category);
             place.put("duration", placeCategory.getDuration());
         } catch (Exception e) {
