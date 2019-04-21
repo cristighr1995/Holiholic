@@ -46,12 +46,12 @@ public class PlanManager {
             JSONObject placeInfo = placesFromRequest.getJSONObject(i);
             int id = placeInfo.getInt("id");
             // need this clone to avoid concurrent modifications
-            Place place = CloneFactory.clone(city.getPlaces().get(id));
+            Place place = city.getPlaces().get(id).copy();
 
             if (placeInfo.getBoolean("isFixed")) {
                 place.fixedAt = placeInfo.getString("fixedAt");
             }
-
+            place.visitInside = placeInfo.getBoolean("visitInside");
             place.durationVisit = placeInfo.getInt("duration");
             // update the time in the city place
             int oldTime = city.getPlaces().get(id).durationVisit;

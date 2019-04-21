@@ -125,6 +125,16 @@ public class DatabaseManager {
         return serializePlaces(city.getSortedPlaces(city.getOpenPlaces(city.getFilteredPlaces(categories), timeFrame)));
     }
 
+    /* filterPlaces - Filter places from a city having specific tags
+     *
+     *  @return             : filtered places ready to be sent over network
+     *  @city               : the city instance
+     *  @categories         : places categories names
+     */
+    private static JSONArray filterPlaces(City city, Set<String> categories) {
+        return serializePlaces(city.getSortedPlaces(city.getFilteredPlaces(categories)));
+    }
+
     /* getPlaces - Reads the database and collects all the places from a specific city
     *              This function sorts the places before sending them to user
     *
@@ -135,6 +145,7 @@ public class DatabaseManager {
         try {
             String uid = body.getString("uid");
             String cityName = body.getString("city").toLowerCase();
+            TimeFrame timeFrame = null;
 
             if (!containsUser(uid)) {
                 LOGGER.log(Level.FINE, "Invalid request from user {0} to get places recommendation for {1} city",
@@ -147,13 +158,25 @@ public class DatabaseManager {
             for (int t = 0; t < categories.length(); t++) {
                 placeCategories.add(categories.getString(t));
             }
-            TimeFrame timeFrame = TimeFrame.deserialize(body.getJSONArray("timeFrame"));
+
+            boolean openOnly = body.getBoolean("openOnly");
+            if (openOnly) {
+                if (!body.has("timeFrame")) {
+                    LOGGER.log(Level.FINE, "Invalid request from user {0} to get places recommendation for {1} city",
+                               new Object[]{uid, cityName});
+                    return "[]";
+                }
+                timeFrame = TimeFrame.deserialize(body.getJSONArray("timeFrame"));
+            }
 
             LOGGER.log(Level.FINE, "New request from user {0} to get places recommendation for {1} city",
                        new Object[]{uid, cityName});
 
             if (isCityCached(cityName)) {
-                return filterPlaces(cities.get(cityName), placeCategories, timeFrame).toString(2);
+                if (openOnly) {
+                    return filterPlaces(cities.get(cityName), placeCategories, timeFrame).toString(2);
+                }
+                return filterPlaces(cities.get(cityName), placeCategories).toString(2);
             }
 
             Map<Integer, Place> places = getPlaces(cityName);
@@ -162,7 +185,10 @@ public class DatabaseManager {
             city.setPlaces(places);
             cities.put(cityName, city);
 
-            return filterPlaces(city, placeCategories, timeFrame).toString(2);
+            if (openOnly) {
+                return filterPlaces(city, placeCategories, timeFrame).toString(2);
+            }
+            return filterPlaces(city, placeCategories).toString(2);
         } catch (Exception e) {
             e.printStackTrace();
             return "[]";

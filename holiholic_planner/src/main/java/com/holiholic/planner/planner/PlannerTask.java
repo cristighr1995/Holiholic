@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
  */
 public class PlannerTask implements Callable<Boolean> {
     private Place current;
-    private Set<Integer> open;
+    private Set<Place> open;
     private List<Place> solution;
     private LocalDateTime time;
     private double score;
@@ -22,7 +22,7 @@ public class PlannerTask implements Callable<Boolean> {
     private PriorityQueue<Place> fixed;
     private Planner planner;
 
-    PlannerTask(Place current, Set<Integer> open, List<Place> solution, LocalDateTime time, double score, int carPlaceId,
+    PlannerTask(Place current, Set<Place> open, List<Place> solution, LocalDateTime time, double score, int carPlaceId,
                 int returnDurationToCar, PriorityQueue<Place> fixed, Planner planner) {
         this.current = current;
         this.open = open;
