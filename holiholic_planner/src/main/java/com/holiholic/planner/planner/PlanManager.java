@@ -125,7 +125,11 @@ public class PlanManager {
             LOGGER.log(Level.FINE, "Generate a plan for user {0} in {1} city having {2} places",
                        new Object[]{uid, cityName, places.size()});
 
-            return Planner.serialize(planner.getPlan(places)).toString(2);
+            List<List<Place>> plan = planner.getPlan(places);
+
+            DatabaseManager.savePlan(cityName, plan);
+
+            return Planner.serialize(plan).toString(2);
         } catch (Exception e) {
             e.printStackTrace();
             return "[]";

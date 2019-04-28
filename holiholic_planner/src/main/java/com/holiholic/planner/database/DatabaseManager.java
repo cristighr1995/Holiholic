@@ -1,5 +1,6 @@
 package com.holiholic.planner.database;
 
+import com.google.common.base.CharMatcher;
 import com.holiholic.database.api.DatabasePredicate;
 import com.holiholic.database.api.Query;
 import com.holiholic.database.api.SelectResult;
@@ -7,10 +8,15 @@ import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
+import com.holiholic.planner.planner.Planner;
 import com.holiholic.planner.travel.AvailableCity;
 import com.holiholic.planner.travel.City;
+import com.holiholic.planner.travel.Itinerary;
+import com.holiholic.planner.travel.ItineraryStats;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
+import com.sun.media.jfxmedia.events.PlayerEvent;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,6 +35,9 @@ public class DatabaseManager {
 
     // after the first call of retrieving information from database for a city, the result is cached in this map
     private final static Map<String, City> cities = new HashMap<>();
+
+    // cache itineraries to reduce the number of database queries
+    private final static Map<String, Itinerary> itineraries = new HashMap<>();
 
     /* setLogger - This method should be changed when release application
      *             Sets the logger to print to console (instead of a file)
@@ -372,5 +381,39 @@ public class DatabaseManager {
             result.close();
         }
         return matrix;
+    }
+
+    public static String generateHash(String text) {
+        return DigestUtils.md5Hex(text);
+    }
+
+    /* escape - Escape a string into database format
+     *
+     *  @return             : the escaped string
+     *  @string             : string to escape
+     */
+    public static String escape(String string) {
+        // escape one quote
+        string = CharMatcher.is('\'').replaceFrom(string, "\\\'");
+        // remove double quotes
+        string = string.replace("\\\"", "");
+        return "\'" + string + "\'";
+
+    }
+
+    public static void savePlan(String cityName, List<List<Place>> plan) {
+        for (List<Place> places : plan) {
+            Itinerary itinerary = new Itinerary(cityName, places);
+            String itineraryId = itinerary.getId();
+
+            if (itineraries.containsKey(itineraryId)) {
+                LOGGER.log(Level.FINE, "Itinerary {0} already in cache.", itineraryId);
+                continue;
+            }
+
+            itineraries.put(itineraryId, itinerary);
+            Query.insert(Constants.CALCULATED_ITINERARIES_TABLE_NAME, itinerary.getValuesList());
+            LOGGER.log(Level.FINE, "Saved itinerary {0} in the database.", itineraryId);
+        }
     }
 }
