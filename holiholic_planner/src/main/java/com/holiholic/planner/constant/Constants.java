@@ -16,6 +16,7 @@ public class Constants {
     public final static String PLACES_TABLE_NAME = DATABASE_INSTANCE_NAME + ".Places";
     public final static String PLACES_CATEGORIES_TABLE_NAME = DATABASE_INSTANCE_NAME + ".PlacesCategories";
     public final static String PLACES_DISTANCES_TABLE_NAME = DATABASE_INSTANCE_NAME + ".PlacesDistances";
+    public final static String CITIES_TABLE_NAME = DATABASE_INSTANCE_NAME + ".Cities";
 
     public final static String DEFAULT_BREAKFAST_HOUR = "0830";
     public final static String DEFAULT_LUNCH_HOUR = "1300";

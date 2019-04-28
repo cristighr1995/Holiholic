@@ -315,6 +315,29 @@ public class Places {
         try {
             String url = UrlManager.getDistanceMatrixUrl(origin, destination, type);
             JSONObject response = new JSONObject(getContentFromUrl(url));
+
+            if (response.has("error_message")) {
+                String errorMessage = response.getString("error_message");
+                if (errorMessage.equals(Constants.API_KEY_EXPIRED)) {
+                    System.out.println("Got API KEY EXPIRED error! Retry...");
+                    // Hack: Retry 10 times and hope to get a successful request
+                    for (int i = 1; i <= 10; ++i) {
+                        System.out.println("Attempt number: " + i);
+
+                        response = new JSONObject(getContentFromUrl(url));
+
+                        if (!response.has("error_message")) {
+                            break;
+                        }
+
+                        errorMessage = response.getString("error_message");
+                        // It means we got into another error
+                        if (!errorMessage.equals(Constants.API_KEY_EXPIRED)) {
+                            break;
+                        }
+                    }
+                }
+            }
             distance[0] = getDistance(response, "distance");
             distance[1] = getDistance(response, "duration");
         } catch (Exception e) {
