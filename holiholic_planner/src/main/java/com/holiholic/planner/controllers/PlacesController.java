@@ -19,6 +19,17 @@ public class PlacesController {
             return new ResponseEntity<>("[]", HttpStatus.BAD_REQUEST);
         }
     }
+
+    @RequestMapping(value = "/getAvailableCities", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getAvailableCities()  {
+        try {
+            return new ResponseEntity<>(DatabaseManager.getAvailableCitiesSerialized(), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("[]", HttpStatus.BAD_REQUEST);
+        }
+    }
 }
 
 

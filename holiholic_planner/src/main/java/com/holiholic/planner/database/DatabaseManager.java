@@ -7,6 +7,7 @@ import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
+import com.holiholic.planner.travel.AvailableCity;
 import com.holiholic.planner.travel.City;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
@@ -193,6 +194,58 @@ public class DatabaseManager {
             e.printStackTrace();
             return "[]";
         }
+    }
+
+    /* getAvailableCities - Reads the database and collects all available cities
+     *
+     *  @return          : a list with available cities
+     */
+    static List<AvailableCity> getAvailableCities() {
+        // Query: SELECT * from Cities
+        SelectResult result = Query.select(null, Constants.CITIES_TABLE_NAME, null);
+        List<AvailableCity> availableCities;
+
+        try {
+            int placesCount;
+            String city, country, imageUrl, description;
+            ResultSet resultSet = result.getResultSet();
+
+            availableCities = new ArrayList<>();
+
+            while (resultSet.next()) {
+                city = resultSet.getString("city");
+                country = resultSet.getString("country");
+                placesCount = resultSet.getInt("placesCount");
+                imageUrl = resultSet.getString("imageUrl");
+                description = resultSet.getString("description");
+
+                availableCities.add(new AvailableCity(city, country, placesCount, imageUrl, description));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            result.close();
+        }
+
+        return availableCities;
+    }
+
+    /* getAvailableCities - Get available cities in serialized format
+     *
+     *  @return          : a json array with available cities
+     */
+    public static String getAvailableCitiesSerialized() {
+        LOGGER.log(Level.FINE, "New request to get available cities");
+
+        List<AvailableCity> availableCities = getAvailableCities();
+        JSONArray response = new JSONArray();
+
+        for (AvailableCity city : availableCities) {
+            response.put(city.serialize());
+        }
+
+        return response.toString(2);
     }
 
     /* getCity - Returns the instance of the city

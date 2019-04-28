@@ -5,4 +5,5 @@ class Constants {
     final static String VENUES_URL = "https://api.foursquare.com/v2/venues/";
     final static String SEARCH_VENUES_URL = VENUES_URL + "search";
     final static String DISTANCE_MATRIX_URL = "https://maps.googleapis.com/maps/api/distancematrix/json";
+    final static String API_KEY_EXPIRED = "The provided API key is expired.";
 }
