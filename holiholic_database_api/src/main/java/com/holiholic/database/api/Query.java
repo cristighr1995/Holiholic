@@ -53,8 +53,8 @@ public class Query {
 
     public static void update(String tableName, Map<String, String> attributes, List<DatabasePredicate> predicates) {
         if (tableName == null || tableName.isEmpty() ||
-                attributes == null || attributes.isEmpty() ||
-                predicates == null || predicates.isEmpty()) {
+            attributes == null || attributes.isEmpty() ||
+            predicates == null || predicates.isEmpty()) {
             return;
         }
 
