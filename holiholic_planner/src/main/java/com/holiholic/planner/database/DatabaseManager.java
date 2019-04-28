@@ -1,6 +1,5 @@
 package com.holiholic.planner.database;
 
-import com.google.common.base.CharMatcher;
 import com.holiholic.database.api.DatabasePredicate;
 import com.holiholic.database.api.Query;
 import com.holiholic.database.api.SelectResult;
@@ -8,14 +7,11 @@ import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
-import com.holiholic.planner.planner.Planner;
 import com.holiholic.planner.travel.AvailableCity;
 import com.holiholic.planner.travel.City;
 import com.holiholic.planner.travel.Itinerary;
-import com.holiholic.planner.travel.ItineraryStats;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
-import com.sun.media.jfxmedia.events.PlayerEvent;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -209,7 +205,7 @@ public class DatabaseManager {
      *
      *  @return          : a list with available cities
      */
-    static List<AvailableCity> getAvailableCities() {
+    private static List<AvailableCity> getAvailableCities() {
         // Query: SELECT * from Cities
         SelectResult result = Query.select(null, Constants.CITIES_TABLE_NAME, null);
         List<AvailableCity> availableCities;
@@ -248,6 +244,10 @@ public class DatabaseManager {
         LOGGER.log(Level.FINE, "New request to get available cities");
 
         List<AvailableCity> availableCities = getAvailableCities();
+        if (availableCities == null) {
+            return "[]";
+        }
+
         JSONArray response = new JSONArray();
 
         for (AvailableCity city : availableCities) {
@@ -394,7 +394,7 @@ public class DatabaseManager {
      */
     public static String escape(String string) {
         // escape one quote
-        string = CharMatcher.is('\'').replaceFrom(string, "\\\'");
+        string = string.replace("\'", "\\\'");
         // remove double quotes
         string = string.replace("\\\"", "");
         return "\'" + string + "\'";
