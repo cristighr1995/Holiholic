@@ -33,6 +33,10 @@ public class Query {
         return executeQuery(query.toString());
     }
 
+    public static SelectResult select(String statement) {
+        return executeQuery(statement);
+    }
+
     public static void insert(String tableName, List<String> values) {
         if (tableName == null || tableName.isEmpty() || values == null || values.isEmpty()) {
             return;
@@ -43,16 +47,24 @@ public class Query {
         ThreadManager.getInstance().addTask(new QueryUpdateTask(query));
     }
 
+    public static void insert(String statement) {
+        ThreadManager.getInstance().addTask(new QueryUpdateTask(statement));
+    }
+
     public static void update(String tableName, Map<String, String> attributes, List<DatabasePredicate> predicates) {
         if (tableName == null || tableName.isEmpty() ||
-            attributes == null || attributes.isEmpty() ||
-            predicates == null || predicates.isEmpty()) {
+                attributes == null || attributes.isEmpty() ||
+                predicates == null || predicates.isEmpty()) {
             return;
         }
 
         String query = "UPDATE " + tableName + " SET " + serialize(attributes) + " WHERE " + serialize(predicates, "AND") + ";";
 
         ThreadManager.getInstance().addTask(new QueryUpdateTask(query));
+    }
+
+    public static void update(String statement) {
+        ThreadManager.getInstance().addTask(new QueryUpdateTask(statement));
     }
 
     public static void delete(String tableName, List<DatabasePredicate> predicates) {
@@ -63,6 +75,10 @@ public class Query {
         String query = "DELETE FROM " + tableName + " WHERE " + serialize(predicates, "AND") + ";";
 
         ThreadManager.getInstance().addTask(new QueryUpdateTask(query));
+    }
+
+    public static void delete(String statement) {
+        ThreadManager.getInstance().addTask(new QueryUpdateTask(statement));
     }
 
     private static String serialize(Map<String, String> attributes) {
