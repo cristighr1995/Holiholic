@@ -208,6 +208,16 @@ public class Places {
 
             System.out.println("Build information about \"" + venue.getString("name") + "\"");
 
+            double rating = 0;
+            if (venue.has("rating")) {
+                rating = venue.getDouble("rating");
+            }
+            // after parsing, if the rating is lower than a threshold we don't save that place
+            if (rating < Constants.ACCEPTED_LOW_RATING_THRESHOLD) {
+                return null;
+            }
+            place.put("rating", rating);
+
             if (!venue.has("hours") && !venue.has("popular")) {
                 return null;
             }
@@ -239,12 +249,6 @@ public class Places {
                 imageUrl = imagePrefix + "original" + imageSuffix;
             }
             place.put("imageUrl", imageUrl);
-
-            double rating = 0;
-            if (venue.has("rating")) {
-                rating = venue.getDouble("rating");
-            }
-            place.put("rating", rating);
 
             JSONObject category = new JSONObject();
             String venueCategory = placeCategory.getTopic();
