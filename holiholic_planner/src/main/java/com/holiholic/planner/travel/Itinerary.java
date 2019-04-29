@@ -27,6 +27,13 @@ public class Itinerary {
         this.formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     }
 
+    public Itinerary(String id, String cityName, LocalDateTime timestamp, List<Place> places, ItineraryStats stats) {
+        this(cityName, places);
+        this.id = id;
+        this.timestamp = timestamp;
+        this.stats = stats;
+    }
+
     public String getId() {
         if (id != null) {
             return id;

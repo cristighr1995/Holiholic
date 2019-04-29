@@ -39,4 +39,22 @@ public class ItineraryStats {
         result.put("size", size);
         return result;
     }
+
+    public static ItineraryStats deserialize(JSONObject serializedItineraryStats) {
+        long distance, duration;
+        int size;
+        double averageRating;
+
+        try {
+            distance = serializedItineraryStats.getLong("distance");
+            duration = serializedItineraryStats.getLong("duration");
+            averageRating = serializedItineraryStats.getDouble("averageRating");
+            size = serializedItineraryStats.getInt("size");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return new ItineraryStats(distance, duration, averageRating, size);
+    }
 }

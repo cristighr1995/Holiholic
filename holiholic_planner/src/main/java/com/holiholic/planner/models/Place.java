@@ -1,8 +1,11 @@
 package com.holiholic.planner.models;
 
 import com.holiholic.places.api.PlaceCategory;
+import com.holiholic.places.api.PlaceCategoryType;
+import com.holiholic.planner.database.DatabaseManager;
 import com.holiholic.planner.utils.Enums;
 import com.holiholic.planner.utils.GeoPosition;
+import com.holiholic.planner.utils.Interval;
 import com.holiholic.planner.utils.TimeFrame;
 import org.json.JSONObject;
 
@@ -163,7 +166,7 @@ public class Place implements Comparable<Place> {
         serializedPlace.put("timeFrame", timeFrame.serialize());
         serializedPlace.put("imageUrl", imageUrl);
         serializedPlace.put("description", description);
-        serializedPlace.put("category", placeCategory.getTopic());
+        serializedPlace.put("category", placeCategory.serialize());
         return serializedPlace;
     }
 
@@ -178,7 +181,52 @@ public class Place implements Comparable<Place> {
             String name = place.getString("name");
             double latitude = place.getDouble("latitude");
             double longitude = place.getDouble("longitude");
-            return new Place(id, name, new GeoPosition(latitude, longitude));
+
+            Place start = new Place(id, name, new GeoPosition(latitude, longitude));
+            start.placeCategory = new PlaceCategory(PlaceCategoryType.STARTING_POINT);
+
+            return start;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Place deserializePlaceFromItinerary(JSONObject serializedPlace) {
+        try {
+            Place place = new Place();
+
+            place.id = serializedPlace.getInt("id");
+            place.name = serializedPlace.getString("name");
+            place.location = new GeoPosition(serializedPlace.getDouble("latitude"),
+                                             serializedPlace.getDouble("longitude"));
+            place.rating = serializedPlace.getDouble("rating");
+
+            PlaceCategory placeCategory = PlaceCategory.deserialize(serializedPlace.getJSONObject("category"));
+            if (placeCategory == null) {
+                return null;
+            }
+
+            if (placeCategory.isStartingPoint()) {
+                place.placeCategory = placeCategory;
+            } else {
+                place.placeCategory = DatabaseManager.getPlaceCategory(placeCategory.getTopic(), placeCategory.getName());
+            }
+
+            place.getCarBack = serializedPlace.getBoolean("getCarBack");
+            place.mealType = Enums.MealType.deserialize(serializedPlace.getString("mealType"));
+            place.durationToNext = serializedPlace.getInt("durationToNext");
+            place.plannedHour = Interval.getDateTimeFromHour(serializedPlace.getString("plannedHour"));
+            place.visitInside = serializedPlace.getBoolean("visitInside");
+            place.distanceToNext = serializedPlace.getInt("distanceToNext");
+            place.carPlaceName = serializedPlace.getString("carPlaceName");
+            place.durationVisit = serializedPlace.getInt("duration");
+            place.carPlaceId = serializedPlace.getInt("carPlaceId");
+            place.parkHere = serializedPlace.getBoolean("parkHere");
+            place.waitTime = serializedPlace.getInt("waitTime");
+            place.travelMode = Enums.TravelMode.deserialize(serializedPlace.getString("travelMode"));
+
+            return place;
         } catch (Exception e) {
             e.printStackTrace();
             return null;

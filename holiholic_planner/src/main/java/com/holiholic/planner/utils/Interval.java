@@ -205,6 +205,12 @@ public class Interval implements Comparator<Interval> {
         return String.format("%02d%02d", time.getHour(), time.getMinute());
     }
 
+    public static LocalDateTime getDateTimeFromHour(String hour) {
+        int hourOfDay = Integer.parseInt(hour.substring(0, 2));
+        int minute = Integer.parseInt(hour.substring(2));
+        return getDateTimeFromHour(hourOfDay, minute);
+    }
+
     /* serialize - Returns a json object representation of the given time and day of week
      *
      *  @return             : the json object representation

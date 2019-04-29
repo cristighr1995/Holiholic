@@ -1,5 +1,6 @@
 package com.holiholic.planner.travel;
 
+import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.database.DatabaseManager;
 import com.holiholic.planner.models.Place;
 import com.holiholic.planner.utils.Enums;
@@ -101,11 +102,12 @@ public class City {
         Map<Integer, Place> filteredPlaces = new HashMap<>();
 
         for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
-            if (placeEntry.getValue().placeCategory == null) {
+            PlaceCategory placeCategory = placeEntry.getValue().placeCategory;
+            if (placeCategory == null || placeCategory.isStartingPoint()) {
                 continue;
             }
 
-            if (categories.contains(placeEntry.getValue().placeCategory.getTopic())) {
+            if (categories.contains(placeCategory.getTopic())) {
                 filteredPlaces.put(placeEntry.getKey(), placeEntry.getValue());
             }
         }

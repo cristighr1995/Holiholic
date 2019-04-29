@@ -1026,11 +1026,7 @@ public class Planner {
         response.put("name", place.name);
         response.put("rating", place.rating);
         response.put("duration", place.durationVisit);
-        if (place.placeCategory == null) {
-            response.put("category", "starting_point");
-        } else {
-            response.put("category", place.placeCategory.getTopic());
-        }
+        response.put("category", place.placeCategory.serialize());
         response.put("travelMode", Enums.TravelMode.serialize(place.travelMode));
         response.put("durationToNext", place.durationToNext);
         response.put("distanceToNext", place.distanceToNext);
@@ -1045,5 +1041,26 @@ public class Planner {
         response.put("waitTime", place.waitTime);
         response.put("visitInside", place.visitInside);
         return response;
+    }
+
+    public static List<Place> deserializePlacesFromItinerary(JSONArray serializedItinerary) {
+        List<Place> itinerary = new ArrayList<>();
+        try {
+            for (int i = 0; i < serializedItinerary.length(); i++) {
+                JSONObject serializedPlace = serializedItinerary.getJSONObject(i);
+                Place place = Place.deserializePlaceFromItinerary(serializedPlace);
+
+                if (place == null) {
+                    return null;
+                }
+
+                itinerary.add(place);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return itinerary;
     }
 }

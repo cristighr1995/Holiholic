@@ -64,6 +64,19 @@ public class Enums {
                     return "unknown";
             }
         }
+
+        public static MealType deserialize(String mealType) {
+            switch (mealType) {
+                case "breakfast":
+                    return BREAKFAST;
+                case "lunch":
+                    return LUNCH;
+                case "dinner":
+                    return DINNER;
+                default:
+                    return UNKNOWN;
+            }
+        }
     }
 
     public enum TravelInfo {
