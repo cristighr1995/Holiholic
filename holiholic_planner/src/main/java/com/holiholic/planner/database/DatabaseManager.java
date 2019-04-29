@@ -7,15 +7,20 @@ import com.holiholic.places.api.PlaceCategory;
 import com.holiholic.planner.planner.PlanManager;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
+import com.holiholic.planner.planner.Planner;
 import com.holiholic.planner.travel.AvailableCity;
 import com.holiholic.planner.travel.City;
+import com.holiholic.planner.travel.Itinerary;
+import com.holiholic.planner.travel.ItineraryStats;
 import com.holiholic.planner.utils.*;
 import com.holiholic.planner.utils.Reader;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.sql.ResultSet;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -29,6 +34,12 @@ public class DatabaseManager {
 
     // after the first call of retrieving information from database for a city, the result is cached in this map
     private final static Map<String, City> cities = new HashMap<>();
+
+    // cache itineraries to reduce the number of database queries
+    private final static Map<String, Itinerary> itineraries = new HashMap<>();
+
+    // cache PlaceCategory to reduce redundant calls to database used in their deserialization / construction
+    private final static Map<String, PlaceCategory> placeCategories = new HashMap<>();
 
     /* setLogger - This method should be changed when release application
      *             Sets the logger to print to console (instead of a file)
@@ -200,7 +211,7 @@ public class DatabaseManager {
      *
      *  @return          : a list with available cities
      */
-    static List<AvailableCity> getAvailableCities() {
+    private static List<AvailableCity> getAvailableCities() {
         // Query: SELECT * from Cities
         SelectResult result = Query.select(null, Constants.CITIES_TABLE_NAME, null);
         List<AvailableCity> availableCities;
@@ -239,6 +250,10 @@ public class DatabaseManager {
         LOGGER.log(Level.FINE, "New request to get available cities");
 
         List<AvailableCity> availableCities = getAvailableCities();
+        if (availableCities == null) {
+            return "[]";
+        }
+
         JSONArray response = new JSONArray();
 
         for (AvailableCity city : availableCities) {
@@ -372,5 +387,115 @@ public class DatabaseManager {
             result.close();
         }
         return matrix;
+    }
+
+    public static String generateHash(String text) {
+        return DigestUtils.md5Hex(text);
+    }
+
+    /* escape - Escape a string into database format
+     *
+     *  @return             : the escaped string
+     *  @string             : string to escape
+     */
+    public static String escape(String string) {
+        // escape one quote
+        string = string.replace("\'", "\\\'");
+        // remove double quotes
+        string = string.replace("\\\"", "");
+        return "\'" + string + "\'";
+
+    }
+
+    public static void savePlan(String cityName, List<List<Place>> plan) {
+        for (List<Place> places : plan) {
+            Itinerary itinerary = new Itinerary(cityName, places);
+            String itineraryId = itinerary.getId();
+
+            if (itineraries.containsKey(itineraryId)) {
+                LOGGER.log(Level.FINE, "Itinerary {0} already in cache.", itineraryId);
+                continue;
+            }
+
+            itineraries.put(itineraryId, itinerary);
+            Query.insert(Constants.CALCULATED_ITINERARIES_TABLE_NAME, itinerary.getValuesList());
+            LOGGER.log(Level.FINE, "Saved itinerary {0} in the database.", itineraryId);
+        }
+    }
+
+    public static PlaceCategory getPlaceCategory(String topic, String name) {
+        String placeCategoryLookupKey = topic + " - " + name;
+
+        if (placeCategories.containsKey(placeCategoryLookupKey)) {
+            return placeCategories.get(placeCategoryLookupKey);
+        }
+
+        SelectResult result = Query.select("SELECT * from "
+                                           + Constants.PLACES_CATEGORIES_TABLE_NAME
+                                           + " WHERE topic = \'" + topic + "\' and"
+                                           + " name = " + "\'" + name + "\';");
+        String id;
+        int duration, limit;
+
+        try {
+            ResultSet resultSet = result.getResultSet();
+            if (resultSet.next()) {
+                name = resultSet.getString("name");
+                id = resultSet.getString("id");
+                duration = resultSet.getInt("duration");
+                limit = resultSet.getInt("limit");
+
+                PlaceCategory placeCategory = new PlaceCategory(name, id, topic, duration, limit);
+                placeCategories.put(placeCategoryLookupKey, placeCategory);
+
+                return placeCategory;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return null;
+    }
+
+    public static boolean cacheItineraries(String cityName) {
+        LOGGER.log(Level.FINE, "New request to cache itineraries for {0} city ", cityName);
+
+        List<DatabasePredicate> predicates = new ArrayList<>();
+        predicates.add(new DatabasePredicate("city", "=", "\'" + cityName + "\'"));
+        SelectResult result = Query.select(null, Constants.CALCULATED_ITINERARIES_TABLE_NAME, predicates);
+
+        try {
+            String id;
+            LocalDateTime timestamp;
+            List<Place> places;
+            ItineraryStats stats;
+            ResultSet resultSet = result.getResultSet();
+
+            while (resultSet.next()) {
+                id = resultSet.getString("id");
+                timestamp = resultSet.getTimestamp("timestamp").toLocalDateTime();
+                places = Planner.deserializePlacesFromItinerary(new JSONArray(resultSet.getString("itinerary")));
+
+                if (places == null) {
+                    return false;
+                }
+
+                stats = ItineraryStats.deserialize(new JSONObject(resultSet.getString("stats")));
+
+                if (stats == null) {
+                    return false;
+                }
+
+                Itinerary itinerary = new Itinerary(id, cityName, timestamp, places, stats);
+                itineraries.put(id, itinerary);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            result.close();
+        }
+
+        return true;
     }
 }

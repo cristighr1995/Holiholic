@@ -1,6 +1,5 @@
 package com.holiholic.planner.database;
 
-import com.google.common.base.CharMatcher;
 import com.holiholic.database.api.DatabasePredicate;
 import com.holiholic.database.api.Query;
 import com.holiholic.database.api.SelectResult;
@@ -104,16 +103,6 @@ class UpdatePlacesAction extends UpdateAction {
         return categories;
     }
 
-    /* escape - Escape a string into database format
-     *
-     *  @return             : the escaped string
-     *  @string             : string to escape
-     */
-    private String escape(String string) {
-        string = CharMatcher.is('\'').replaceFrom(string, "\\\'");
-        return "\'" + string + "\'";
-    }
-
     /* getValuesList - Return a list of string values to insert into database INSERT query
      *
      *  @return             : list of values to insert
@@ -125,17 +114,17 @@ class UpdatePlacesAction extends UpdateAction {
 
         try {
             values.add("" + place.getInt("id"));
-            values.add(escape(cityName));
-            values.add(escape(place.getString("name")));
-            values.add(escape(place.getString("description")));
-            values.add(escape(place.getString("imageUrl")));
+            values.add(DatabaseManager.escape(cityName));
+            values.add(DatabaseManager.escape(place.getString("name")));
+            values.add(DatabaseManager.escape(place.getString("description")));
+            values.add(DatabaseManager.escape(place.getString("imageUrl")));
             values.add("" + place.getDouble("rating"));
-            values.add(escape(place.getJSONObject("category").getString("name")));
-            values.add(escape(place.getJSONObject("category").getString("topic")));
+            values.add(DatabaseManager.escape(place.getJSONObject("category").getString("name")));
+            values.add(DatabaseManager.escape(place.getJSONObject("category").getString("topic")));
             values.add("" + place.getInt("duration"));
             values.add("" + place.getDouble("latitude"));
             values.add("" + place.getDouble("longitude"));
-            values.add(escape(place.getJSONArray("timeFrames").toString()));
+            values.add(DatabaseManager.escape(place.getJSONArray("timeFrames").toString()));
         } catch (Exception e) {
             e.printStackTrace();
             return null;

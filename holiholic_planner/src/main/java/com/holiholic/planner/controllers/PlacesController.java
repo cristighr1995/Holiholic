@@ -30,6 +30,17 @@ public class PlacesController {
             return new ResponseEntity<>("[]", HttpStatus.BAD_REQUEST);
         }
     }
+
+    @RequestMapping(value = "/cacheItineraries", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Boolean> cacheItineraries(@RequestParam String cityName)  {
+        try {
+            return new ResponseEntity<>(DatabaseManager.cacheItineraries(cityName), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+        }
+    }
 }
 
 

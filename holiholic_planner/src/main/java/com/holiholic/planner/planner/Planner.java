@@ -3,6 +3,7 @@ package com.holiholic.planner.planner;
 import com.holiholic.planner.constant.Constants;
 import com.holiholic.planner.models.Place;
 import com.holiholic.planner.travel.City;
+import com.holiholic.planner.travel.ItineraryStats;
 import com.holiholic.planner.utils.*;
 import javafx.util.Pair;
 import org.json.JSONArray;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
  *           For each request (user) we need to create a new instance of the planner
  *
  */
-class Planner {
+public class Planner {
     private static final Logger LOGGER = Logger.getLogger(Planner.class.getName());
     // best plan starting from a place
     private Map<Integer, List<Place>> plans = new HashMap<>();
@@ -984,13 +985,13 @@ class Planner {
      *  @return         : statistics
      *  @itinerary      : the itinerary for the user
      */
-    private static JSONObject getStats(List<Place> itinerary) {
-        JSONObject result = new JSONObject();
-        result.put("distance", getTotalDistance(itinerary));
-        result.put("duration", getTotalDuration(itinerary));
-        result.put("averageRating", getAverageRating(itinerary));
-        result.put("size", itinerary.size());
-        return result;
+    public static ItineraryStats getStats(List<Place> itinerary) {
+        long distance = getTotalDistance(itinerary);
+        long duration = getTotalDuration(itinerary);
+        double averageRating = getAverageRating(itinerary);
+        int size = itinerary.size();
+
+        return new ItineraryStats(distance, duration, averageRating, size);
     }
 
     /* serialize - Serialize a list of itineraries into a json format
@@ -1004,7 +1005,7 @@ class Planner {
             JSONObject itineraryInfo = new JSONObject();
             JSONArray route = new JSONArray();
 
-            itineraryInfo.put("stats", getStats(itinerary));
+            itineraryInfo.put("stats", getStats(itinerary).serialize());
             for (Place place : itinerary) {
                 route.put(serialize(place));
             }
@@ -1019,17 +1020,13 @@ class Planner {
      *
      *  @return       : the serialized place
      */
-    private static JSONObject serialize(Place place) {
+    public static JSONObject serialize(Place place) {
         JSONObject response = new JSONObject();
         response.put("id", place.id);
         response.put("name", place.name);
         response.put("rating", place.rating);
         response.put("duration", place.durationVisit);
-        if (place.placeCategory == null) {
-            response.put("category", "starting_point");
-        } else {
-            response.put("category", place.placeCategory.getTopic());
-        }
+        response.put("category", place.placeCategory.serialize());
         response.put("travelMode", Enums.TravelMode.serialize(place.travelMode));
         response.put("durationToNext", place.durationToNext);
         response.put("distanceToNext", place.distanceToNext);
@@ -1044,5 +1041,26 @@ class Planner {
         response.put("waitTime", place.waitTime);
         response.put("visitInside", place.visitInside);
         return response;
+    }
+
+    public static List<Place> deserializePlacesFromItinerary(JSONArray serializedItinerary) {
+        List<Place> itinerary = new ArrayList<>();
+        try {
+            for (int i = 0; i < serializedItinerary.length(); i++) {
+                JSONObject serializedPlace = serializedItinerary.getJSONObject(i);
+                Place place = Place.deserializePlaceFromItinerary(serializedPlace);
+
+                if (place == null) {
+                    return null;
+                }
+
+                itinerary.add(place);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return itinerary;
     }
 }
