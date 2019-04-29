@@ -6,4 +6,6 @@ class Constants {
     final static String SEARCH_VENUES_URL = VENUES_URL + "search";
     final static String DISTANCE_MATRIX_URL = "https://maps.googleapis.com/maps/api/distancematrix/json";
     final static String API_KEY_EXPIRED = "The provided API key is expired.";
+
+    final static double ACCEPTED_LOW_RATING_THRESHOLD = 5.0;
 }
