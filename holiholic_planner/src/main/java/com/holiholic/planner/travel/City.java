@@ -14,35 +14,15 @@ import java.util.*;
  *
  */
 public class City {
-    private static City instance;
     private String name;
     private Map<Integer, Place> places;
     private Map<Enums.TravelMode, double[][]> distance;
     private Map<Enums.TravelMode, double[][]> duration;
 
-    private City(String name) {
+    public City(String name) {
         this.name = name;
         this.distance = new HashMap<>();
         this.duration = new HashMap<>();
-    }
-
-    /* getInstance - Get the instance for the city
-     *
-     *  @return         : the city instance
-     *  @cityName       : the city name
-     */
-    public static City getInstance(String cityName) {
-        if (instance == null) {
-            //synchronized block to remove overhead
-            synchronized (City.class) {
-                if(instance == null) {
-                    // if instance is null, initialize
-                    instance = new City(cityName);
-                }
-            }
-        }
-
-        return instance;
     }
 
     /* getName - Get the city name

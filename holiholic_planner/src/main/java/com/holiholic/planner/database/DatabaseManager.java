@@ -193,7 +193,7 @@ public class DatabaseManager {
 
             Map<Integer, Place> places = getPlaces(cityName);
 
-            City city = City.getInstance(cityName);
+            City city = new City(cityName);
             city.setPlaces(places);
             cities.put(cityName, city);
 
