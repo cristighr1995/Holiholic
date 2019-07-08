@@ -1,16 +1,13 @@
 package com.holiholic.feed.constant;
 
+import java.text.SimpleDateFormat;
+
 /* Constants - All constants will be declared here
  *
  */
 public class Constants {
-    public final static String GET_POSTS_URL = "http://localhost:8092/getPosts";
-    public final static String GET_POST_DETAILS_URL = "http://localhost:8092/getQuestionDetails";
-    public final static String GET_QUESTIONS_URL = "http://localhost:8092/getQuestions";
-    public final static String GET_QUESTION_DETAILS_URL = "http://localhost:8092/getQuestionDetails";
-    public final static String GET_GUIDES_URL = "http://localhost:8092/getGuides";
-    public final static String GET_GUIDE_DETAILS_URL = "http://localhost:8092/getGuideDetails";
-    public final static String GET_GUIDE_PROFILE_URL = "http://localhost:8092/getGuideProfile";
-    public final static String GET_GUIDE_PROFILE_POST_DETAILS_URL = "http://localhost:8092/getGuideProfilePostDetails";
-    public final static String UPDATE_FEED_URL = "http://localhost:8092/updateFeed";
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final String POSTS_TABLE_NAME = "holiholicdb.Posts";
+    public static final String TOPICS_TABLE_NAME = "holiholicdb.Topics";
+    public static final String QUESTIONS_TABLE_NAME = "holiholicdb.Questions";
 }
