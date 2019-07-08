@@ -99,6 +99,11 @@ public class City {
      *  @categories     : place categories
      */
     public Map<Integer, Place> getFilteredPlaces(Set<String> categories) {
+        if (categories.size() == 1) {
+            if (categories.iterator().next().equals("All")) {
+                return this.places;
+            }
+        }
         Map<Integer, Place> filteredPlaces = new HashMap<>();
 
         for (Map.Entry<Integer, Place> placeEntry : getPlaces().entrySet()) {
